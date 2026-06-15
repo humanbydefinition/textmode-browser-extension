@@ -1,0 +1,40 @@
+{
+	"name": "textmode-ascii-overlay-extension",
+	"version": "0.1.0",
+	"description": "Chrome MV3 extension for overlaying real-time textmode.js ASCII conversion on page canvas and video elements.",
+	"type": "module",
+	"private": true,
+	"engines": {
+		"node": ">=20.8.1"
+	},
+	"scripts": {
+		"build": "vite build",
+		"dev": "vite build --watch",
+		"test": "vitest run",
+		"test:watch": "vitest",
+		"typecheck": "tsc --noEmit",
+		"lint": "eslint .",
+		"format": "prettier --write .",
+		"check:format": "prettier --check .",
+		"check": "npm run check:format && npm run lint && npm run typecheck && npm run test && npm run build",
+		"e2e": "playwright test"
+	},
+	"dependencies": {
+		"textmode.js": "0.16.0"
+	},
+	"devDependencies": {
+		"@playwright/test": "^1.57.0",
+		"@types/chrome": "^0.1.34",
+		"@types/node": "^24.0.13",
+		"@typescript-eslint/eslint-plugin": "^8.59.2",
+		"@typescript-eslint/parser": "^8.59.2",
+		"eslint": "^9.39.2",
+		"globals": "^17.5.0",
+		"jsdom": "^27.4.0",
+		"prettier": "^3.8.3",
+		"typescript": "^5.9.2",
+		"typescript-eslint": "^8.59.2",
+		"vite": "^8.0.16",
+		"vitest": "^4.1.9"
+	}
+}

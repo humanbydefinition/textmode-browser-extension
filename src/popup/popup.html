@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>textmode.js ASCII Overlay</title>
+		<script type="module" src="./popup.ts"></script>
+	</head>
+	<body>
+		<main class="popup">
+			<header class="popup__header">
+				<div>
+					<h1>ASCII Overlay</h1>
+					<p id="status">Select a canvas or video to start.</p>
+				</div>
+			</header>
+			<section class="popup__actions popup__actions--primary" aria-label="Actions">
+				<button id="pick" type="button">Select Media</button>
+			</section>
+			<section id="overlays" class="overlay-list" aria-live="polite"></section>
+		</main>
+	</body>
+</html>

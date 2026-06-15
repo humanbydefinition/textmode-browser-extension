@@ -241,17 +241,17 @@ summary {
 	display: grid;
 	gap: 8px;
 	min-width: 0;
-	border-top: 1px solid var(--tm-neutral-26);
-	padding-top: 10px;
 	background: var(--tm-neutral-09);
 }
 
 .tm-built-with {
 	margin: 0;
+	border-top: 1px solid var(--tm-neutral-26);
 	color: var(--tm-neutral-73);
 	font-size: 10px;
 	font-weight: 700;
 	line-height: 1.3;
+	padding-top: 8px;
 	text-align: right;
 	text-transform: lowercase;
 }

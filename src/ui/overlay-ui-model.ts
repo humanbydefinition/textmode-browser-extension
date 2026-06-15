@@ -12,5 +12,5 @@ export function formatPixels(value: number): string {
 }
 
 export function labelFromValue(value: string): string {
-	return value.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/^\w/, (letter) => letter.toUpperCase());
+	return value.replace(/([a-z])([A-Z])/g, '$1 $2').toLowerCase();
 }

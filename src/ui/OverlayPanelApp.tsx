@@ -35,10 +35,10 @@ export function OverlayPanelApp({
 						rel="noreferrer"
 					>
 						<HeartHandshake aria-hidden="true" />
-						Support
+						support
 					</a>
 					{onClose ? (
-						<Button variant="ghost" size="icon" aria-label="Close panel" onClick={onClose}>
+						<Button variant="ghost" size="icon" aria-label="close panel" onClick={onClose}>
 							<X aria-hidden="true" />
 						</Button>
 					) : null}
@@ -47,14 +47,14 @@ export function OverlayPanelApp({
 
 			<Button className="tm-select-button" onClick={onStartPicking}>
 				<MousePointer2 aria-hidden="true" />
-				{overlay ? 'Replace Media' : 'Select Media'}
+				{overlay ? 'replace media' : 'select media'}
 			</Button>
 
 			<section className="tm-overlay-list" aria-live="polite">
 				{overlay ? (
 					<OverlayCard overlay={overlay} onUpdateOverlay={onUpdateOverlay} />
 				) : (
-					<p className="tm-empty-state">No media selected.</p>
+					<p className="tm-empty-state">no media selected.</p>
 				)}
 			</section>
 
@@ -70,7 +70,7 @@ export function OverlayPanelApp({
 					}}
 				>
 					<Trash2 aria-hidden="true" />
-					Remove overlay
+					remove overlay
 				</Button>
 				<p className="tm-built-with">
 					built with{' '}

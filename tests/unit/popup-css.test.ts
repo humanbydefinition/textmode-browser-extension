@@ -30,6 +30,7 @@ describe('popup layout CSS', () => {
 		expect(popupCss).toContain('.tm-panel__footer');
 		expect(popupCss).toContain('.tm-built-with a');
 		expect(popupCss).toContain('text-align: right');
+		expect(popupCss).toContain('.tm-built-with {\n\tmargin: 0;\n\tborder-top: 1px solid var(--tm-neutral-26);');
 	});
 
 	it('styles support and dimensions controls', () => {

@@ -17,17 +17,17 @@ interface OverlaySettingsFormProps {
 export function OverlaySettingsForm({ settings, onChange }: OverlaySettingsFormProps): React.JSX.Element {
 	return (
 		<div className="tm-settings-form">
-			<section className="tm-control-group" aria-label="Quick overlay controls">
-				<ToggleField label="Overlay" checked={settings.enabled} onChange={(enabled) => onChange({ enabled })} />
+			<section className="tm-control-group" aria-label="quick overlay controls">
+				<ToggleField label="overlay" checked={settings.enabled} onChange={(enabled) => onChange({ enabled })} />
 				<RangeField
-					label="Opacity"
+					label="opacity"
 					value={settings.opacity}
 					limits={overlaySettingLimits.opacity}
 					format={formatPercent}
 					onChange={(opacity) => onChange({ opacity })}
 				/>
 				<RangeField
-					label="Font size"
+					label="font size"
 					value={settings.fontSize}
 					limits={overlaySettingLimits.fontSize}
 					format={formatPixels}
@@ -36,24 +36,24 @@ export function OverlaySettingsForm({ settings, onChange }: OverlaySettingsFormP
 			</section>
 
 			<details className="tm-advanced">
-				<summary>Advanced settings</summary>
+				<summary>advanced settings</summary>
 				<div className="tm-control-group tm-control-group--advanced">
-					<ToggleField label="Invert" checked={settings.invert} onChange={(invert) => onChange({ invert })} />
+					<ToggleField label="invert" checked={settings.invert} onChange={(invert) => onChange({ invert })} />
 					<ColorModeField
-						label="Characters"
+						label="characters"
 						mode={settings.charColorMode}
 						color={settings.charColor}
 						onModeChange={(charColorMode) => onChange({ charColorMode })}
 						onColorChange={(charColor) => onChange({ charColor })}
 					/>
 					<ColorModeField
-						label="Cells"
+						label="cells"
 						mode={settings.cellColorMode}
 						color={settings.cellColor}
 						onModeChange={(cellColorMode) => onChange({ cellColorMode })}
 						onColorChange={(cellColor) => onChange({ cellColor })}
 					/>
-					<SettingField label="Glyph ramp">
+					<SettingField label="glyph ramp">
 						<input
 							className="tm-input"
 							type="text"

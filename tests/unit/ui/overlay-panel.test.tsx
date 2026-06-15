@@ -35,7 +35,7 @@ describe('OverlayPanelApp', () => {
 			);
 		});
 
-		expect(host.textContent).toContain('No media selected.');
+		expect(host.textContent).toContain('no media selected.');
 		expect(host.querySelector<HTMLButtonElement>('.tm-remove-button')?.disabled).toBe(true);
 		expect(host.querySelector<HTMLAnchorElement>('.tm-built-with a')?.href).toBe('https://code.textmode.art/');
 		expect(host.querySelector<HTMLAnchorElement>('.tm-support-link')?.href).toBe(
@@ -61,7 +61,7 @@ describe('OverlayPanelApp', () => {
 			);
 		});
 
-		for (const label of ['Overlay', 'Opacity', 'Font size', 'Invert', 'Characters', 'Cells', 'Glyph ramp']) {
+		for (const label of ['overlay', 'opacity', 'font size', 'invert', 'characters', 'cells', 'glyph ramp']) {
 			expect(host.textContent).toContain(label);
 		}
 		expect(host.querySelector('.tm-dimensions')?.textContent).toBe('320x180');

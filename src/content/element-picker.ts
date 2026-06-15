@@ -14,6 +14,7 @@ export interface ElementPickerOptions {
 }
 
 const PICKER_CLASS = 'textmode-ascii-overlay-picker';
+const PICKER_HIGHLIGHT_Z_INDEX = '2147483645';
 
 export class ElementPicker {
 	private readonly highlight = document.createElement('div');
@@ -24,7 +25,7 @@ export class ElementPicker {
 		this.highlight.className = PICKER_CLASS;
 		Object.assign(this.highlight.style, {
 			position: 'fixed',
-			zIndex: '2147483647',
+			zIndex: PICKER_HIGHLIGHT_Z_INDEX,
 			pointerEvents: 'none',
 			border: '2px solid #38bdf8',
 			borderRadius: '4px',

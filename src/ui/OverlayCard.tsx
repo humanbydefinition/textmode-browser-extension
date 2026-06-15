@@ -9,7 +9,7 @@ interface OverlayCardProps {
 }
 
 export function OverlayCard({ overlay, onUpdateOverlay }: OverlayCardProps): React.JSX.Element {
-	const title = overlay.elementKind === 'video' ? 'Video selected' : 'Canvas selected';
+	const title = overlay.elementKind === 'video' ? 'video selected' : 'canvas selected';
 	const elementName = getElementName(overlay.elementLabel);
 	const dimensions = `${overlay.bounds.width}x${overlay.bounds.height}`;
 

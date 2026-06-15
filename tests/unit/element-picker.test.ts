@@ -43,6 +43,7 @@ describe('element-picker', () => {
 		expect(highlight).not.toBeNull();
 		expect(highlight?.dataset.textmodeAsciiExtensionUi).toBeUndefined();
 		expect(document.documentElement.style.cursor).toBe('crosshair');
+		expect(highlight?.style.zIndex).toBe('2147483645');
 
 		picker.stop(false);
 

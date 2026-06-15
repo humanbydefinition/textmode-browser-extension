@@ -11,14 +11,15 @@ describe('ControlPanel', () => {
 	});
 
 	it('mounts once in Shadow DOM and does not portal UI into the page', () => {
-		const panel = new ControlPanel({
-			onStartPicking: vi.fn(),
-			onUpdateOverlay: vi.fn(),
-			onRemoveOverlay: vi.fn(),
-			onClose: vi.fn(),
-		});
+		let panel!: ControlPanel;
 
 		act(() => {
+			panel = new ControlPanel({
+				onStartPicking: vi.fn(),
+				onUpdateOverlay: vi.fn(),
+				onRemoveOverlay: vi.fn(),
+				onClose: vi.fn(),
+			});
 			panel.mount();
 			panel.updateState([
 				{
@@ -35,8 +36,8 @@ describe('ControlPanel', () => {
 		const host = document.querySelector<HTMLElement>('#textmode-ascii-overlay-control-panel-root');
 		expect(host).not.toBeNull();
 		expect(host?.dataset.textmodeAsciiExtensionUi).toBe('true');
-		expect(host?.shadowRoot?.textContent).toContain('Video selected');
-		expect(document.body.textContent).not.toContain('Video selected');
+		expect(host?.shadowRoot?.textContent).toContain('video selected');
+		expect(document.body.textContent).not.toContain('video selected');
 
 		act(() => panel.unmount());
 		expect(document.querySelector('#textmode-ascii-overlay-control-panel-root')).toBeNull();

@@ -76,7 +76,6 @@ class PageRuntime {
 		} catch (error) {
 			const messageText = toUserMessage(error);
 			broadcastError(messageText);
-			this.controlPanel?.setStatus(messageText);
 			return { ok: false, error: messageText, overlays: this.manager.list() };
 		}
 	}
@@ -117,12 +116,10 @@ class PageRuntime {
 			},
 			onCancel: () => {
 				this.picker = undefined;
-				this.controlPanel?.setStatus('Selection cancelled.');
 				void chrome.runtime.sendMessage({ type: 'PICKING_CANCELLED' });
 			},
 		});
 		this.picker.start();
-		this.controlPanel?.setStatus('Click a canvas or video. Press Escape to cancel.');
 		void chrome.runtime.sendMessage({ type: 'PICKING_STARTED' });
 	}
 
@@ -132,7 +129,6 @@ class PageRuntime {
 		} catch (error) {
 			const message = toUserMessage(error);
 			broadcastError(message);
-			this.controlPanel?.setStatus(message);
 			this.sync();
 		}
 	}

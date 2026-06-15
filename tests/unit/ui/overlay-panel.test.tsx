@@ -27,7 +27,6 @@ describe('OverlayPanelApp', () => {
 		act(() => {
 			root.render(
 				<OverlayPanelApp
-					status="Select a canvas or video to start."
 					overlays={[]}
 					onStartPicking={onStartPicking}
 					onUpdateOverlay={vi.fn()}
@@ -48,7 +47,6 @@ describe('OverlayPanelApp', () => {
 		act(() => {
 			root.render(
 				<OverlayPanelApp
-					status="Overlay active."
 					overlays={[overlay]}
 					onStartPicking={vi.fn()}
 					onUpdateOverlay={onUpdateOverlay}
@@ -61,14 +59,9 @@ describe('OverlayPanelApp', () => {
 			'Overlay',
 			'Opacity',
 			'Font size',
-			'Hide original',
-			'FPS',
-			'Mode',
 			'Invert',
 			'Characters',
 			'Cells',
-			'Brightness min',
-			'Brightness max',
 			'Glyph ramp',
 		]) {
 			expect(host.textContent).toContain(label);

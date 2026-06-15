@@ -1,10 +1,10 @@
 export const chromeManifest: chrome.runtime.ManifestV3 = {
 	manifest_version: 3,
-	name: 'textmode.js ASCII Overlay',
+	name: 'textmode',
 	version: '0.1.0',
 	description: 'Select canvas and video elements on a page and convert them to real-time textmode ASCII overlays.',
 	action: {
-		default_title: 'textmode.js ASCII Overlay',
+		default_title: 'textmode',
 	},
 	permissions: ['activeTab', 'scripting', 'storage'],
 	background: {

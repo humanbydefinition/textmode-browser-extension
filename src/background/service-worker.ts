@@ -2,7 +2,7 @@ import { injectContentRuntime, sendMessageToTab } from '../shared/browser-api';
 import type { RuntimeAck } from '../shared/messages';
 
 chrome.runtime.onInstalled.addListener(() => {
-	console.info('textmode.js ASCII Overlay installed.');
+	console.info('textmode installed.');
 });
 
 chrome.action.onClicked.addListener(async (tab) => {
@@ -11,7 +11,7 @@ chrome.action.onClicked.addListener(async (tab) => {
 		await ensureContentRuntime(tab.id);
 		await sendMessageToTab(tab.id, { type: 'TOGGLE_OVERLAY' });
 	} catch (error) {
-		console.error('Failed to toggle textmode.js overlay:', error);
+		console.error('Failed to toggle textmode overlay:', error);
 	}
 });
 

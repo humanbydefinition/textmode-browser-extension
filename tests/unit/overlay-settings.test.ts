@@ -6,28 +6,20 @@ describe('mergeOverlaySettings', () => {
 		const settings = mergeOverlaySettings(DEFAULT_OVERLAY_SETTINGS, {
 			fontSize: 12,
 			glyphRamp: 'abc',
-			hideOriginal: true,
 		});
 
 		expect(settings.fontSize).toBe(12);
 		expect(settings.glyphRamp).toBe('abc');
-		expect(settings.hideOriginal).toBe(true);
 	});
 
 	it('clamps numeric values into supported ranges', () => {
 		const settings = mergeOverlaySettings(DEFAULT_OVERLAY_SETTINGS, {
 			opacity: 99,
 			fontSize: 1,
-			frameRate: 120,
-			brightnessStart: -20,
-			brightnessEnd: 999,
 		});
 
 		expect(settings.opacity).toBe(1);
 		expect(settings.fontSize).toBe(8);
-		expect(settings.frameRate).toBe(60);
-		expect(settings.brightnessStart).toBe(0);
-		expect(settings.brightnessEnd).toBe(255);
 	});
 
 	it('repairs invalid glyph ramps and colors', () => {

@@ -5,7 +5,6 @@ import { Button } from './components/Button';
 import { OverlayCard } from './OverlayCard';
 
 export interface OverlayPanelAppProps {
-	status: string;
 	overlays: OverlayDescriptor[];
 	onStartPicking: () => void;
 	onUpdateOverlay: (id: string, settings: Partial<OverlaySettings>) => void;
@@ -14,7 +13,6 @@ export interface OverlayPanelAppProps {
 }
 
 export function OverlayPanelApp({
-	status,
 	overlays,
 	onStartPicking,
 	onUpdateOverlay,
@@ -27,11 +25,7 @@ export function OverlayPanelApp({
 		<main className="tm-panel" data-testid="overlay-panel">
 			<header className="tm-panel__header">
 				<div className="tm-panel__title">
-					<p>textmode.js</p>
-					<h1>ASCII Overlay</h1>
-					<span role="status" aria-live="polite">
-						{status}
-					</span>
+					<h1>textmode</h1>
 				</div>
 				{onClose ? (
 					<Button variant="ghost" size="icon" aria-label="Close panel" onClick={onClose}>

@@ -1,9 +1,6 @@
 import * as React from 'react';
 import type { OverlaySettings } from '../shared/overlay-settings';
 import {
-	conversionModeOptions,
-	formatBrightness,
-	formatFps,
 	formatPercent,
 	formatPixels,
 	labelFromValue,
@@ -41,24 +38,6 @@ export function OverlaySettingsForm({ settings, onChange }: OverlaySettingsFormP
 			<details className="tm-advanced">
 				<summary>Advanced settings</summary>
 				<div className="tm-control-group tm-control-group--advanced">
-					<ToggleField
-						label="Hide original"
-						checked={settings.hideOriginal}
-						onChange={(hideOriginal) => onChange({ hideOriginal })}
-					/>
-					<NumberField
-						label="FPS"
-						value={settings.frameRate}
-						limits={overlaySettingLimits.frameRate}
-						format={formatFps}
-						onChange={(frameRate) => onChange({ frameRate })}
-					/>
-					<SelectField
-						label="Mode"
-						value={settings.conversionMode}
-						options={conversionModeOptions}
-						onChange={(conversionMode) => onChange({ conversionMode })}
-					/>
 					<ToggleField label="Invert" checked={settings.invert} onChange={(invert) => onChange({ invert })} />
 					<ColorModeField
 						label="Characters"
@@ -73,20 +52,6 @@ export function OverlaySettingsForm({ settings, onChange }: OverlaySettingsFormP
 						color={settings.cellColor}
 						onModeChange={(cellColorMode) => onChange({ cellColorMode })}
 						onColorChange={(cellColor) => onChange({ cellColor })}
-					/>
-					<NumberField
-						label="Brightness min"
-						value={settings.brightnessStart}
-						limits={overlaySettingLimits.brightness}
-						format={formatBrightness}
-						onChange={(brightnessStart) => onChange({ brightnessStart })}
-					/>
-					<NumberField
-						label="Brightness max"
-						value={settings.brightnessEnd}
-						limits={overlaySettingLimits.brightness}
-						format={formatBrightness}
-						onChange={(brightnessEnd) => onChange({ brightnessEnd })}
 					/>
 					<SettingField label="Glyph ramp">
 						<input
@@ -128,43 +93,6 @@ function RangeField({ label, value, limits, format, onChange }: RangeFieldProps)
 				value={value}
 				onChange={(event) => onChange(Number(event.currentTarget.value))}
 			/>
-		</SettingField>
-	);
-}
-
-function NumberField({ label, value, limits, format, onChange }: RangeFieldProps): React.JSX.Element {
-	return (
-		<SettingField label={label} value={format(value)}>
-			<input
-				className="tm-input"
-				type="number"
-				min={limits.min}
-				max={limits.max}
-				step={limits.step}
-				value={value}
-				onChange={(event) => onChange(Number(event.currentTarget.value))}
-			/>
-		</SettingField>
-	);
-}
-
-interface SelectFieldProps<T extends string> {
-	label: string;
-	value: T;
-	options: readonly T[];
-	onChange: (value: T) => void;
-}
-
-function SelectField<T extends string>({ label, value, options, onChange }: SelectFieldProps<T>): React.JSX.Element {
-	return (
-		<SettingField label={label}>
-			<select className="tm-select" value={value} onChange={(event) => onChange(event.currentTarget.value as T)}>
-				{options.map((option) => (
-					<option key={option} value={option}>
-						{labelFromValue(option)}
-					</option>
-				))}
-			</select>
 		</SettingField>
 	);
 }

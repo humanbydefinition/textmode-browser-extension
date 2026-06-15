@@ -18,7 +18,6 @@ export class ControlPanel {
 	private readonly mountPoint: HTMLDivElement;
 	private readonly reactRoot: Root;
 	private overlays: OverlayDescriptor[] = [];
-	private status = 'Select a canvas or video to start.';
 
 	public constructor(private readonly options: ControlPanelOptions) {
 		this.container = document.createElement('div');
@@ -26,8 +25,8 @@ export class ControlPanel {
 		this.container.dataset.textmodeAsciiExtensionUi = 'true';
 		Object.assign(this.container.style, {
 			position: 'fixed',
-			top: '30px',
-			right: '20px',
+			top: '10px',
+			right: '10px',
 			zIndex: '2147483646',
 			width: '340px',
 			maxWidth: 'calc(100vw - 32px)',
@@ -73,21 +72,14 @@ export class ControlPanel {
 		this.container.remove();
 	}
 
-	public setStatus(message: string): void {
-		this.status = message;
-		this.render();
-	}
-
 	public updateState(overlays: OverlayDescriptor[]): void {
 		this.overlays = overlays;
-		this.status = overlays.length > 0 ? 'Overlay active.' : 'No media selected.';
 		this.render();
 	}
 
 	private render(): void {
 		this.reactRoot.render(
 			<OverlayPanelApp
-				status={this.status}
 				overlays={this.overlays}
 				onStartPicking={this.options.onStartPicking}
 				onUpdateOverlay={this.options.onUpdateOverlay}

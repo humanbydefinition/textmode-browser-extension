@@ -57,7 +57,6 @@ export class OverlayManager {
 				overlay: true,
 				pixelDensity: 1,
 				fontSize: settings.fontSize,
-				frameRate: settings.frameRate,
 				loadingScreen: { transition: 'none' },
 			});
 			controller.instance = instance;
@@ -146,7 +145,7 @@ export class OverlayManager {
 
 	private applyControllerSettings(controller: OverlayController): void {
 		const { instance, settings } = controller;
-		controller.element.style.opacity = settings.hideOriginal ? '0' : controller.previousInlineOpacity;
+		controller.element.style.opacity = controller.previousInlineOpacity;
 
 		if (!instance) return;
 		instance.canvas.style.opacity = String(settings.opacity);
@@ -176,9 +175,7 @@ export class OverlayManager {
 		const { settings } = controller;
 		source
 			.characters(settings.glyphRamp)
-			.conversionMode(settings.conversionMode)
 			.invert(settings.invert)
-			.brightnessRange(settings.brightnessStart, settings.brightnessEnd)
 			.charColorMode(settings.charColorMode)
 			.charColor(settings.charColor)
 			.cellColorMode(settings.cellColorMode)

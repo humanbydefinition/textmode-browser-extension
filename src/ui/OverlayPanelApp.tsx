@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { MousePointer2, X } from 'lucide-react';
+import { HeartHandshake, MousePointer2, Trash2, X } from 'lucide-react';
 import type { OverlayDescriptor, OverlaySettings } from '../shared/overlay-settings';
 import { Button } from './components/Button';
 import { OverlayCard } from './OverlayCard';
@@ -27,11 +27,22 @@ export function OverlayPanelApp({
 				<div className="tm-panel__title">
 					<h1>textmode</h1>
 				</div>
-				{onClose ? (
-					<Button variant="ghost" size="icon" aria-label="Close panel" onClick={onClose}>
-						<X aria-hidden="true" />
-					</Button>
-				) : null}
+				<div className="tm-panel__actions">
+					<a
+						className="tm-button tm-button--ghost tm-support-link"
+						href="https://code.textmode.art/docs/support"
+						target="_blank"
+						rel="noreferrer"
+					>
+						<HeartHandshake aria-hidden="true" />
+						Support
+					</a>
+					{onClose ? (
+						<Button variant="ghost" size="icon" aria-label="Close panel" onClick={onClose}>
+							<X aria-hidden="true" />
+						</Button>
+					) : null}
+				</div>
 			</header>
 
 			<Button className="tm-select-button" onClick={onStartPicking}>
@@ -41,15 +52,33 @@ export function OverlayPanelApp({
 
 			<section className="tm-overlay-list" aria-live="polite">
 				{overlay ? (
-					<OverlayCard
-						overlay={overlay}
-						onUpdateOverlay={onUpdateOverlay}
-						onRemoveOverlay={onRemoveOverlay}
-					/>
+					<OverlayCard overlay={overlay} onUpdateOverlay={onUpdateOverlay} />
 				) : (
 					<p className="tm-empty-state">No media selected.</p>
 				)}
 			</section>
+
+			<footer className="tm-panel__footer">
+				<Button
+					variant="danger"
+					className="tm-remove-button"
+					disabled={!overlay}
+					onClick={() => {
+						if (overlay) {
+							onRemoveOverlay(overlay.id);
+						}
+					}}
+				>
+					<Trash2 aria-hidden="true" />
+					Remove overlay
+				</Button>
+				<p className="tm-built-with">
+					built with{' '}
+					<a href="https://code.textmode.art" target="_blank" rel="noreferrer">
+						textmode.js
+					</a>
+				</p>
+			</footer>
 		</main>
 	);
 }

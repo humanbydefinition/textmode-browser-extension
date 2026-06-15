@@ -10,16 +10,32 @@ describe('popup layout CSS', () => {
 		expect(popupCss).toContain('grid-template-columns: minmax(0, 1fr) 42px');
 		expect(popupCss).toContain('.tm-slider::-webkit-slider-runnable-track');
 		expect(popupCss).toContain('max-width: var(--tm-panel-width)');
+		expect(popupCss).toContain('grid-template-rows: auto auto minmax(0, 1fr) auto');
 	});
 
 	it('keeps long selected-media labels inside the card', () => {
-		expect(popupCss).toContain('overflow-wrap: anywhere');
-		expect(popupCss).toContain('-webkit-line-clamp: 2');
+		expect(popupCss).toContain('text-overflow: ellipsis');
+		expect(popupCss).toContain('white-space: nowrap');
+		expect(popupCss).not.toContain('-webkit-line-clamp: 2');
 	});
 
 	it('uses textmode art neutral tokens instead of the old slate palette', () => {
 		expect(popupCss).toContain('--tm-neutral-09: #090909');
 		expect(popupCss).toContain('--tm-accent-blue: #29adff');
 		expect(popupCss).not.toContain('#0b1020');
+	});
+
+	it('keeps the header centered and footer outside the scroll area', () => {
+		expect(popupCss).toContain('align-items: center');
+		expect(popupCss).toContain('.tm-panel__footer');
+		expect(popupCss).toContain('.tm-built-with a');
+		expect(popupCss).toContain('text-align: right');
+	});
+
+	it('styles support and dimensions controls', () => {
+		expect(popupCss).toContain('.tm-panel__actions');
+		expect(popupCss).toContain('.tm-support-link');
+		expect(popupCss).toContain('.tm-dimensions');
+		expect(popupCss).not.toContain('.tm-status--active');
 	});
 });

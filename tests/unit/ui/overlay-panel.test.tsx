@@ -36,12 +36,18 @@ describe('OverlayPanelApp', () => {
 		});
 
 		expect(host.textContent).toContain('No media selected.');
+		expect(host.querySelector<HTMLButtonElement>('.tm-remove-button')?.disabled).toBe(true);
+		expect(host.querySelector<HTMLAnchorElement>('.tm-built-with a')?.href).toBe('https://code.textmode.art/');
+		expect(host.querySelector<HTMLAnchorElement>('.tm-support-link')?.href).toBe(
+			'https://code.textmode.art/docs/support'
+		);
 		host.querySelector<HTMLButtonElement>('.tm-select-button')?.click();
 		expect(onStartPicking).toHaveBeenCalledTimes(1);
 	});
 
 	it('renders every existing overlay setting and emits setting patches', () => {
 		const onUpdateOverlay = vi.fn();
+		const onRemoveOverlay = vi.fn();
 		const overlay = createOverlay();
 
 		act(() => {
@@ -50,22 +56,19 @@ describe('OverlayPanelApp', () => {
 					overlays={[overlay]}
 					onStartPicking={vi.fn()}
 					onUpdateOverlay={onUpdateOverlay}
-					onRemoveOverlay={vi.fn()}
+					onRemoveOverlay={onRemoveOverlay}
 				/>
 			);
 		});
 
-		for (const label of [
-			'Overlay',
-			'Opacity',
-			'Font size',
-			'Invert',
-			'Characters',
-			'Cells',
-			'Glyph ramp',
-		]) {
+		for (const label of ['Overlay', 'Opacity', 'Font size', 'Invert', 'Characters', 'Cells', 'Glyph ramp']) {
 			expect(host.textContent).toContain(label);
 		}
+		expect(host.querySelector('.tm-dimensions')?.textContent).toBe('320x180');
+		expect(host.querySelector('.tm-overlay-card__title p')?.textContent).toBe(
+			'canvas#demo-canvas.really-long-class'
+		);
+		expect(host.querySelector('.tm-status')).toBeNull();
 
 		const overlayToggle = host.querySelector<HTMLInputElement>('input[type="checkbox"]');
 		expect(overlayToggle).not.toBeNull();
@@ -74,6 +77,14 @@ describe('OverlayPanelApp', () => {
 		});
 
 		expect(onUpdateOverlay).toHaveBeenCalledWith('overlay-1', { enabled: false });
+
+		const removeButton = host.querySelector<HTMLButtonElement>('.tm-panel__footer .tm-remove-button');
+		expect(removeButton?.disabled).toBe(false);
+		expect(host.querySelector('.tm-overlay-card .tm-remove-button')).toBeNull();
+		act(() => {
+			removeButton?.click();
+		});
+		expect(onRemoveOverlay).toHaveBeenCalledWith('overlay-1');
 	});
 });
 

@@ -57,10 +57,13 @@ summary {
 
 .tm-panel {
 	display: grid;
+	grid-template-rows: auto auto minmax(0, 1fr) auto;
 	gap: 12px;
 	width: var(--tm-panel-width);
 	max-width: var(--tm-panel-width);
+	max-height: min(640px, calc(100vh - 60px));
 	min-width: 0;
+	min-height: 0;
 	padding: 12px;
 	background: var(--tm-neutral-09);
 	color: var(--tm-neutral-fa);
@@ -72,13 +75,15 @@ summary {
 		Consolas,
 		'Liberation Mono',
 		monospace;
+	overflow: hidden;
 }
 
 .tm-panel__header {
 	display: flex;
-	align-items: flex-start;
+	align-items: center;
 	justify-content: space-between;
 	gap: 10px;
+	min-height: 32px;
 	min-width: 0;
 }
 
@@ -86,6 +91,7 @@ summary {
 	display: grid;
 	gap: 2px;
 	min-width: 0;
+	align-items: center;
 }
 
 .tm-panel__title p,
@@ -105,7 +111,22 @@ summary {
 .tm-panel__title h1 {
 	color: var(--tm-neutral-fa);
 	font-size: 17px;
-	line-height: 1.12;
+	line-height: 1;
+}
+
+.tm-panel__actions {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	flex: 0 0 auto;
+}
+
+.tm-support-link {
+	min-height: 28px;
+	padding: 0 8px;
+	font-size: 10px;
+	text-decoration: none;
+	text-transform: uppercase;
 }
 
 .tm-panel__title span,
@@ -207,12 +228,43 @@ summary {
 
 .tm-overlay-list {
 	display: grid;
+	align-content: start;
 	gap: 10px;
-	max-height: 510px;
+	min-height: 0;
 	min-width: 0;
 	overflow-x: hidden;
 	overflow-y: auto;
 	overscroll-behavior: contain;
+}
+
+.tm-panel__footer {
+	display: grid;
+	gap: 8px;
+	min-width: 0;
+	border-top: 1px solid var(--tm-neutral-26);
+	padding-top: 10px;
+	background: var(--tm-neutral-09);
+}
+
+.tm-built-with {
+	margin: 0;
+	color: var(--tm-neutral-73);
+	font-size: 10px;
+	font-weight: 700;
+	line-height: 1.3;
+	text-align: right;
+	text-transform: lowercase;
+}
+
+.tm-built-with a {
+	color: var(--tm-neutral-d4);
+	text-decoration: none;
+}
+
+.tm-built-with a:hover {
+	color: var(--tm-neutral-fa);
+	text-decoration: underline;
+	text-underline-offset: 2px;
 }
 
 .tm-empty-state {
@@ -254,14 +306,11 @@ summary {
 }
 
 .tm-overlay-card__title p {
-	display: -webkit-box;
 	max-width: 100%;
 	margin: 4px 0 0;
 	overflow: hidden;
-	overflow-wrap: anywhere;
 	text-overflow: ellipsis;
-	-webkit-box-orient: vertical;
-	-webkit-line-clamp: 2;
+	white-space: nowrap;
 }
 
 .tm-badge {
@@ -280,26 +329,13 @@ summary {
 	height: 11px;
 }
 
-.tm-status {
+.tm-dimensions {
 	flex: 0 0 auto;
+	border-color: color-mix(in srgb, var(--tm-accent-blue) 42%, var(--tm-neutral-26));
+	color: var(--tm-neutral-d4);
 	font-size: 10px;
 	font-weight: 800;
 	text-transform: uppercase;
-}
-
-.tm-status--active {
-	border-color: color-mix(in srgb, var(--tm-accent-green) 48%, var(--tm-neutral-26));
-	color: var(--tm-accent-green);
-}
-
-.tm-status--paused {
-	border-color: color-mix(in srgb, var(--tm-accent-yellow) 48%, var(--tm-neutral-26));
-	color: var(--tm-accent-yellow);
-}
-
-.tm-status--error {
-	border-color: color-mix(in srgb, var(--tm-danger) 54%, var(--tm-neutral-26));
-	color: var(--tm-danger);
 }
 
 .tm-settings-form,

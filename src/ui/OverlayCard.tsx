@@ -1,27 +1,26 @@
 import * as React from 'react';
-import { Trash2 } from 'lucide-react';
 import type { OverlayDescriptor, OverlaySettings } from '../shared/overlay-settings';
-import { Button } from './components/Button';
+import { Badge } from './components/Badge';
 import { OverlaySettingsForm } from './OverlaySettingsForm';
-import { StatusBadge } from './StatusBadge';
 
 interface OverlayCardProps {
 	overlay: OverlayDescriptor;
 	onUpdateOverlay: (id: string, settings: Partial<OverlaySettings>) => void;
-	onRemoveOverlay: (id: string) => void;
 }
 
-export function OverlayCard({ overlay, onUpdateOverlay, onRemoveOverlay }: OverlayCardProps): React.JSX.Element {
+export function OverlayCard({ overlay, onUpdateOverlay }: OverlayCardProps): React.JSX.Element {
 	const title = overlay.elementKind === 'video' ? 'Video selected' : 'Canvas selected';
+	const elementName = getElementName(overlay.elementLabel);
+	const dimensions = `${overlay.bounds.width}x${overlay.bounds.height}`;
 
 	return (
 		<article className="tm-overlay-card">
 			<header className="tm-overlay-card__header">
 				<div className="tm-overlay-card__title">
 					<h2>{title}</h2>
-					<p title={overlay.elementLabel}>{overlay.elementLabel}</p>
+					<p title={elementName}>{elementName}</p>
 				</div>
-				<StatusBadge status={overlay.status} />
+				<Badge className="tm-dimensions">{dimensions}</Badge>
 			</header>
 
 			<OverlaySettingsForm
@@ -34,11 +33,10 @@ export function OverlayCard({ overlay, onUpdateOverlay, onRemoveOverlay }: Overl
 					{overlay.latestError}
 				</p>
 			) : null}
-
-			<Button variant="danger" className="tm-remove-button" onClick={() => onRemoveOverlay(overlay.id)}>
-				<Trash2 aria-hidden="true" />
-				Remove overlay
-			</Button>
 		</article>
 	);
+}
+
+function getElementName(elementLabel: string): string {
+	return elementLabel.replace(/\s+\d+x\d+$/i, '');
 }

@@ -61,7 +61,7 @@ export function mergeOverlaySettings(base: OverlaySettings, patch: Partial<Overl
 	};
 
 	next.opacity = clamp(next.opacity, 0, 1);
-	next.fontSize = Math.round(clamp(next.fontSize, 4, 48));
+	next.fontSize = Math.round(clamp(next.fontSize, 8, 64));
 	next.frameRate = Math.round(clamp(next.frameRate, 1, 60));
 	next.brightnessStart = Math.round(clamp(next.brightnessStart, 0, 255));
 	next.brightnessEnd = Math.round(clamp(next.brightnessEnd, 0, 255));

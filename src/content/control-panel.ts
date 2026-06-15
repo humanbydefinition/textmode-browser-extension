@@ -15,6 +15,23 @@ export class ControlPanel {
 	private readonly overlaysEl: HTMLElement;
 	private readonly pickButton: HTMLButtonElement;
 
+	private activeOverlayId?: string;
+
+	// UI references
+	private statusSpan?: HTMLSpanElement;
+	private enabledInput?: HTMLInputElement;
+	private opacityInput?: HTMLInputElement;
+	private opacityOutput?: HTMLOutputElement;
+	private fontSizeInput?: HTMLInputElement;
+	private fontSizeOutput?: HTMLOutputElement;
+	private hideOriginalInput?: HTMLInputElement;
+	private invertInput?: HTMLInputElement;
+	private charColorModeSelect?: HTMLSelectElement;
+	private charColorInput?: HTMLInputElement;
+	private cellColorModeSelect?: HTMLSelectElement;
+	private cellColorInput?: HTMLInputElement;
+	private glyphRampInput?: HTMLInputElement;
+
 	public constructor(private readonly options: ControlPanelOptions) {
 		this.container = document.createElement('div');
 		this.container.id = 'textmode-ascii-overlay-control-panel-root';
@@ -22,7 +39,7 @@ export class ControlPanel {
 		// Apply fixed floating positioning
 		Object.assign(this.container.style, {
 			position: 'fixed',
-			top: '10px', // placed slightly down
+			top: '30px', // placed slightly down
 			right: '20px',
 			zIndex: '2147483646',
 			width: '340px',
@@ -160,21 +177,94 @@ export class ControlPanel {
 	}
 
 	public updateState(overlays: OverlayDescriptor[]): void {
-		this.overlaysEl.replaceChildren();
 		const overlay = overlays[0];
-		this.pickButton.textContent = overlay ? 'Replace Media' : 'Select Media';
 
 		if (!overlay) {
+			this.activeOverlayId = undefined;
+			this.statusSpan = undefined;
+			this.enabledInput = undefined;
+			this.opacityInput = undefined;
+			this.opacityOutput = undefined;
+			this.fontSizeInput = undefined;
+			this.fontSizeOutput = undefined;
+			this.hideOriginalInput = undefined;
+			this.invertInput = undefined;
+			this.charColorModeSelect = undefined;
+			this.charColorInput = undefined;
+			this.cellColorModeSelect = undefined;
+			this.cellColorInput = undefined;
+			this.glyphRampInput = undefined;
+
+			this.overlaysEl.replaceChildren();
 			const empty = document.createElement('p');
 			empty.textContent = 'No media selected.';
 			empty.className = 'empty-state';
 			this.overlaysEl.appendChild(empty);
+			this.pickButton.textContent = 'Select Media';
 			this.setStatus('No media selected.');
 			return;
 		}
 
+		this.pickButton.textContent = 'Replace Media';
+
+		if (this.activeOverlayId !== overlay.id) {
+			this.activeOverlayId = overlay.id;
+			this.overlaysEl.replaceChildren();
+			this.overlaysEl.appendChild(this.createOverlayCard(overlay));
+		} else {
+			// Update status span
+			if (this.statusSpan) {
+				this.statusSpan.className = `overlay-card__status overlay-card__status--${overlay.status}`;
+				this.statusSpan.textContent = overlay.status;
+			}
+
+			// Update values in-place
+			if (this.enabledInput) {
+				this.updateCheckbox(this.enabledInput, overlay.settings.enabled);
+			}
+			if (this.opacityInput && this.opacityOutput) {
+				this.updateRange(this.opacityInput, this.opacityOutput, overlay.settings.opacity, this.formatPercent);
+			}
+			if (this.fontSizeInput && this.fontSizeOutput) {
+				this.updateRange(
+					this.fontSizeInput,
+					this.fontSizeOutput,
+					overlay.settings.fontSize,
+					(value) => `${value}px`
+				);
+			}
+			if (this.hideOriginalInput) {
+				this.updateCheckbox(this.hideOriginalInput, overlay.settings.hideOriginal);
+			}
+			if (this.invertInput) {
+				this.updateCheckbox(this.invertInput, overlay.settings.invert);
+			}
+			if (this.charColorModeSelect) {
+				this.updateSelect(this.charColorModeSelect, overlay.settings.charColorMode);
+			}
+			if (this.charColorInput) {
+				this.updateColorInput(
+					this.charColorInput,
+					overlay.settings.charColor,
+					overlay.settings.charColorMode === 'sampled'
+				);
+			}
+			if (this.cellColorModeSelect) {
+				this.updateSelect(this.cellColorModeSelect, overlay.settings.cellColorMode);
+			}
+			if (this.cellColorInput) {
+				this.updateColorInput(
+					this.cellColorInput,
+					overlay.settings.cellColor,
+					overlay.settings.cellColorMode === 'sampled'
+				);
+			}
+			if (this.glyphRampInput) {
+				this.updateTextInput(this.glyphRampInput, overlay.settings.glyphRamp);
+			}
+		}
+
 		this.setStatus('Overlay active.');
-		this.overlaysEl.appendChild(this.createOverlayCard(overlay));
 	}
 
 	private createOverlayCard(overlay: OverlayDescriptor): HTMLElement {
@@ -193,42 +283,48 @@ export class ControlPanel {
 		description.textContent = overlay.elementLabel;
 		title.appendChild(description);
 
-		const status = document.createElement('span');
-		status.className = `overlay-card__status overlay-card__status--${overlay.status}`;
-		status.textContent = overlay.status;
+		this.statusSpan = document.createElement('span');
+		this.statusSpan.className = `overlay-card__status overlay-card__status--${overlay.status}`;
+		this.statusSpan.textContent = overlay.status;
 		header.appendChild(title);
-		header.appendChild(status);
+		header.appendChild(this.statusSpan);
 		card.appendChild(header);
 
 		const quickControls = document.createElement('div');
 		quickControls.className = 'control-list';
-		quickControls.appendChild(
-			this.toggleField('Overlay', overlay.settings.enabled, (enabled) =>
-				this.options.onUpdateOverlay(overlay.id, { enabled })
-			)
+
+		const enabledField = this.toggleField('Overlay', overlay.settings.enabled, (enabled) =>
+			this.options.onUpdateOverlay(overlay.id, { enabled })
 		);
-		quickControls.appendChild(
-			this.sliderField(
-				'Opacity',
-				overlay.settings.opacity,
-				0,
-				1,
-				0.05,
-				(opacity) => this.options.onUpdateOverlay(overlay.id, { opacity }),
-				this.formatPercent
-			)
+		this.enabledInput = enabledField.querySelector('input') as HTMLInputElement;
+		quickControls.appendChild(enabledField);
+
+		const opacityField = this.sliderField(
+			'Opacity',
+			overlay.settings.opacity,
+			0,
+			1,
+			0.05,
+			(opacity) => this.options.onUpdateOverlay(overlay.id, { opacity }),
+			this.formatPercent
 		);
-		quickControls.appendChild(
-			this.sliderField(
-				'Font size',
-				overlay.settings.fontSize,
-				4,
-				48,
-				1,
-				(fontSize) => this.options.onUpdateOverlay(overlay.id, { fontSize }),
-				(value) => `${value}px`
-			)
+		this.opacityInput = opacityField.querySelector('input') as HTMLInputElement;
+		this.opacityOutput = opacityField.querySelector('output') as HTMLOutputElement;
+		quickControls.appendChild(opacityField);
+
+		const fontSizeField = this.sliderField(
+			'Font size',
+			overlay.settings.fontSize,
+			8,
+			64,
+			1,
+			(fontSize) => this.options.onUpdateOverlay(overlay.id, { fontSize }),
+			(value) => `${value}px`
 		);
+		this.fontSizeInput = fontSizeField.querySelector('input') as HTMLInputElement;
+		this.fontSizeOutput = fontSizeField.querySelector('output') as HTMLOutputElement;
+		quickControls.appendChild(fontSizeField);
+
 		card.appendChild(quickControls);
 
 		card.appendChild(this.createAdvancedControls(overlay));
@@ -261,39 +357,45 @@ export class ControlPanel {
 		const controls = document.createElement('div');
 		controls.className = 'control-list control-list--advanced';
 
-		controls.appendChild(
-			this.toggleField('Hide original', overlay.settings.hideOriginal, (hideOriginal) =>
-				this.options.onUpdateOverlay(overlay.id, { hideOriginal })
-			)
+		const hideOriginalField = this.toggleField('Hide original', overlay.settings.hideOriginal, (hideOriginal) =>
+			this.options.onUpdateOverlay(overlay.id, { hideOriginal })
 		);
-		controls.appendChild(
-			this.toggleField('Invert', overlay.settings.invert, (invert) =>
-				this.options.onUpdateOverlay(overlay.id, { invert })
-			)
+		this.hideOriginalInput = hideOriginalField.querySelector('input') as HTMLInputElement;
+		controls.appendChild(hideOriginalField);
+
+		const invertField = this.toggleField('Invert', overlay.settings.invert, (invert) =>
+			this.options.onUpdateOverlay(overlay.id, { invert })
 		);
-		controls.appendChild(
-			this.colorModeRow(
-				'Characters',
-				overlay.settings.charColorMode,
-				overlay.settings.charColor,
-				(charColorMode) => this.options.onUpdateOverlay(overlay.id, { charColorMode }),
-				(charColor) => this.options.onUpdateOverlay(overlay.id, { charColor })
-			)
+		this.invertInput = invertField.querySelector('input') as HTMLInputElement;
+		controls.appendChild(invertField);
+
+		const charRow = this.colorModeRow(
+			'Characters',
+			overlay.settings.charColorMode,
+			overlay.settings.charColor,
+			(charColorMode) => this.options.onUpdateOverlay(overlay.id, { charColorMode }),
+			(charColor) => this.options.onUpdateOverlay(overlay.id, { charColor })
 		);
-		controls.appendChild(
-			this.colorModeRow(
-				'Cells',
-				overlay.settings.cellColorMode,
-				overlay.settings.cellColor,
-				(cellColorMode) => this.options.onUpdateOverlay(overlay.id, { cellColorMode }),
-				(cellColor) => this.options.onUpdateOverlay(overlay.id, { cellColor })
-			)
+		this.charColorModeSelect = charRow.querySelector('select') as HTMLSelectElement;
+		this.charColorInput = charRow.querySelector('input[type="color"]') as HTMLInputElement;
+		controls.appendChild(charRow);
+
+		const cellRow = this.colorModeRow(
+			'Cells',
+			overlay.settings.cellColorMode,
+			overlay.settings.cellColor,
+			(cellColorMode) => this.options.onUpdateOverlay(overlay.id, { cellColorMode }),
+			(cellColor) => this.options.onUpdateOverlay(overlay.id, { cellColor })
 		);
-		controls.appendChild(
-			this.textField('Glyph ramp', overlay.settings.glyphRamp, (glyphRamp) =>
-				this.options.onUpdateOverlay(overlay.id, { glyphRamp })
-			)
+		this.cellColorModeSelect = cellRow.querySelector('select') as HTMLSelectElement;
+		this.cellColorInput = cellRow.querySelector('input[type="color"]') as HTMLInputElement;
+		controls.appendChild(cellRow);
+
+		const glyphRampField = this.textField('Glyph ramp', overlay.settings.glyphRamp, (glyphRamp) =>
+			this.options.onUpdateOverlay(overlay.id, { glyphRamp })
 		);
+		this.glyphRampInput = glyphRampField.querySelector('input') as HTMLInputElement;
+		controls.appendChild(glyphRampField);
 
 		details.appendChild(controls);
 		return details;
@@ -400,5 +502,44 @@ export class ControlPanel {
 
 	private formatPercent(value: number): string {
 		return `${Math.round(value * 100)}%`;
+	}
+
+	private updateCheckbox(input: HTMLInputElement, value: boolean): void {
+		if (input.checked !== value) {
+			input.checked = value;
+		}
+	}
+
+	private updateRange(
+		input: HTMLInputElement,
+		output: HTMLOutputElement,
+		value: number,
+		format: (v: number) => string
+	): void {
+		if (Number(input.value) !== value) {
+			input.value = String(value);
+			output.value = format(value);
+		}
+	}
+
+	private updateSelect(select: HTMLSelectElement, value: string): void {
+		if (select.value !== value) {
+			select.value = value;
+		}
+	}
+
+	private updateColorInput(input: HTMLInputElement, value: string, disabled: boolean): void {
+		if (input.value !== value) {
+			input.value = value;
+		}
+		if (input.disabled !== disabled) {
+			input.disabled = disabled;
+		}
+	}
+
+	private updateTextInput(input: HTMLInputElement, value: string): void {
+		if (this.shadowRoot.activeElement !== input && input.value !== value) {
+			input.value = value;
+		}
 	}
 }

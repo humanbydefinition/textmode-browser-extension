@@ -24,7 +24,7 @@ describe('mergeOverlaySettings', () => {
 		});
 
 		expect(settings.opacity).toBe(1);
-		expect(settings.fontSize).toBe(4);
+		expect(settings.fontSize).toBe(8);
 		expect(settings.frameRate).toBe(60);
 		expect(settings.brightnessStart).toBe(0);
 		expect(settings.brightnessEnd).toBe(255);

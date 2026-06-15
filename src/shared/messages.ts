@@ -7,7 +7,8 @@ export type PopupToContentMessage =
 	| { type: 'REMOVE_OVERLAY'; id: string }
 	| { type: 'PAUSE_ALL' }
 	| { type: 'RESUME_ALL' }
-	| { type: 'REMOVE_ALL' };
+	| { type: 'REMOVE_ALL' }
+	| { type: 'TOGGLE_OVERLAY' };
 
 export type ContentToPopupMessage =
 	| { type: 'OVERLAY_LIST_CHANGED'; overlays: OverlayDescriptor[] }
@@ -44,6 +45,7 @@ export function isPopupToContentMessage(value: RuntimeMessage): value is PopupTo
 		value.type === 'REMOVE_OVERLAY' ||
 		value.type === 'PAUSE_ALL' ||
 		value.type === 'RESUME_ALL' ||
-		value.type === 'REMOVE_ALL'
+		value.type === 'REMOVE_ALL' ||
+		value.type === 'TOGGLE_OVERLAY'
 	);
 }

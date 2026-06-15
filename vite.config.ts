@@ -30,7 +30,6 @@ export default defineConfig({
 			input: {
 				'service-worker': resolve(import.meta.dirname, 'src/background/service-worker.ts'),
 				'content-runtime': resolve(import.meta.dirname, 'src/content/content-runtime.ts'),
-				popup: resolve(import.meta.dirname, 'src/popup/popup.html'),
 			},
 			output: {
 				entryFileNames: '[name].js',

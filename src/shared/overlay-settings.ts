@@ -14,6 +14,7 @@ export interface OverlaySettings {
 	brightnessStart: number;
 	brightnessEnd: number;
 	charColorMode: SourceColorMode;
+	charColor: string;
 	cellColorMode: SourceColorMode;
 	cellColor: string;
 	hideOriginal: boolean;
@@ -47,6 +48,7 @@ export const DEFAULT_OVERLAY_SETTINGS: OverlaySettings = {
 	brightnessStart: 0,
 	brightnessEnd: 255,
 	charColorMode: 'sampled',
+	charColor: '#ffffff',
 	cellColorMode: 'fixed',
 	cellColor: '#000000',
 	hideOriginal: false,
@@ -72,6 +74,10 @@ export function mergeOverlaySettings(base: OverlaySettings, patch: Partial<Overl
 
 	if (!next.glyphRamp.trim()) {
 		next.glyphRamp = DEFAULT_OVERLAY_SETTINGS.glyphRamp;
+	}
+
+	if (!/^#[0-9a-f]{6}$/i.test(next.charColor)) {
+		next.charColor = DEFAULT_OVERLAY_SETTINGS.charColor;
 	}
 
 	if (!/^#[0-9a-f]{6}$/i.test(next.cellColor)) {

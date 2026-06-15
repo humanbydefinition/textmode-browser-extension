@@ -9,6 +9,7 @@ import type { OverlaySettings } from '../shared/overlay-settings';
 import { ElementPicker, type SelectableElement } from './element-picker';
 import { OverlayManager } from './overlay-manager';
 import { broadcastError, broadcastOverlayList } from './page-state';
+import { ControlPanel } from './control-panel';
 
 declare global {
 	interface Window {
@@ -18,6 +19,7 @@ declare global {
 
 class PageRuntime {
 	private picker?: ElementPicker;
+	private controlPanel?: ControlPanel;
 	private readonly manager = new OverlayManager(() => this.sync());
 
 	public constructor() {
@@ -52,6 +54,9 @@ class PageRuntime {
 	private async handlePopupMessage(message: PopupToContentMessage): Promise<RuntimeAck> {
 		try {
 			switch (message.type) {
+				case 'TOGGLE_OVERLAY':
+					this.toggleControlPanel();
+					return { ok: true, overlays: this.manager.list() };
 				case 'START_PICKING':
 					this.startPicking();
 					return { ok: true, overlays: this.manager.list() };
@@ -71,7 +76,34 @@ class PageRuntime {
 		} catch (error) {
 			const messageText = toUserMessage(error);
 			broadcastError(messageText);
+			this.controlPanel?.setStatus(messageText);
 			return { ok: false, error: messageText, overlays: this.manager.list() };
+		}
+	}
+
+	private toggleControlPanel(): void {
+		if (this.controlPanel) {
+			this.destroyControlPanel();
+		} else {
+			this.controlPanel = new ControlPanel({
+				onStartPicking: () => this.startPicking(),
+				onUpdateOverlay: (id, settings) => {
+					this.manager.updateOverlay(id, settings);
+				},
+				onRemoveOverlay: (id) => {
+					this.manager.removeOverlay(id);
+				},
+				onClose: () => this.destroyControlPanel(),
+			});
+			this.controlPanel.mount();
+			this.controlPanel.updateState(this.manager.list());
+		}
+	}
+
+	private destroyControlPanel(): void {
+		if (this.controlPanel) {
+			this.controlPanel.unmount();
+			this.controlPanel = undefined;
 		}
 	}
 
@@ -84,10 +116,12 @@ class PageRuntime {
 			},
 			onCancel: () => {
 				this.picker = undefined;
+				this.controlPanel?.setStatus('Selection cancelled.');
 				void chrome.runtime.sendMessage({ type: 'PICKING_CANCELLED' });
 			},
 		});
 		this.picker.start();
+		this.controlPanel?.setStatus('Click a canvas or video. Press Escape to cancel.');
 		void chrome.runtime.sendMessage({ type: 'PICKING_STARTED' });
 	}
 
@@ -97,6 +131,7 @@ class PageRuntime {
 		} catch (error) {
 			const message = toUserMessage(error);
 			broadcastError(message);
+			this.controlPanel?.setStatus(message);
 			this.sync();
 		}
 	}
@@ -104,6 +139,7 @@ class PageRuntime {
 	private sync(): void {
 		const overlays = this.manager.list();
 		broadcastOverlayList(overlays);
+		this.controlPanel?.updateState(overlays);
 	}
 }
 

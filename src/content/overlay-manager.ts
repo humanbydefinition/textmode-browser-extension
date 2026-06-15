@@ -151,7 +151,7 @@ export class OverlayManager {
 		if (!instance) return;
 		instance.canvas.style.opacity = String(settings.opacity);
 		instance.canvas.style.display = settings.enabled ? '' : 'none';
-		instance.targetFrameRate(settings.frameRate);
+		instance.targetFrameRate(60);
 
 		if (!settings.enabled) {
 			instance.noLoop();
@@ -180,6 +180,7 @@ export class OverlayManager {
 			.invert(settings.invert)
 			.brightnessRange(settings.brightnessStart, settings.brightnessEnd)
 			.charColorMode(settings.charColorMode)
+			.charColor(settings.charColor)
 			.cellColorMode(settings.cellColorMode)
 			.cellColor(settings.cellColor)
 			.background(settings.cellColor);

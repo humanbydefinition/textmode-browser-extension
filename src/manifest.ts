@@ -5,7 +5,6 @@ export const chromeManifest: chrome.runtime.ManifestV3 = {
 	description: 'Select canvas and video elements on a page and convert them to real-time textmode ASCII overlays.',
 	action: {
 		default_title: 'textmode.js ASCII Overlay',
-		default_popup: 'src/popup/popup.html',
 	},
 	permissions: ['activeTab', 'scripting', 'storage'],
 	background: {

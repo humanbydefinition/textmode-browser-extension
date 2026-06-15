@@ -1,0 +1,99 @@
+import { createRoot, type Root } from 'react-dom/client';
+import panelStyles from '../popup/popup.css?inline';
+import type { OverlayDescriptor, OverlaySettings } from '../shared/overlay-settings';
+import { OverlayPanelApp } from '../ui/OverlayPanelApp';
+
+export interface ControlPanelOptions {
+	onStartPicking: () => void;
+	onUpdateOverlay: (id: string, settings: Partial<OverlaySettings>) => void;
+	onRemoveOverlay: (id: string) => void;
+	onClose: () => void;
+}
+
+const PANEL_HOST_ID = 'textmode-ascii-overlay-control-panel-root';
+
+export class ControlPanel {
+	private readonly container: HTMLDivElement;
+	private readonly shadowRoot: ShadowRoot;
+	private readonly mountPoint: HTMLDivElement;
+	private readonly reactRoot: Root;
+	private overlays: OverlayDescriptor[] = [];
+	private status = 'Select a canvas or video to start.';
+
+	public constructor(private readonly options: ControlPanelOptions) {
+		this.container = document.createElement('div');
+		this.container.id = PANEL_HOST_ID;
+		this.container.dataset.textmodeAsciiExtensionUi = 'true';
+		Object.assign(this.container.style, {
+			position: 'fixed',
+			top: '30px',
+			right: '20px',
+			zIndex: '2147483646',
+			width: '340px',
+			maxWidth: 'calc(100vw - 32px)',
+		});
+
+		this.shadowRoot = this.container.attachShadow({ mode: 'open' });
+		const styleEl = document.createElement('style');
+		styleEl.textContent = `
+			:host {
+				all: initial;
+				display: block;
+				width: min(340px, calc(100vw - 32px));
+				color-scheme: dark;
+				box-shadow: 0 18px 42px rgb(0 0 0 / 0.42);
+			}
+
+			:host .tm-panel {
+				border: 1px solid var(--tm-neutral-26);
+				border-radius: 8px;
+				box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.04);
+			}
+
+			${panelStyles}
+		`;
+		this.shadowRoot.appendChild(styleEl);
+
+		this.mountPoint = document.createElement('div');
+		this.mountPoint.className = 'tm-extension-root';
+		this.shadowRoot.appendChild(this.mountPoint);
+		this.reactRoot = createRoot(this.mountPoint);
+		this.render();
+	}
+
+	public mount(): void {
+		if (!this.container.isConnected) {
+			document.documentElement.appendChild(this.container);
+		}
+		this.render();
+	}
+
+	public unmount(): void {
+		this.reactRoot.unmount();
+		this.container.remove();
+	}
+
+	public setStatus(message: string): void {
+		this.status = message;
+		this.render();
+	}
+
+	public updateState(overlays: OverlayDescriptor[]): void {
+		this.overlays = overlays;
+		this.status = overlays.length > 0 ? 'Overlay active.' : 'No media selected.';
+		this.render();
+	}
+
+	private render(): void {
+		this.reactRoot.render(
+			<OverlayPanelApp
+				status={this.status}
+				overlays={this.overlays}
+				onStartPicking={this.options.onStartPicking}
+				onUpdateOverlay={this.options.onUpdateOverlay}
+				onRemoveOverlay={this.options.onRemoveOverlay}
+				onClose={this.options.onClose}
+			/>
+		);
+	}
+}

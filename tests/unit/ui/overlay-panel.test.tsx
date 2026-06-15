@@ -1,0 +1,96 @@
+import { act } from 'react';
+import { createRoot, type Root } from 'react-dom/client';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { DEFAULT_OVERLAY_SETTINGS, type OverlayDescriptor } from '../../../src/shared/overlay-settings';
+import { OverlayPanelApp } from '../../../src/ui/OverlayPanelApp';
+
+(globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
+
+describe('OverlayPanelApp', () => {
+	let host: HTMLDivElement;
+	let root: Root;
+
+	beforeEach(() => {
+		host = document.createElement('div');
+		document.body.append(host);
+		root = createRoot(host);
+	});
+
+	afterEach(() => {
+		act(() => root.unmount());
+		host.remove();
+	});
+
+	it('renders the empty state and starts picking', () => {
+		const onStartPicking = vi.fn();
+
+		act(() => {
+			root.render(
+				<OverlayPanelApp
+					status="Select a canvas or video to start."
+					overlays={[]}
+					onStartPicking={onStartPicking}
+					onUpdateOverlay={vi.fn()}
+					onRemoveOverlay={vi.fn()}
+				/>
+			);
+		});
+
+		expect(host.textContent).toContain('No media selected.');
+		host.querySelector<HTMLButtonElement>('.tm-select-button')?.click();
+		expect(onStartPicking).toHaveBeenCalledTimes(1);
+	});
+
+	it('renders every existing overlay setting and emits setting patches', () => {
+		const onUpdateOverlay = vi.fn();
+		const overlay = createOverlay();
+
+		act(() => {
+			root.render(
+				<OverlayPanelApp
+					status="Overlay active."
+					overlays={[overlay]}
+					onStartPicking={vi.fn()}
+					onUpdateOverlay={onUpdateOverlay}
+					onRemoveOverlay={vi.fn()}
+				/>
+			);
+		});
+
+		for (const label of [
+			'Overlay',
+			'Opacity',
+			'Font size',
+			'Hide original',
+			'FPS',
+			'Mode',
+			'Invert',
+			'Characters',
+			'Cells',
+			'Brightness min',
+			'Brightness max',
+			'Glyph ramp',
+		]) {
+			expect(host.textContent).toContain(label);
+		}
+
+		const overlayToggle = host.querySelector<HTMLInputElement>('input[type="checkbox"]');
+		expect(overlayToggle).not.toBeNull();
+		act(() => {
+			overlayToggle!.click();
+		});
+
+		expect(onUpdateOverlay).toHaveBeenCalledWith('overlay-1', { enabled: false });
+	});
+});
+
+function createOverlay(): OverlayDescriptor {
+	return {
+		id: 'overlay-1',
+		elementKind: 'canvas',
+		elementLabel: 'canvas#demo-canvas.really-long-class 320x180',
+		bounds: { x: 0, y: 0, width: 320, height: 180 },
+		settings: DEFAULT_OVERLAY_SETTINGS,
+		status: 'active',
+	};
+}

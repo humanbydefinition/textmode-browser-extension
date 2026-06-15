@@ -1,5 +1,6 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import react from '@vitejs/plugin-react';
 import type { Plugin } from 'vite';
 import { defineConfig } from 'vitest/config';
 import { chromeManifest } from './src/manifest';
@@ -28,6 +29,7 @@ export default defineConfig({
 		target: 'es2022',
 		rollupOptions: {
 			input: {
+				popup: resolve(import.meta.dirname, 'src/popup/popup.html'),
 				'service-worker': resolve(import.meta.dirname, 'src/background/service-worker.ts'),
 				'content-runtime': resolve(import.meta.dirname, 'src/content/content-runtime.ts'),
 			},
@@ -38,10 +40,10 @@ export default defineConfig({
 			},
 		},
 	},
-	plugins: [manifestPlugin()],
+	plugins: [react(), manifestPlugin()],
 	test: {
 		environment: 'jsdom',
 		globals: true,
-		include: ['tests/unit/**/*.test.ts'],
+		include: ['tests/unit/**/*.test.{ts,tsx}'],
 	},
 });

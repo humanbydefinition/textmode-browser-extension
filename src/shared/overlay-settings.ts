@@ -3,6 +3,16 @@ export type OverlayStatus = 'active' | 'paused' | 'error';
 export type SourceColorMode = 'sampled' | 'fixed';
 export type ConversionMode = 'brightness' | 'accurate' | 'color' | 'contour';
 
+export const CONVERSION_MODES = ['brightness', 'accurate', 'color', 'contour'] as const;
+export const SOURCE_COLOR_MODES = ['sampled', 'fixed'] as const;
+
+export const OVERLAY_SETTING_LIMITS = {
+	opacity: { min: 0, max: 1, step: 0.05 },
+	fontSize: { min: 8, max: 64, step: 1 },
+	frameRate: { min: 1, max: 60, step: 1 },
+	brightness: { min: 0, max: 255, step: 1 },
+} as const;
+
 export interface OverlaySettings {
 	enabled: boolean;
 	opacity: number;
@@ -60,11 +70,19 @@ export function mergeOverlaySettings(base: OverlaySettings, patch: Partial<Overl
 		...patch,
 	};
 
-	next.opacity = clamp(next.opacity, 0, 1);
-	next.fontSize = Math.round(clamp(next.fontSize, 8, 64));
-	next.frameRate = Math.round(clamp(next.frameRate, 1, 60));
-	next.brightnessStart = Math.round(clamp(next.brightnessStart, 0, 255));
-	next.brightnessEnd = Math.round(clamp(next.brightnessEnd, 0, 255));
+	next.opacity = clamp(next.opacity, OVERLAY_SETTING_LIMITS.opacity.min, OVERLAY_SETTING_LIMITS.opacity.max);
+	next.fontSize = Math.round(
+		clamp(next.fontSize, OVERLAY_SETTING_LIMITS.fontSize.min, OVERLAY_SETTING_LIMITS.fontSize.max)
+	);
+	next.frameRate = Math.round(
+		clamp(next.frameRate, OVERLAY_SETTING_LIMITS.frameRate.min, OVERLAY_SETTING_LIMITS.frameRate.max)
+	);
+	next.brightnessStart = Math.round(
+		clamp(next.brightnessStart, OVERLAY_SETTING_LIMITS.brightness.min, OVERLAY_SETTING_LIMITS.brightness.max)
+	);
+	next.brightnessEnd = Math.round(
+		clamp(next.brightnessEnd, OVERLAY_SETTING_LIMITS.brightness.min, OVERLAY_SETTING_LIMITS.brightness.max)
+	);
 
 	if (next.brightnessStart > next.brightnessEnd) {
 		const start = next.brightnessEnd;

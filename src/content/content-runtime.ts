@@ -9,7 +9,7 @@ import type { OverlaySettings } from '../shared/overlay-settings';
 import { ElementPicker, type SelectableElement } from './element-picker';
 import { OverlayManager } from './overlay-manager';
 import { broadcastError, broadcastOverlayList } from './page-state';
-import { ControlPanel } from './control-panel';
+import type { ControlPanel } from './control-panel';
 
 declare global {
 	interface Window {
@@ -55,7 +55,7 @@ class PageRuntime {
 		try {
 			switch (message.type) {
 				case 'TOGGLE_OVERLAY':
-					this.toggleControlPanel();
+					await this.toggleControlPanel();
 					return { ok: true, overlays: this.manager.list() };
 				case 'START_PICKING':
 					this.startPicking();
@@ -81,10 +81,11 @@ class PageRuntime {
 		}
 	}
 
-	private toggleControlPanel(): void {
+	private async toggleControlPanel(): Promise<void> {
 		if (this.controlPanel) {
 			this.destroyControlPanel();
 		} else {
+			const { ControlPanel } = await import('./control-panel');
 			this.controlPanel = new ControlPanel({
 				onStartPicking: () => this.startPicking(),
 				onUpdateOverlay: (id, settings) => {

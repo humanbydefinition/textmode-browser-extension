@@ -5,10 +5,10 @@ import tseslint from 'typescript-eslint';
 
 export default defineConfig(
 	{
-		ignores: ['dist', 'node_modules', 'coverage'],
+		ignores: ['dist', 'node_modules', 'coverage', '.agents'],
 	},
 	{
-		files: ['**/*.{ts,js}'],
+		files: ['**/*.{ts,tsx,js,jsx}'],
 		extends: [js.configs.recommended, ...tseslint.configs.recommended],
 		languageOptions: {
 			ecmaVersion: 2022,

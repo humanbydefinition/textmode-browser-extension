@@ -8,6 +8,7 @@ import { ControlPanel } from '../../src/widgets/overlay-panel/control-panel';
 describe('ControlPanel', () => {
 	beforeEach(() => {
 		document.body.replaceChildren();
+		vi.stubGlobal('ResizeObserver', MockResizeObserver);
 	});
 
 	it('mounts once in Shadow DOM and does not portal UI into the page', () => {
@@ -43,3 +44,9 @@ describe('ControlPanel', () => {
 		expect(document.querySelector('#textmode-ascii-overlay-control-panel-root')).toBeNull();
 	});
 });
+
+class MockResizeObserver {
+	public observe = vi.fn();
+	public unobserve = vi.fn();
+	public disconnect = vi.fn();
+}

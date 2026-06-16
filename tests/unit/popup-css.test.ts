@@ -8,7 +8,8 @@ describe('popup layout CSS', () => {
 	it('contains nested controls instead of allowing horizontal overflow', () => {
 		expect(popupCss).toContain('overflow-x: hidden');
 		expect(popupCss).toContain('grid-template-columns: minmax(0, 1fr) 42px');
-		expect(popupCss).toContain('.tm-slider::-webkit-slider-runnable-track');
+		expect(popupCss).toContain("[data-slot='slider-track']");
+		expect(popupCss).not.toContain('.tm-slider');
 		expect(popupCss).toContain('max-width: var(--tm-panel-width)');
 		expect(popupCss).toContain('grid-template-rows: auto auto minmax(0, 1fr) auto');
 	});

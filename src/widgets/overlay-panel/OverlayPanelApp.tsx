@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { HeartHandshake, MousePointer2, Trash2, X } from 'lucide-react';
 import type { OverlayDescriptor, OverlaySettings } from '../../domain/overlay/overlay-settings';
-import { Button } from './components/Button';
+import { Button } from './components/button';
 import { OverlayCard } from './OverlayCard';
 
 export interface OverlayPanelAppProps {
@@ -38,14 +38,25 @@ export function OverlayPanelApp({
 						support
 					</a>
 					{onClose ? (
-						<Button variant="ghost" size="icon" aria-label="close panel" onClick={onClose}>
+						<Button
+							type="button"
+							variant="ghost"
+							size="icon"
+							className="tm-button tm-button--ghost tm-button--icon"
+							aria-label="close panel"
+							onClick={onClose}
+						>
 							<X aria-hidden="true" />
 						</Button>
 					) : null}
 				</div>
 			</header>
 
-			<Button className="tm-select-button" onClick={onStartPicking}>
+			<Button
+				type="button"
+				className="tm-button tm-button--default tm-button--default-size tm-select-button"
+				onClick={onStartPicking}
+			>
 				<MousePointer2 aria-hidden="true" />
 				{overlay ? 'replace media' : 'select media'}
 			</Button>
@@ -60,8 +71,9 @@ export function OverlayPanelApp({
 
 			<footer className="tm-panel__footer">
 				<Button
-					variant="danger"
-					className="tm-remove-button"
+					type="button"
+					variant="destructive"
+					className="tm-button tm-button--danger tm-button--default-size tm-remove-button"
 					disabled={!overlay}
 					onClick={() => {
 						if (overlay) {

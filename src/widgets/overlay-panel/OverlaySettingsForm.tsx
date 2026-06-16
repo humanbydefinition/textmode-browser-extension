@@ -8,6 +8,7 @@ import {
 	sourceColorModeOptions,
 } from './overlay-ui-model';
 import { SettingField, ToggleField } from './components/SettingField';
+import { Slider } from './components/slider';
 
 interface OverlaySettingsFormProps {
 	settings: OverlaySettings;
@@ -84,14 +85,16 @@ interface RangeFieldProps {
 function RangeField({ label, value, limits, format, onChange }: RangeFieldProps): React.JSX.Element {
 	return (
 		<SettingField label={label} value={format(value)} className="tm-field--range">
-			<input
-				className="tm-slider"
-				type="range"
+			<Slider
 				min={limits.min}
 				max={limits.max}
 				step={limits.step}
-				value={value}
-				onChange={(event) => onChange(Number(event.currentTarget.value))}
+				value={[value]}
+				onValueChange={([nextValue]) => {
+					if (typeof nextValue === 'number') {
+						onChange(nextValue);
+					}
+				}}
 			/>
 		</SettingField>
 	);

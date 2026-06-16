@@ -5,16 +5,16 @@
 	"tsx": true,
 	"tailwind": {
 		"config": "",
-		"css": "src/popup/popup.css",
+		"css": "src/widgets/overlay-panel/popup.css",
 		"baseColor": "neutral",
 		"cssVariables": true,
 		"prefix": ""
 	},
 	"iconLibrary": "lucide",
 	"aliases": {
-		"components": "@/ui/components",
-		"utils": "@/lib/utils",
-		"ui": "@/ui",
-		"lib": "@/lib"
+		"components": "@/widgets/overlay-panel/components",
+		"utils": "@/shared/lib/utils",
+		"ui": "@/widgets/overlay-panel/components",
+		"lib": "@/shared/lib"
 	}
 }

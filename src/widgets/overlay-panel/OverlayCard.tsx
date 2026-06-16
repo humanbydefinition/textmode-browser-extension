@@ -1,6 +1,6 @@
 import * as React from 'react';
 import type { OverlayDescriptor, OverlaySettings } from '../../domain/overlay/overlay-settings';
-import { Badge } from './components/Badge';
+import { Badge } from './components/badge';
 import { OverlaySettingsForm } from './OverlaySettingsForm';
 
 interface OverlayCardProps {
@@ -20,7 +20,7 @@ export function OverlayCard({ overlay, onUpdateOverlay }: OverlayCardProps): Rea
 					<h2>{title}</h2>
 					<p title={elementName}>{elementName}</p>
 				</div>
-				<Badge className="tm-dimensions">{dimensions}</Badge>
+				<Badge className="tm-badge tm-dimensions">{dimensions}</Badge>
 			</header>
 
 			<OverlaySettingsForm

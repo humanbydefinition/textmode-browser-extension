@@ -11,6 +11,7 @@ describe('OverlayPanelApp', () => {
 	let root: Root;
 
 	beforeEach(() => {
+		vi.stubGlobal('ResizeObserver', MockResizeObserver);
 		host = document.createElement('div');
 		document.body.append(host);
 		root = createRoot(host);
@@ -97,4 +98,10 @@ function createOverlay(): OverlayDescriptor {
 		settings: DEFAULT_OVERLAY_SETTINGS,
 		status: 'active',
 	};
+}
+
+class MockResizeObserver {
+	public observe = vi.fn();
+	public unobserve = vi.fn();
+	public disconnect = vi.fn();
 }

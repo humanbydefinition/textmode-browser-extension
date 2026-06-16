@@ -27,22 +27,22 @@ export function parseHexColor(value: string): RgbaColor | null {
 		return null;
 	}
 
-	if (hex.length === 3 || hex.length === 4) {
-		const [r, g, b, a = 'f'] = hex.split('');
+	if (hex.length === 3) {
+		const [r, g, b] = hex.split('');
 		return {
 			r: Number.parseInt(`${r}${r}`, 16),
 			g: Number.parseInt(`${g}${g}`, 16),
 			b: Number.parseInt(`${b}${b}`, 16),
-			a: Number.parseInt(`${a}${a}`, 16) / 255,
+			a: 1,
 		};
 	}
 
-	if (hex.length === 6 || hex.length === 8) {
+	if (hex.length === 6) {
 		return {
 			r: Number.parseInt(hex.slice(0, 2), 16),
 			g: Number.parseInt(hex.slice(2, 4), 16),
 			b: Number.parseInt(hex.slice(4, 6), 16),
-			a: hex.length === 8 ? Number.parseInt(hex.slice(6, 8), 16) / 255 : 1,
+			a: 1,
 		};
 	}
 
@@ -53,21 +53,12 @@ export function formatHexColor(color: RgbaColor): string {
 	const red = toHexByte(color.r);
 	const green = toHexByte(color.g);
 	const blue = toHexByte(color.b);
-	const alpha = clamp(color.a, 0, 1);
 
-	if (alpha >= 1) {
-		return `#${red}${green}${blue}`;
-	}
-
-	return `#${red}${green}${blue}${toHexByte(alpha * 255)}`;
+	return `#${red}${green}${blue}`;
 }
 
 export function getDisplayColor(value: string): string {
 	return normalizeHexColor(value) ?? FALLBACK_COLOR;
-}
-
-export function getColorPickerSupportText(value: string): string {
-	return normalizeHexColor(value) ? 'use #rrggbb or #rrggbbaa' : 'enter a hex color like #ff77aa';
 }
 
 export function rgbaToHsva({ r, g, b, a }: RgbaColor): HsvaColor {
@@ -116,10 +107,6 @@ export function hsvaToRgba({ h, s, v, a }: HsvaColor): RgbaColor {
 
 export function getHsvaFromHex(value: string): HsvaColor {
 	return rgbaToHsva(parseHexColor(value) ?? FALLBACK_RGBA);
-}
-
-export function getAlphaPercent(alpha: number): string {
-	return `${Math.round(clamp(alpha, 0, 1) * 100)}%`;
 }
 
 export function getPopoverPortalContainer(

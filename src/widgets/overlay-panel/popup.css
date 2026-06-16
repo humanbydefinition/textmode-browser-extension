@@ -647,8 +647,7 @@ summary {
 	text-transform: lowercase;
 }
 
-.tm-color-popover__description,
-.tm-color-popover__hint {
+.tm-color-popover__description {
 	margin: 0;
 	color: var(--tm-neutral-73);
 	font-size: 10px;
@@ -665,7 +664,7 @@ summary {
 	background:
 		linear-gradient(to top, #000000, transparent), linear-gradient(to right, #ffffff, var(--tm-color-picker-hue));
 	cursor: crosshair;
-	overflow: hidden;
+	overflow: visible;
 	touch-action: none;
 }
 
@@ -676,6 +675,7 @@ summary {
 
 .tm-color-space__pointer {
 	position: absolute;
+	z-index: 1;
 	top: var(--tm-color-space-pointer-y);
 	left: var(--tm-color-space-pointer-x);
 	width: 16px;
@@ -767,12 +767,6 @@ summary {
 
 .tm-color-range--hue {
 	background: linear-gradient(to right, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000);
-}
-
-.tm-color-range--alpha {
-	background:
-		linear-gradient(to right, var(--tm-color-range-color), transparent),
-		repeating-conic-gradient(var(--tm-neutral-20) 0% 25%, var(--tm-neutral-0f) 0% 50%) 0% 50% / 8px 8px;
 }
 
 .tm-color-popover__field {

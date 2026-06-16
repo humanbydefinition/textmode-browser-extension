@@ -1,9 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
 	FALLBACK_COLOR,
-	getColorPickerSupportText,
 	getDisplayColor,
-	getHsvaFromHex,
 	getPopoverPortalContainer,
 	normalizeHexColor,
 	parseHexColor,
@@ -14,7 +12,6 @@ describe('color picker model', () => {
 		expect(normalizeHexColor('#FF77AA')).toBe('#ff77aa');
 		expect(normalizeHexColor('0F8')).toBe('#00ff88');
 		expect(normalizeHexColor(' #ABC ')).toBe('#aabbcc');
-		expect(normalizeHexColor('#ff77aa80')).toBe('#ff77aa80');
 	});
 
 	it('rejects unsupported color strings', () => {
@@ -23,18 +20,15 @@ describe('color picker model', () => {
 		expect(normalizeHexColor('transparent')).toBeNull();
 	});
 
-	it('parses alpha channels for transparency controls', () => {
-		expect(parseHexColor('#00000080')?.a).toBeCloseTo(0.5, 2);
-		expect(getHsvaFromHex('#ff000080')).toMatchObject({ h: 0, s: 1, v: 1 });
+	it('always sets alpha to 1 and rejects extended hex formats', () => {
+		expect(parseHexColor('#00000080')).toBeNull();
+		expect(parseHexColor('#000')).not.toBeNull();
+		expect(parseHexColor('#000')?.a).toBe(1);
+		expect(parseHexColor('#ff0000')?.a).toBe(1);
 	});
 
 	it('uses a stable display fallback for malformed stored colors', () => {
 		expect(getDisplayColor('not-a-color')).toBe(FALLBACK_COLOR);
-	});
-
-	it('returns user-facing support text based on validity', () => {
-		expect(getColorPickerSupportText('#ff77aa')).toBe('use #rrggbb or #rrggbbaa');
-		expect(getColorPickerSupportText('nope')).toBe('enter a hex color like #ff77aa');
 	});
 
 	it('keeps popovers inside Shadow DOM when available', () => {

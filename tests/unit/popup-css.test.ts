@@ -47,7 +47,7 @@ describe('popup layout CSS', () => {
 		expect(popupCss).toContain('color: var(--popover-foreground, var(--tm-neutral-fa, #fafafa));');
 		expect(popupCss).toContain('.tm-popover-layer');
 		expect(popupCss).toContain('.tm-color-space');
-		expect(popupCss).toContain('.tm-color-range--alpha');
+		expect(popupCss).not.toContain('.tm-color-range--alpha');
 		expect(popupCss).not.toContain('.tm-color-popover__presets');
 		expect(popupCss).not.toContain('.tm-color-input');
 	});

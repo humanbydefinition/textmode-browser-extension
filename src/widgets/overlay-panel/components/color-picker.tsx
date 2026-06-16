@@ -3,8 +3,6 @@ import { Pipette } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
 import {
 	formatHexColor,
-	getAlphaPercent,
-	getColorPickerSupportText,
 	getDisplayColor,
 	getHsvaFromHex,
 	getPopoverPortalContainer,
@@ -39,10 +37,7 @@ export function ColorPicker({ label, value, onChange }: ColorPickerProps): React
 	}, []);
 
 	const normalizedValue = getDisplayColor(value);
-	const normalizedDraftValue = normalizeHexColor(draftValue);
 	const currentHexColor = formatHexColor(hsvaToRgba(color));
-	const opaqueCurrentColor = formatHexColor(hsvaToRgba({ ...color, a: 1 }));
-	const supportText = getColorPickerSupportText(draftValue);
 
 	const commitColor = (nextColor: HsvaColor): void => {
 		setColor(nextColor);
@@ -89,7 +84,7 @@ export function ColorPicker({ label, value, onChange }: ColorPickerProps): React
 				<PopoverHeader className="tm-color-popover__header">
 					<PopoverTitle className="tm-color-popover__title">{label} color</PopoverTitle>
 					<PopoverDescription className="tm-color-popover__description">
-						adjust color and transparency.
+						adjust color.
 					</PopoverDescription>
 				</PopoverHeader>
 
@@ -105,7 +100,7 @@ export function ColorPicker({ label, value, onChange }: ColorPickerProps): React
 							'--tm-color-picker-hue': `hsl(${color.h} 100% 50%)`,
 							'--tm-color-space-pointer-x': `${color.s * 100}%`,
 							'--tm-color-space-pointer-y': `${(1 - color.v) * 100}%`,
-							'--tm-color-space-pointer-color': opaqueCurrentColor,
+							'--tm-color-space-pointer-color': currentHexColor,
 						} as React.CSSProperties
 					}
 					onPointerDown={(event) => {
@@ -147,17 +142,6 @@ export function ColorPicker({ label, value, onChange }: ColorPickerProps): React
 						className="tm-color-range--hue"
 						onChange={(h) => commitColor({ ...color, h })}
 					/>
-					<ColorRange
-						label="transparency"
-						min={0}
-						max={100}
-						step={1}
-						value={Math.round((1 - color.a) * 100)}
-						valueLabel={getAlphaPercent(1 - color.a)}
-						className="tm-color-range--alpha"
-						style={{ '--tm-color-range-color': opaqueCurrentColor } as React.CSSProperties}
-						onChange={(transparency) => commitColor({ ...color, a: clamp01(1 - transparency / 100) })}
-					/>
 				</div>
 
 				<label className="tm-color-popover__field">
@@ -166,33 +150,35 @@ export function ColorPicker({ label, value, onChange }: ColorPickerProps): React
 						<ColorSwatch color={currentHexColor} className="tm-color-swatch--preview" />
 						<Pipette aria-hidden="true" />
 						<input
-							className={cn(
-								'tm-input tm-color-popover__input',
-								!normalizedDraftValue && 'tm-input--invalid'
-							)}
+							className="tm-input tm-color-popover__input"
 							type="text"
 							value={draftValue}
+							maxLength={7}
 							aria-label={`${label} color value`}
 							autoComplete="off"
 							autoCapitalize="off"
 							spellCheck={false}
 							onChange={(event) => {
-								const nextValue = event.currentTarget.value.toLowerCase();
+								const raw = event.currentTarget.value.toLowerCase();
+								const hex = raw.replace(/^#/, '').replace(/[^0-9a-f]/g, '').slice(0, 6);
+								const nextValue = hex ? `#${hex}` : '#';
 								setDraftValue(nextValue);
-								const normalized = normalizeHexColor(nextValue);
-								if (normalized) {
-									setColor(getHsvaFromHex(normalized));
-									onChange(normalized);
+								if (hex.length === 3 || hex.length === 6) {
+									const normalized = normalizeHexColor(nextValue);
+									if (normalized) {
+										setColor(getHsvaFromHex(normalized));
+										onChange(normalized);
+									}
 								}
 							}}
 							onBlur={() => {
-								if (!normalizedDraftValue) {
+								const hex = draftValue.replace(/^#/, '').replace(/[^0-9a-f]/g, '');
+								if (hex.length !== 3 && hex.length !== 6) {
 									setDraftValue(currentHexColor);
 								}
 							}}
 						/>
 					</div>
-					<span className="tm-color-popover__hint">{supportText}</span>
 				</label>
 			</PopoverContent>
 		</Popover>

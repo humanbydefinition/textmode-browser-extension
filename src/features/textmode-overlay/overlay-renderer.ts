@@ -7,17 +7,26 @@ import type { SelectableElement } from '../media-picker/element-picker';
 export type TextmodeInstance = ReturnType<typeof textmode.create>;
 export type ExportableTextmodeInstance = TextmodeInstance & Partial<TextmodeExportAPI>;
 
+export interface OverlayRenderOptions {
+	fontSource?: string;
+}
+
 export interface OverlayRendererPort {
-	create(element: SelectableElement, settings: OverlaySettings): ExportableTextmodeInstance;
+	create(
+		element: SelectableElement,
+		settings: OverlaySettings,
+		options?: OverlayRenderOptions
+	): ExportableTextmodeInstance;
 }
 
 export const textmodeOverlayRenderer: OverlayRendererPort = {
-	create(element, settings) {
+	create(element, settings, options = {}) {
 		return textmode.create({
 			canvas: element,
 			overlay: true,
 			pixelDensity: 1,
 			fontSize: settings.fontSize,
+			...(options.fontSource ? { fontSource: options.fontSource } : {}),
 			loadingScreen: { transition: 'none' },
 			plugins: [createTextmodeExportPlugin({ overlay: false })],
 		});

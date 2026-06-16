@@ -13,7 +13,11 @@ describe('textmodeOverlayRenderer', () => {
 	it('creates textmode overlays with the extension rendering contract', () => {
 		const canvas = document.createElement('canvas');
 
-		textmodeOverlayRenderer.create(canvas, { ...DEFAULT_OVERLAY_SETTINGS, fontSize: 16 });
+		textmodeOverlayRenderer.create(
+			canvas,
+			{ ...DEFAULT_OVERLAY_SETTINGS, fontSize: 16 },
+			{ fontSource: '/fonts/Bescii-Mono.ttf' }
+		);
 
 		expect(textmode.create).toHaveBeenCalledWith(
 			expect.objectContaining({
@@ -21,6 +25,7 @@ describe('textmodeOverlayRenderer', () => {
 				overlay: true,
 				pixelDensity: 1,
 				fontSize: 16,
+				fontSource: '/fonts/Bescii-Mono.ttf',
 				loadingScreen: { transition: 'none' },
 				plugins: [expect.objectContaining({ name: 'textmode.export' })],
 			})

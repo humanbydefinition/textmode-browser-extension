@@ -75,7 +75,7 @@ describe('OverlayManager', () => {
 	it('creates textmode overlays with the current rendering contract', () => {
 		const canvas = createCanvas('source');
 		document.body.append(canvas);
-		const manager = new OverlayManager(vi.fn());
+		const manager = new OverlayManager(vi.fn(), undefined, 'chrome-extension://extension-id/fonts/Bescii-Mono.ttf');
 
 		manager.createOverlay(canvas, { fontSize: 16 });
 
@@ -85,6 +85,7 @@ describe('OverlayManager', () => {
 				overlay: true,
 				pixelDensity: 1,
 				fontSize: 16,
+				fontSource: 'chrome-extension://extension-id/fonts/Bescii-Mono.ttf',
 				loadingScreen: { transition: 'none' },
 				plugins: [expect.objectContaining({ name: 'textmode.export' })],
 			})

@@ -6,7 +6,7 @@ import type { OverlaySettings } from '../../domain/overlay/overlay-settings';
 import { ElementPicker, type SelectableElement } from '../../features/media-picker/element-picker';
 import { OverlayManager } from '../../features/textmode-overlay/overlay-manager';
 import { broadcastError, broadcastOverlayList, broadcastPickingCancelled, broadcastPickingStarted } from './page-state';
-import { createRuntimeActionHandler } from './runtime-actions';
+import { createRuntimeActionHandler, type RuntimeActionHandler } from './runtime-actions';
 import type { ControlPanel } from '../../widgets/overlay-panel/control-panel';
 
 declare global {
@@ -18,21 +18,24 @@ declare global {
 export class PageRuntime {
 	private picker?: ElementPicker;
 	private controlPanel?: ControlPanel;
-	private readonly manager = new OverlayManager(() => this.sync());
-	private readonly actions = createRuntimeActionHandler({
-		toggleControlPanel: () => this.toggleControlPanel(),
-		startPicking: () => this.startPicking(),
-		listOverlays: () => this.manager.list(),
-		updateOverlay: (id, settings) => this.manager.updateOverlay(id, settings),
-		exportOverlay: (id, format) => this.manager.exportOverlay(id, format),
-		removeOverlay: (id) => this.manager.removeOverlay(id),
-		pauseAll: () => this.manager.pauseAll(),
-		resumeAll: () => this.manager.resumeAll(),
-		removeAll: () => this.manager.removeAll(),
-		broadcastError,
-	});
+	private readonly fontUrl = getExtensionAssetUrl(TEXTMODE_HEADER_FONT_RESOURCE);
+	private readonly manager: OverlayManager;
+	private readonly actions: RuntimeActionHandler;
 
 	public constructor() {
+		this.manager = new OverlayManager(() => this.sync(), undefined, this.fontUrl);
+		this.actions = createRuntimeActionHandler({
+			toggleControlPanel: () => this.toggleControlPanel(),
+			startPicking: () => this.startPicking(),
+			listOverlays: () => this.manager.list(),
+			updateOverlay: (id, settings) => this.manager.updateOverlay(id, settings),
+			exportOverlay: (id, format) => this.manager.exportOverlay(id, format),
+			removeOverlay: (id) => this.manager.removeOverlay(id),
+			pauseAll: () => this.manager.pauseAll(),
+			resumeAll: () => this.manager.resumeAll(),
+			removeAll: () => this.manager.removeAll(),
+			broadcastError,
+		});
 		addRuntimeMessageListener((message: unknown, _sender, sendResponse) => {
 			void this.handleMessage(message)
 				.then(sendResponse)
@@ -67,7 +70,7 @@ export class PageRuntime {
 		} else {
 			const { ControlPanel } = await import('../../widgets/overlay-panel/control-panel');
 			this.controlPanel = new ControlPanel({
-				headerFontUrl: getExtensionAssetUrl(TEXTMODE_HEADER_FONT_RESOURCE),
+				headerFontUrl: this.fontUrl,
 				onStartPicking: () => this.startPicking(),
 				onUpdateOverlay: (id, settings) => {
 					this.manager.updateOverlay(id, settings);

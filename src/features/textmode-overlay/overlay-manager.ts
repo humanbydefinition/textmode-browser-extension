@@ -28,7 +28,8 @@ export class OverlayManager {
 
 	public constructor(
 		private readonly onChange: () => void,
-		private readonly renderer: OverlayRendererPort = textmodeOverlayRenderer
+		private readonly renderer: OverlayRendererPort = textmodeOverlayRenderer,
+		private readonly fontSource?: string
 	) {
 		this.mutationObserver.observe(document.documentElement, { childList: true, subtree: true });
 	}
@@ -54,7 +55,7 @@ export class OverlayManager {
 		this.resizeObserver.observe(element);
 
 		try {
-			const instance = this.renderer.create(element, settings);
+			const instance = this.renderer.create(element, settings, { fontSource: this.fontSource });
 			controller.instance = instance;
 			instance.canvas.dataset.textmodeAsciiExtensionUi = 'true';
 			instance.canvas.style.pointerEvents = 'none';

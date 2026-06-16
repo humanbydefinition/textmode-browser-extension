@@ -25,7 +25,7 @@ export function OverlayPanelApp({
 		<main className="tm-panel" data-testid="overlay-panel">
 			<header className="tm-panel__header">
 				<div className="tm-panel__title">
-					<h1>textmode</h1>
+					<h1>textmode overlay</h1>
 				</div>
 				<div className="tm-panel__actions">
 					<a

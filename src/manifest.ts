@@ -1,8 +1,8 @@
 export const chromeManifest: chrome.runtime.ManifestV3 = {
 	manifest_version: 3,
-	name: 'textmode',
+	name: 'textmode overlay',
 	version: '0.1.0',
-	description: 'Select canvas and video elements on a page and convert them to real-time textmode ASCII overlays.',
+	description: 'turn live video and canvas elements into adjustable ascii overlays.',
 	icons: {
 		16: 'icons/icon-16.png',
 		32: 'icons/icon-32.png',
@@ -10,7 +10,7 @@ export const chromeManifest: chrome.runtime.ManifestV3 = {
 		128: 'icons/icon-128.png',
 	},
 	action: {
-		default_title: 'textmode',
+		default_title: 'textmode overlay',
 		default_icon: {
 			16: 'icons/icon-16.png',
 			32: 'icons/icon-32.png',

@@ -1,6 +1,7 @@
 import './popup.css';
 import { createRoot } from 'react-dom/client';
-import { getActiveTab, injectContentRuntime, sendMessageToTab } from '../shared/browser-api';
+import { ensureContentRuntime } from '../application/runtime/runtime-injection';
+import { addRuntimeMessageListener, getActiveTab, sendMessageToTab } from '../shared/browser-api';
 import type { ContentToPopupMessage, RuntimeAck, RuntimeMessage } from '../shared/messages';
 import type { OverlayDescriptor, OverlaySettings } from '../shared/overlay-settings';
 import { OverlayPanelApp } from '../ui/OverlayPanelApp';
@@ -8,7 +9,7 @@ import { OverlayPanelApp } from '../ui/OverlayPanelApp';
 const root = createRoot(getElement('root'));
 let overlays: OverlayDescriptor[] = [];
 
-chrome.runtime.onMessage.addListener((message: ContentToPopupMessage) => {
+addRuntimeMessageListener((message: ContentToPopupMessage) => {
 	if (message.type === 'OVERLAY_LIST_CHANGED') {
 		overlays = message.overlays;
 		render();
@@ -61,21 +62,6 @@ async function execute(message: RuntimeMessage): Promise<void> {
 	}
 }
 
-async function ensureContentRuntime(tabId: number): Promise<void> {
-	await injectContentRuntime(tabId);
-	for (let attempt = 0; attempt < 20; attempt++) {
-		try {
-			const response = await sendMessageToTab<RuntimeAck>(tabId, { type: 'PING' });
-			if (response.ok) {
-				return;
-			}
-		} catch {
-			await delay(50);
-		}
-	}
-	throw new Error('Timed out while starting the page runtime.');
-}
-
 function updateOverlay(id: string, settings: Partial<OverlaySettings>): void {
 	void execute({ type: 'UPDATE_OVERLAY', id, settings });
 }
@@ -86,8 +72,4 @@ function getElement(id: string): HTMLElement {
 		throw new Error(`Missing popup element #${id}.`);
 	}
 	return element;
-}
-
-async function delay(ms: number): Promise<void> {
-	await new Promise((resolve) => window.setTimeout(resolve, ms));
 }

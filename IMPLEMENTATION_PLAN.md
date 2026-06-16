@@ -1,5 +1,9 @@
 # Chrome MV3 ASCII Overlay Extension MVP Plan
 
+> Superseded by the WXT implementation. Current build, packaging, and
+> cross-browser architecture are documented in `README.md`,
+> `WXT_REFACTORING_PLAN.md`, and `docs/adr/0001-wxt-extension-shell.md`.
+
 ## Summary
 
 Create a self-contained Chrome MV3 extension that lets a user activate the extension, select visible `<canvas>` or `<video>` elements on the current page, and overlay real-time textmode.js ASCII conversion with per-element controls.
@@ -19,7 +23,8 @@ The project is intentionally independent from `textmode.js-dev`. It depends on t
 ## Test Plan
 
 - Unit tests cover settings merge/clamping, message shape validation, storage key behavior, and element visibility filtering.
-- E2E tests are scaffolded for Playwright and should load `dist/chrome` as an unpacked extension against local fixtures.
+- E2E tests load the WXT Chrome E2E output and exercise fixture-page selection
+  plus overlay creation.
 - Manual acceptance should verify local canvas/video demos and at least one real-world video page.
 
 ## Follow-Ups

@@ -5,7 +5,7 @@ import tseslint from 'typescript-eslint';
 
 export default defineConfig(
 	{
-		ignores: ['dist', 'node_modules', 'coverage', '.agents'],
+		ignores: ['dist', '.output', '.wxt', 'node_modules', 'coverage', '.agents'],
 	},
 	{
 		files: ['**/*.{ts,tsx,js,jsx}'],

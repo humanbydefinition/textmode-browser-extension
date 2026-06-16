@@ -5,6 +5,7 @@ import {
 	type PopupToContentMessage,
 	type RuntimeAck,
 } from '../shared/messages';
+import { addRuntimeMessageListener, sendMessageToRuntime } from '../shared/browser-api';
 import type { OverlaySettings } from '../shared/overlay-settings';
 import { ElementPicker, type SelectableElement } from './element-picker';
 import { OverlayManager } from './overlay-manager';
@@ -17,13 +18,13 @@ declare global {
 	}
 }
 
-class PageRuntime {
+export class PageRuntime {
 	private picker?: ElementPicker;
 	private controlPanel?: ControlPanel;
 	private readonly manager = new OverlayManager(() => this.sync());
 
 	public constructor() {
-		chrome.runtime.onMessage.addListener((message: unknown, _sender, sendResponse) => {
+		addRuntimeMessageListener((message: unknown, _sender, sendResponse) => {
 			void this.handleMessage(message)
 				.then(sendResponse)
 				.catch((error) => {
@@ -116,11 +117,11 @@ class PageRuntime {
 			},
 			onCancel: () => {
 				this.picker = undefined;
-				void chrome.runtime.sendMessage({ type: 'PICKING_CANCELLED' });
+				void sendMessageToRuntime({ type: 'PICKING_CANCELLED' });
 			},
 		});
 		this.picker.start();
-		void chrome.runtime.sendMessage({ type: 'PICKING_STARTED' });
+		void sendMessageToRuntime({ type: 'PICKING_STARTED' });
 	}
 
 	private createOverlay(element: SelectableElement, settings?: Partial<OverlaySettings>): void {
@@ -140,6 +141,9 @@ class PageRuntime {
 	}
 }
 
-if (!window.__textmodeAsciiOverlayRuntime) {
-	window.__textmodeAsciiOverlayRuntime = new PageRuntime();
+export function startPageRuntime(): PageRuntime {
+	if (!window.__textmodeAsciiOverlayRuntime) {
+		window.__textmodeAsciiOverlayRuntime = new PageRuntime();
+	}
+	return window.__textmodeAsciiOverlayRuntime;
 }

@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { textmode } from 'textmode.js';
 import { OverlayManager } from '../../src/content/overlay-manager';
 
 interface MockTextmodeInstance {
@@ -56,6 +57,24 @@ describe('OverlayManager', () => {
 		expect(instances[0]?.destroy).toHaveBeenCalledTimes(1);
 		expect(instances[1]?.destroy).not.toHaveBeenCalled();
 	});
+
+	it('creates textmode overlays with the current rendering contract', () => {
+		const canvas = createCanvas('source');
+		document.body.append(canvas);
+		const manager = new OverlayManager(vi.fn());
+
+		manager.createOverlay(canvas, { fontSize: 16 });
+
+		expect(textmode.create).toHaveBeenCalledWith({
+			canvas,
+			overlay: true,
+			pixelDensity: 1,
+			fontSize: 16,
+			loadingScreen: { transition: 'none' },
+		});
+		expect(instances[0]?.canvas.style.pointerEvents).toBe('none');
+		expect(instances[0]?.canvas.style.mixBlendMode).toBe('normal');
+	});
 });
 
 class MockResizeObserver {
@@ -79,6 +98,7 @@ function createMockSource(): Record<string, () => unknown> {
 		'invert',
 		'brightnessRange',
 		'charColorMode',
+		'charColor',
 		'cellColorMode',
 		'cellColor',
 		'background',

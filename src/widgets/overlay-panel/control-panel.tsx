@@ -25,6 +25,7 @@ export class ControlPanel implements PanelHost {
 	private readonly portalRoot: HTMLDivElement;
 	private readonly reactRoot: Root;
 	private overlays: OverlayDescriptor[] = [];
+	private readonly onShadowKeyDown: EventListener;
 
 	public constructor(private readonly options: ControlPanelOptions) {
 		this.container = document.createElement('div');
@@ -40,6 +41,18 @@ export class ControlPanel implements PanelHost {
 		});
 
 		this.shadowRoot = this.container.attachShadow({ mode: 'open' });
+
+		this.onShadowKeyDown = (event) => {
+			if (!(event instanceof KeyboardEvent) || event.key !== ' ') return;
+			const target = event.target;
+			if (
+				target instanceof HTMLInputElement ||
+				target instanceof HTMLTextAreaElement ||
+				(target instanceof HTMLElement && target.isContentEditable)
+			) {
+				event.stopPropagation();
+			}
+		};
 		const styleEl = document.createElement('style');
 		styleEl.textContent = `
 			:host {
@@ -77,10 +90,12 @@ export class ControlPanel implements PanelHost {
 		if (!this.container.isConnected) {
 			document.documentElement.appendChild(this.container);
 		}
+		this.shadowRoot.addEventListener('keydown', this.onShadowKeyDown, true);
 		this.render();
 	}
 
 	public unmount(): void {
+		this.shadowRoot.removeEventListener('keydown', this.onShadowKeyDown, true);
 		this.reactRoot.unmount();
 		this.container.remove();
 	}

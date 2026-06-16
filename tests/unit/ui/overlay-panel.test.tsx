@@ -87,6 +87,7 @@ describe('OverlayPanelApp', () => {
 		expect(host.querySelector('.tm-status')).toBeNull();
 		expect(host.querySelector<HTMLButtonElement>('button[aria-label="characters color"]')?.disabled).toBe(false);
 		expect(host.querySelector<HTMLButtonElement>('button[aria-label="cells color"]')?.disabled).toBe(false);
+		expect(host.querySelector<HTMLDivElement>('.tm-color-mode-group')).not.toBeNull();
 
 		const overlayToggle = host.querySelector<HTMLInputElement>('input[type="checkbox"]');
 		expect(overlayToggle).not.toBeNull();
@@ -95,6 +96,14 @@ describe('OverlayPanelApp', () => {
 		});
 
 		expect(onUpdateOverlay).toHaveBeenCalledWith('overlay-1', { enabled: false });
+
+		const charactersFixedMode = host.querySelector<HTMLButtonElement>('button[aria-label="characters fixed"]');
+		expect(charactersFixedMode).not.toBeNull();
+		act(() => {
+			charactersFixedMode!.click();
+		});
+
+		expect(onUpdateOverlay).toHaveBeenCalledWith('overlay-1', { charColorMode: 'fixed' });
 
 		const exportTab = [...host.querySelectorAll<HTMLButtonElement>('[data-slot="tabs-trigger"]')].find(
 			(tab) => tab.textContent === 'export'

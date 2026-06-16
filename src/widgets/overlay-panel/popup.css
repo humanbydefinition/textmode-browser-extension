@@ -184,8 +184,8 @@ select {
 
 .tm-button:focus-visible,
 .tm-input:focus-visible,
-.tm-select:focus-visible,
 .tm-color-trigger:focus-visible,
+[data-slot='toggle-group-item']:focus-visible,
 [data-slot='tabs-trigger']:focus-visible {
 	outline: 2px solid var(--tm-neutral-fa);
 	outline-offset: 2px;
@@ -535,8 +535,7 @@ select {
 	transform: translateX(16px);
 }
 
-.tm-input,
-.tm-select {
+.tm-input {
 	width: 100%;
 	min-width: 0;
 	height: 30px;
@@ -650,6 +649,52 @@ textarea,
 	gap: 8px;
 	align-items: center;
 	min-width: 0;
+}
+
+.tm-toggle-group {
+	display: inline-flex;
+	align-items: center;
+	width: 100%;
+	min-width: 0;
+}
+
+.tm-color-mode-group {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	align-items: center;
+	width: 100%;
+	height: 30px;
+	border: 1px solid var(--tm-neutral-26);
+	border-radius: var(--tm-radius);
+	background: var(--tm-neutral-0b);
+	padding: 3px;
+}
+
+.tm-toggle-group-item {
+	appearance: none;
+	width: 100%;
+	min-width: 0;
+	height: 22px;
+	border: 1px solid transparent;
+	border-radius: calc(var(--tm-radius) - 2px);
+	background: transparent;
+	color: var(--tm-neutral-73);
+	font-size: 10px;
+	font-weight: 800;
+	line-height: 1;
+	text-transform: lowercase;
+	cursor: pointer;
+}
+
+.tm-toggle-group-item[data-state='on'] {
+	border-color: var(--tm-neutral-26);
+	background: var(--tm-neutral-1a);
+	color: var(--tm-neutral-f5);
+	box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.05);
+}
+
+.tm-toggle-group-item:disabled {
+	cursor: default;
 }
 
 .tm-color-trigger {

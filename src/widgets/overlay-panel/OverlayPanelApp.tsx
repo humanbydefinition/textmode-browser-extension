@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { HeartHandshake, MousePointer2, Trash2, X } from 'lucide-react';
-import type { OverlayDescriptor, OverlaySettings } from '../../domain/overlay/overlay-settings';
+import type { OverlayDescriptor, OverlayExportFormat, OverlaySettings } from '../../domain/overlay/overlay-settings';
 import { Button } from './components/button';
 import { OverlayCard } from './OverlayCard';
 
@@ -8,6 +8,7 @@ export interface OverlayPanelAppProps {
 	overlays: OverlayDescriptor[];
 	onStartPicking: () => void;
 	onUpdateOverlay: (id: string, settings: Partial<OverlaySettings>) => void;
+	onExportOverlay: (id: string, format: OverlayExportFormat) => void;
 	onRemoveOverlay: (id: string) => void;
 	onClose?: () => void;
 }
@@ -16,6 +17,7 @@ export function OverlayPanelApp({
 	overlays,
 	onStartPicking,
 	onUpdateOverlay,
+	onExportOverlay,
 	onRemoveOverlay,
 	onClose,
 }: OverlayPanelAppProps): React.JSX.Element {
@@ -27,7 +29,10 @@ export function OverlayPanelApp({
 				<div className="tm-panel__title">
 					<h1 aria-label="textmode overlay">
 						<span>textmode</span>
-						<span>overlay</span>
+						<span>
+							overlay
+							<span className="tm-panel__title-char"></span>
+						</span>
 					</h1>
 				</div>
 				<div className="tm-panel__actions">
@@ -66,7 +71,11 @@ export function OverlayPanelApp({
 
 			<section className="tm-overlay-list" aria-live="polite">
 				{overlay ? (
-					<OverlayCard overlay={overlay} onUpdateOverlay={onUpdateOverlay} />
+					<OverlayCard
+						overlay={overlay}
+						onUpdateOverlay={onUpdateOverlay}
+						onExportOverlay={onExportOverlay}
+					/>
 				) : (
 					<p className="tm-empty-state">no media selected.</p>
 				)}

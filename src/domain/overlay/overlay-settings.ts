@@ -1,8 +1,10 @@
 export type ElementKind = 'canvas' | 'video';
 export type OverlayStatus = 'active' | 'paused' | 'error';
 export type SourceColorMode = 'sampled' | 'fixed';
+export type OverlayExportFormat = 'txt' | 'svg' | 'png' | 'jpg';
 
 export const SOURCE_COLOR_MODES = ['sampled', 'fixed'] as const;
+export const OVERLAY_EXPORT_FORMATS = ['txt', 'svg', 'png', 'jpg'] as const;
 
 export const OVERLAY_SETTING_LIMITS = {
 	opacity: { min: 0, max: 1, step: 0.05 },

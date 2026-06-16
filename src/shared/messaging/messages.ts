@@ -1,6 +1,8 @@
 import {
+	OVERLAY_EXPORT_FORMATS,
 	SOURCE_COLOR_MODES,
 	type OverlayDescriptor,
+	type OverlayExportFormat,
 	type OverlaySettings,
 	type SourceColorMode,
 } from '../../domain/overlay/overlay-settings';
@@ -9,6 +11,7 @@ export type PopupToContentMessage =
 	| { type: 'START_PICKING' }
 	| { type: 'LIST_OVERLAYS' }
 	| { type: 'UPDATE_OVERLAY'; id: string; settings: Partial<OverlaySettings> }
+	| { type: 'EXPORT_OVERLAY'; id: string; format: OverlayExportFormat }
 	| { type: 'REMOVE_OVERLAY'; id: string }
 	| { type: 'PAUSE_ALL' }
 	| { type: 'RESUME_ALL' }
@@ -56,6 +59,8 @@ export function isPopupToContentMessage(value: unknown): value is PopupToContent
 			return true;
 		case 'UPDATE_OVERLAY':
 			return typeof value.id === 'string' && isOverlaySettingsPatch(value.settings);
+		case 'EXPORT_OVERLAY':
+			return typeof value.id === 'string' && isOverlayExportFormat(value.format);
 		case 'REMOVE_OVERLAY':
 			return typeof value.id === 'string';
 		default:
@@ -105,6 +110,10 @@ function isOverlaySettingsPatch(value: unknown): value is Partial<OverlaySetting
 
 function isSourceColorMode(value: unknown): value is SourceColorMode {
 	return typeof value === 'string' && SOURCE_COLOR_MODES.includes(value as SourceColorMode);
+}
+
+function isOverlayExportFormat(value: unknown): value is OverlayExportFormat {
+	return typeof value === 'string' && OVERLAY_EXPORT_FORMATS.includes(value as OverlayExportFormat);
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

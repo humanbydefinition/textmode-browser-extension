@@ -24,6 +24,7 @@ export class PageRuntime {
 		startPicking: () => this.startPicking(),
 		listOverlays: () => this.manager.list(),
 		updateOverlay: (id, settings) => this.manager.updateOverlay(id, settings),
+		exportOverlay: (id, format) => this.manager.exportOverlay(id, format),
 		removeOverlay: (id) => this.manager.removeOverlay(id),
 		pauseAll: () => this.manager.pauseAll(),
 		resumeAll: () => this.manager.resumeAll(),
@@ -70,6 +71,12 @@ export class PageRuntime {
 				onStartPicking: () => this.startPicking(),
 				onUpdateOverlay: (id, settings) => {
 					this.manager.updateOverlay(id, settings);
+				},
+				onExportOverlay: (id, format) => {
+					void this.manager.exportOverlay(id, format).catch((error) => {
+						broadcastError(toUserMessage(error));
+						this.sync();
+					});
 				},
 				onRemoveOverlay: (id) => {
 					this.manager.removeOverlay(id);

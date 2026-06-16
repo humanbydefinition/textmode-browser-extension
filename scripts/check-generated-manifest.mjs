@@ -10,7 +10,16 @@ assertEqual(manifest.description, 'turn live video and canvas elements into adju
 assertArrayEqual(manifest.permissions, ['activeTab', 'scripting', 'storage'], 'permissions');
 assertAbsent(manifest.host_permissions, 'host_permissions');
 assertAbsent(manifest.content_scripts, 'content_scripts');
-assertAbsent(manifest.web_accessible_resources, 'web_accessible_resources');
+assertArrayEqual(
+	manifest.web_accessible_resources,
+	[
+		{
+			resources: ['fonts/Bescii-Mono.ttf'],
+			matches: ['*://*/*'],
+		},
+	],
+	'web_accessible_resources'
+);
 assertAbsent(manifest.action?.default_popup, 'action.default_popup');
 assertEqual(manifest.action?.default_title, 'textmode overlay', 'action.default_title');
 assertEqual(manifest.background?.service_worker, 'background.js', 'background.service_worker');

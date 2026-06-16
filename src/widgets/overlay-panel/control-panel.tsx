@@ -1,5 +1,5 @@
 import { createRoot, type Root } from 'react-dom/client';
-import type { OverlayDescriptor, OverlaySettings } from '../../domain/overlay/overlay-settings';
+import type { OverlayDescriptor, OverlayExportFormat, OverlaySettings } from '../../domain/overlay/overlay-settings';
 import { TEXTMODE_HEADER_FONT_FAMILY } from '../../shared/config/extension-assets';
 import { OverlayPanelApp } from './OverlayPanelApp';
 import panelStyles from './popup.css?inline';
@@ -8,6 +8,7 @@ export interface ControlPanelOptions {
 	headerFontUrl: string;
 	onStartPicking: () => void;
 	onUpdateOverlay: (id: string, settings: Partial<OverlaySettings>) => void;
+	onExportOverlay: (id: string, format: OverlayExportFormat) => void;
 	onRemoveOverlay: (id: string) => void;
 	onClose: () => void;
 }
@@ -122,6 +123,7 @@ export class ControlPanel implements PanelHost {
 				overlays={this.overlays}
 				onStartPicking={this.options.onStartPicking}
 				onUpdateOverlay={this.options.onUpdateOverlay}
+				onExportOverlay={this.options.onExportOverlay}
 				onRemoveOverlay={this.options.onRemoveOverlay}
 				onClose={this.options.onClose}
 			/>

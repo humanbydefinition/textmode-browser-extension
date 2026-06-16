@@ -1,5 +1,6 @@
 import * as React from 'react';
-import type { OverlaySettings } from '../../domain/overlay/overlay-settings';
+import { Download, FileCode2, FileText, ImageDown } from 'lucide-react';
+import type { OverlayExportFormat, OverlaySettings } from '../../domain/overlay/overlay-settings';
 import {
 	formatPercent,
 	formatPixels,
@@ -7,16 +8,19 @@ import {
 	overlaySettingLimits,
 	sourceColorModeOptions,
 } from './overlay-ui-model';
+import { Button } from './components/button';
 import { ColorPicker } from './components/color-picker';
 import { SettingField, ToggleField } from './components/SettingField';
 import { Slider } from './components/slider';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from './components/tabs';
 
 interface OverlaySettingsFormProps {
 	settings: OverlaySettings;
 	onChange: (settings: Partial<OverlaySettings>) => void;
+	onExport: (format: OverlayExportFormat) => void;
 }
 
-export function OverlaySettingsForm({ settings, onChange }: OverlaySettingsFormProps): React.JSX.Element {
+export function OverlaySettingsForm({ settings, onChange, onExport }: OverlaySettingsFormProps): React.JSX.Element {
 	return (
 		<div className="tm-settings-form">
 			<section className="tm-control-group" aria-label="quick overlay controls">
@@ -37,34 +41,55 @@ export function OverlaySettingsForm({ settings, onChange }: OverlaySettingsFormP
 				/>
 			</section>
 
-			<details className="tm-advanced">
-				<summary>advanced settings</summary>
-				<div className="tm-control-group tm-control-group--advanced">
-					<ToggleField label="invert" checked={settings.invert} onChange={(invert) => onChange({ invert })} />
-					<ColorModeField
-						label="characters"
-						mode={settings.charColorMode}
-						color={settings.charColor}
-						onModeChange={(charColorMode) => onChange({ charColorMode })}
-						onColorChange={(charColor) => onChange({ charColor })}
-					/>
-					<ColorModeField
-						label="cells"
-						mode={settings.cellColorMode}
-						color={settings.cellColor}
-						onModeChange={(cellColorMode) => onChange({ cellColorMode })}
-						onColorChange={(cellColor) => onChange({ cellColor })}
-					/>
-					<SettingField label="glyph ramp">
-						<input
-							className="tm-input"
-							type="text"
-							value={settings.glyphRamp}
-							onChange={(event) => onChange({ glyphRamp: event.currentTarget.value })}
+			<Tabs defaultValue="export" className="tm-settings-tabs">
+				<TabsList className="tm-tabs-list" aria-label="overlay controls">
+					<TabsTrigger className="tm-tabs-trigger" value="export">
+						export
+					</TabsTrigger>
+					<TabsTrigger className="tm-tabs-trigger" value="advanced">
+						advanced
+					</TabsTrigger>
+				</TabsList>
+				<TabsContent className="tm-tabs-content" value="export" forceMount>
+					<div className="tm-export-grid">
+						<ExportButton format="txt" label="TXT" onExport={onExport} />
+						<ExportButton format="svg" label="SVG" onExport={onExport} />
+						<ExportButton format="png" label="PNG" onExport={onExport} />
+						<ExportButton format="jpg" label="JPG" onExport={onExport} />
+					</div>
+				</TabsContent>
+				<TabsContent className="tm-tabs-content" value="advanced" forceMount>
+					<div className="tm-control-group tm-control-group--advanced">
+						<ToggleField
+							label="invert"
+							checked={settings.invert}
+							onChange={(invert) => onChange({ invert })}
 						/>
-					</SettingField>
-				</div>
-			</details>
+						<ColorModeField
+							label="characters"
+							mode={settings.charColorMode}
+							color={settings.charColor}
+							onModeChange={(charColorMode) => onChange({ charColorMode })}
+							onColorChange={(charColor) => onChange({ charColor })}
+						/>
+						<ColorModeField
+							label="cells"
+							mode={settings.cellColorMode}
+							color={settings.cellColor}
+							onModeChange={(cellColorMode) => onChange({ cellColorMode })}
+							onColorChange={(cellColor) => onChange({ cellColor })}
+						/>
+						<SettingField label="glyph ramp">
+							<input
+								className="tm-input"
+								type="text"
+								value={settings.glyphRamp}
+								onChange={(event) => onChange({ glyphRamp: event.currentTarget.value })}
+							/>
+						</SettingField>
+					</div>
+				</TabsContent>
+			</Tabs>
 		</div>
 	);
 }
@@ -128,4 +153,41 @@ function ColorModeField({ label, mode, color, onModeChange, onColorChange }: Col
 			</div>
 		</SettingField>
 	);
+}
+
+interface ExportButtonProps {
+	format: OverlayExportFormat;
+	label: string;
+	onExport: (format: OverlayExportFormat) => void;
+}
+
+function ExportButton({ format, label, onExport }: ExportButtonProps): React.JSX.Element {
+	const Icon = getExportIcon(format);
+
+	return (
+		<Button
+			type="button"
+			variant="outline"
+			size="sm"
+			className="tm-button tm-button--outline tm-button--sm tm-export-button"
+			aria-label={`export ${label}`}
+			onClick={() => onExport(format)}
+		>
+			<Icon aria-hidden="true" />
+			<span>{label}</span>
+			<Download aria-hidden="true" className="tm-export-button__download" />
+		</Button>
+	);
+}
+
+function getExportIcon(format: OverlayExportFormat): typeof FileText {
+	switch (format) {
+		case 'txt':
+			return FileText;
+		case 'svg':
+			return FileCode2;
+		case 'png':
+		case 'jpg':
+			return ImageDown;
+	}
 }

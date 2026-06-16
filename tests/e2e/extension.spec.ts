@@ -46,7 +46,12 @@ test('Chrome extension can select a canvas and create an overlay', async () => {
 
 		await expect(page.getByText('canvas selected')).toBeVisible();
 		await expect(page.locator('canvas[data-textmode-ascii-extension-ui="true"]')).toHaveCount(1);
-		await page.getByText('advanced settings').click();
+		await expect(page.getByRole('tab', { name: 'export' })).toBeVisible();
+		await expect(page.getByRole('button', { name: /TXT/i })).toBeVisible();
+		await expect(page.getByRole('button', { name: /SVG/i })).toBeVisible();
+		await expect(page.getByRole('button', { name: /PNG/i })).toBeVisible();
+		await expect(page.getByRole('button', { name: /JPG/i })).toBeVisible();
+		await page.getByRole('tab', { name: 'advanced' }).click();
 		await page.getByRole('button', { name: /characters color/i }).click();
 		await expect(page.locator('[data-slot="popover-content"]')).toBeVisible();
 

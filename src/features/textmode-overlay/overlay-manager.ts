@@ -4,16 +4,17 @@ import {
 	getElementBounds,
 	mergeOverlaySettings,
 	type OverlayDescriptor,
+	type OverlayExportFormat,
 	type OverlaySettings,
 } from '../../domain/overlay/overlay-settings';
 import { describeElement, type SelectableElement } from '../media-picker/element-picker';
-import { textmodeOverlayRenderer, type OverlayRendererPort, type TextmodeInstance } from './overlay-renderer';
+import { textmodeOverlayRenderer, type ExportableTextmodeInstance, type OverlayRendererPort } from './overlay-renderer';
 
 interface OverlayController {
 	id: string;
 	element: SelectableElement;
 	settings: OverlaySettings;
-	instance?: TextmodeInstance;
+	instance?: ExportableTextmodeInstance;
 	status: OverlayDescriptor['status'];
 	latestError?: string;
 	previousInlineOpacity: string;
@@ -112,6 +113,49 @@ export class OverlayManager {
 		this.overlays.delete(id);
 		this.onChange();
 		return this.list();
+	}
+
+	public async exportOverlay(id: string, format: OverlayExportFormat): Promise<OverlayDescriptor[]> {
+		const controller = this.overlays.get(id);
+		if (!controller) {
+			throw new Error(`Overlay ${id} no longer exists.`);
+		}
+
+		try {
+			const api = getExportAPI(controller.instance);
+			switch (format) {
+				case 'txt':
+					api.saveStrings({
+						filename: 'textmode-overlay.txt',
+						preserveTrailingSpaces: false,
+						emptyCharacter: ' ',
+					});
+					break;
+				case 'svg':
+					api.saveSVG({
+						filename: 'textmode-overlay.svg',
+						includeBackgroundRectangles: true,
+						drawMode: 'fill',
+						strokeWidth: 1,
+					});
+					break;
+				case 'png':
+					await api.saveCanvas({ filename: 'textmode-overlay.png', format: 'png', scale: 1 });
+					break;
+				case 'jpg':
+					await api.saveCanvas({ filename: 'textmode-overlay.jpg', format: 'jpg', scale: 1 });
+					break;
+			}
+
+			controller.latestError = undefined;
+			controller.status = controller.settings.enabled ? 'active' : 'paused';
+			this.onChange();
+			return this.list();
+		} catch (error) {
+			this.markError(controller, error);
+			this.onChange();
+			throw new Error(controller.latestError ?? toUserMessage(error));
+		}
 	}
 
 	public pauseAll(): OverlayDescriptor[] {
@@ -230,6 +274,20 @@ export class OverlayManager {
 			latestError: controller.latestError,
 		};
 	}
+}
+
+type OverlayExportAPI = Required<Pick<ExportableTextmodeInstance, 'saveCanvas' | 'saveSVG' | 'saveStrings'>>;
+
+function getExportAPI(instance: ExportableTextmodeInstance | undefined): OverlayExportAPI {
+	if (!instance || !instance.saveCanvas || !instance.saveSVG || !instance.saveStrings) {
+		throw new Error('Export controls are not available for this overlay.');
+	}
+
+	return {
+		saveCanvas: instance.saveCanvas,
+		saveSVG: instance.saveSVG,
+		saveStrings: instance.saveStrings,
+	};
 }
 
 function assertCanCreateOverlay(element: SelectableElement): void {

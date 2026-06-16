@@ -6,6 +6,10 @@ describe('isRuntimeMessage', () => {
 		expect(isRuntimeMessage({ type: 'PING' })).toBe(true);
 		expect(isRuntimeMessage({ type: 'REMOVE_OVERLAY', id: 'overlay-1' })).toBe(true);
 		expect(isRuntimeMessage({ type: 'UPDATE_OVERLAY', id: 'overlay-1', settings: { fontSize: 16 } })).toBe(true);
+		expect(isRuntimeMessage({ type: 'EXPORT_OVERLAY', id: 'overlay-1', format: 'txt' })).toBe(true);
+		expect(isRuntimeMessage({ type: 'EXPORT_OVERLAY', id: 'overlay-1', format: 'svg' })).toBe(true);
+		expect(isRuntimeMessage({ type: 'EXPORT_OVERLAY', id: 'overlay-1', format: 'png' })).toBe(true);
+		expect(isRuntimeMessage({ type: 'EXPORT_OVERLAY', id: 'overlay-1', format: 'jpg' })).toBe(true);
 	});
 
 	it('rejects missing or non-string types', () => {
@@ -28,5 +32,9 @@ describe('isRuntimeMessage', () => {
 			isRuntimeMessage({ type: 'UPDATE_OVERLAY', id: 'overlay-1', settings: { charColorMode: 'rainbow' } })
 		).toBe(false);
 		expect(isRuntimeMessage({ type: 'UPDATE_OVERLAY', id: 'overlay-1', settings: { mystery: true } })).toBe(false);
+		expect(isRuntimeMessage({ type: 'EXPORT_OVERLAY' })).toBe(false);
+		expect(isRuntimeMessage({ type: 'EXPORT_OVERLAY', id: 1, format: 'png' })).toBe(false);
+		expect(isRuntimeMessage({ type: 'EXPORT_OVERLAY', id: 'overlay-1' })).toBe(false);
+		expect(isRuntimeMessage({ type: 'EXPORT_OVERLAY', id: 'overlay-1', format: 'webp' })).toBe(false);
 	});
 });

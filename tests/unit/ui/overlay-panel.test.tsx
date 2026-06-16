@@ -31,6 +31,7 @@ describe('OverlayPanelApp', () => {
 					overlays={[]}
 					onStartPicking={onStartPicking}
 					onUpdateOverlay={vi.fn()}
+					onExportOverlay={vi.fn()}
 					onRemoveOverlay={vi.fn()}
 				/>
 			);
@@ -38,10 +39,11 @@ describe('OverlayPanelApp', () => {
 
 		expect(host.textContent).toContain('no media selected.');
 		expect(host.querySelector('.tm-panel__title h1')?.getAttribute('aria-label')).toBe('textmode overlay');
-		expect([...host.querySelectorAll('.tm-panel__title h1 span')].map((span) => span.textContent)).toEqual([
-			'textmode',
-			'overlay',
-		]);
+		expect(
+			[...host.querySelectorAll<HTMLSpanElement>('.tm-panel__title h1 > span')].map((span) =>
+				span.textContent?.replace(/[^\x20-\x7e]/g, '')
+			)
+		).toEqual(['textmode', 'overlay']);
 		expect(host.querySelector<HTMLButtonElement>('.tm-remove-button')?.disabled).toBe(true);
 		expect(host.querySelector<HTMLAnchorElement>('.tm-built-with a')?.href).toBe('https://code.textmode.art/');
 		expect(host.querySelector<HTMLAnchorElement>('.tm-support-link')?.href).toBe(
@@ -53,6 +55,7 @@ describe('OverlayPanelApp', () => {
 
 	it('renders every existing overlay setting and emits setting patches', () => {
 		const onUpdateOverlay = vi.fn();
+		const onExportOverlay = vi.fn();
 		const onRemoveOverlay = vi.fn();
 		const overlay = createOverlay();
 
@@ -62,6 +65,7 @@ describe('OverlayPanelApp', () => {
 					overlays={[overlay]}
 					onStartPicking={vi.fn()}
 					onUpdateOverlay={onUpdateOverlay}
+					onExportOverlay={onExportOverlay}
 					onRemoveOverlay={onRemoveOverlay}
 				/>
 			);
@@ -70,6 +74,12 @@ describe('OverlayPanelApp', () => {
 		for (const label of ['overlay', 'opacity', 'font size', 'invert', 'characters', 'cells', 'glyph ramp']) {
 			expect(host.textContent).toContain(label);
 		}
+		expect(host.querySelector('details')).toBeNull();
+		expect(host.textContent).not.toContain('advanced settings');
+		expect([...host.querySelectorAll('[data-slot="tabs-trigger"]')].map((tab) => tab.textContent)).toEqual([
+			'export',
+			'advanced',
+		]);
 		expect(host.querySelector('.tm-dimensions')?.textContent).toBe('320x180');
 		expect(host.querySelector('.tm-overlay-card__title p')?.textContent).toBe(
 			'canvas#demo-canvas.really-long-class'
@@ -85,6 +95,28 @@ describe('OverlayPanelApp', () => {
 		});
 
 		expect(onUpdateOverlay).toHaveBeenCalledWith('overlay-1', { enabled: false });
+
+		const exportTab = [...host.querySelectorAll<HTMLButtonElement>('[data-slot="tabs-trigger"]')].find(
+			(tab) => tab.textContent === 'export'
+		);
+		expect(exportTab).not.toBeUndefined();
+		act(() => {
+			exportTab?.click();
+		});
+
+		for (const [label, format] of [
+			['TXT', 'txt'],
+			['SVG', 'svg'],
+			['PNG', 'png'],
+			['JPG', 'jpg'],
+		] as const) {
+			const button = host.querySelector<HTMLButtonElement>(`button[aria-label="export ${label}"]`);
+			expect(button).not.toBeNull();
+			act(() => {
+				button?.click();
+			});
+			expect(onExportOverlay).toHaveBeenLastCalledWith('overlay-1', format);
+		}
 
 		const removeButton = host.querySelector<HTMLButtonElement>('.tm-panel__footer .tm-remove-button');
 		expect(removeButton?.disabled).toBe(false);

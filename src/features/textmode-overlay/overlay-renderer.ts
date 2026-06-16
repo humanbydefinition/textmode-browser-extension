@@ -1,11 +1,14 @@
 import { textmode } from 'textmode.js';
+import { createTextmodeExportPlugin } from 'textmode.export.js';
+import type { TextmodeExportAPI } from 'textmode.export.js';
 import type { OverlaySettings } from '../../domain/overlay/overlay-settings';
 import type { SelectableElement } from '../media-picker/element-picker';
 
 export type TextmodeInstance = ReturnType<typeof textmode.create>;
+export type ExportableTextmodeInstance = TextmodeInstance & Partial<TextmodeExportAPI>;
 
 export interface OverlayRendererPort {
-	create(element: SelectableElement, settings: OverlaySettings): TextmodeInstance;
+	create(element: SelectableElement, settings: OverlaySettings): ExportableTextmodeInstance;
 }
 
 export const textmodeOverlayRenderer: OverlayRendererPort = {
@@ -16,6 +19,7 @@ export const textmodeOverlayRenderer: OverlayRendererPort = {
 			pixelDensity: 1,
 			fontSize: settings.fontSize,
 			loadingScreen: { transition: 'none' },
+			plugins: [createTextmodeExportPlugin({ overlay: false })],
 		});
 	},
 };

@@ -11,6 +11,7 @@ describe('popup layout CSS', () => {
 		expect(popupCss).toContain("[data-slot='slider-track']");
 		expect(popupCss).not.toContain('.tm-slider');
 		expect(popupCss).toContain('max-width: var(--tm-panel-width)');
+		expect(popupCss).toContain('max-height: min(640px, calc(100vh - 60px))');
 		expect(popupCss).toContain('grid-template-rows: auto auto minmax(0, 1fr) auto');
 	});
 
@@ -50,5 +51,16 @@ describe('popup layout CSS', () => {
 		expect(popupCss).not.toContain('.tm-color-range--alpha');
 		expect(popupCss).not.toContain('.tm-color-popover__presets');
 		expect(popupCss).not.toContain('.tm-color-input');
+	});
+
+	it('styles advanced and export controls as compact tabs', () => {
+		expect(popupCss).toContain('.tm-settings-tabs');
+		expect(popupCss).toContain("[data-slot='tabs-trigger']:focus-visible");
+		expect(popupCss).toContain('.tm-tabs-list');
+		expect(popupCss).toContain(".tm-tabs-trigger[data-state='active']");
+		expect(popupCss).toContain('grid-template-columns: repeat(2, minmax(0, 1fr))');
+		expect(popupCss).toContain('.tm-export-grid');
+		expect(popupCss).toContain('.tm-export-button');
+		expect(popupCss).not.toContain('.tm-advanced');
 	});
 });

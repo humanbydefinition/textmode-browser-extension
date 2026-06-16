@@ -1,4 +1,4 @@
-import type { OverlayDescriptor, OverlaySettings } from '../../domain/overlay/overlay-settings';
+import type { OverlayDescriptor, OverlayExportFormat, OverlaySettings } from '../../domain/overlay/overlay-settings';
 import { toUserMessage } from '../../shared/errors/errors';
 import type { PopupToContentMessage, RuntimeAck } from '../../shared/messaging/messages';
 
@@ -7,6 +7,7 @@ export interface RuntimeActionDependencies {
 	startPicking(): void;
 	listOverlays(): OverlayDescriptor[];
 	updateOverlay(id: string, settings: Partial<OverlaySettings>): OverlayDescriptor[];
+	exportOverlay(id: string, format: OverlayExportFormat): Promise<OverlayDescriptor[]>;
 	removeOverlay(id: string): OverlayDescriptor[];
 	pauseAll(): OverlayDescriptor[];
 	resumeAll(): OverlayDescriptor[];
@@ -33,6 +34,8 @@ export function createRuntimeActionHandler(deps: RuntimeActionDependencies): Run
 						return { ok: true, overlays: deps.listOverlays() };
 					case 'UPDATE_OVERLAY':
 						return { ok: true, overlays: deps.updateOverlay(message.id, message.settings) };
+					case 'EXPORT_OVERLAY':
+						return { ok: true, overlays: await deps.exportOverlay(message.id, message.format) };
 					case 'REMOVE_OVERLAY':
 						return { ok: true, overlays: deps.removeOverlay(message.id) };
 					case 'PAUSE_ALL':

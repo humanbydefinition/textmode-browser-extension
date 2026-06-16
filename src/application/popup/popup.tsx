@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { ensureContentRuntime } from '../background/runtime-injection';
 import { addRuntimeMessageListener, getActiveTab, sendMessageToTab } from '../../shared/browser/browser-api';
 import type { ContentToPopupMessage, RuntimeAck, RuntimeMessage } from '../../shared/messaging/messages';
-import type { OverlayDescriptor, OverlaySettings } from '../../domain/overlay/overlay-settings';
+import type { OverlayDescriptor, OverlayExportFormat, OverlaySettings } from '../../domain/overlay/overlay-settings';
 import { OverlayPanelApp } from '../../widgets/overlay-panel/OverlayPanelApp';
 
 const root = createRoot(getElement('root'));
@@ -35,6 +35,7 @@ function render(): void {
 			overlays={overlays}
 			onStartPicking={() => void execute({ type: 'START_PICKING' })}
 			onUpdateOverlay={(id, settings) => updateOverlay(id, settings)}
+			onExportOverlay={(id, format) => exportOverlay(id, format)}
 			onRemoveOverlay={(id) => void execute({ type: 'REMOVE_OVERLAY', id })}
 		/>
 	);
@@ -64,6 +65,10 @@ async function execute(message: RuntimeMessage): Promise<void> {
 
 function updateOverlay(id: string, settings: Partial<OverlaySettings>): void {
 	void execute({ type: 'UPDATE_OVERLAY', id, settings });
+}
+
+function exportOverlay(id: string, format: OverlayExportFormat): void {
+	void execute({ type: 'EXPORT_OVERLAY', id, format });
 }
 
 function getElement(id: string): HTMLElement {

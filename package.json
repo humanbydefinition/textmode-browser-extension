@@ -38,6 +38,7 @@
 		"react": "^19.2.7",
 		"react-dom": "^19.2.7",
 		"tailwind-merge": "^3.6.0",
+		"textmode.export.js": "^1.5.1",
 		"textmode.js": "0.16.0"
 	},
 	"overrides": {

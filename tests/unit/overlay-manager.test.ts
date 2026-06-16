@@ -4,6 +4,9 @@ import { OverlayManager } from '../../src/features/textmode-overlay/overlay-mana
 
 interface MockTextmodeInstance {
 	canvas: HTMLCanvasElement;
+	saveCanvas: ReturnType<typeof vi.fn>;
+	saveSVG: ReturnType<typeof vi.fn>;
+	saveStrings: ReturnType<typeof vi.fn>;
 	destroy: ReturnType<typeof vi.fn>;
 }
 
@@ -23,6 +26,9 @@ vi.mock('textmode.js', () => ({
 				noLoop: vi.fn(),
 				loop: vi.fn(),
 				fontSize: vi.fn((value?: number) => (value === undefined ? 8 : undefined)),
+				saveCanvas: vi.fn(async () => undefined),
+				saveSVG: vi.fn(),
+				saveStrings: vi.fn(),
 				destroy: vi.fn(),
 				get overlay() {
 					return source;
@@ -32,6 +38,14 @@ vi.mock('textmode.js', () => ({
 			return instance;
 		}),
 	},
+}));
+
+vi.mock('textmode.export.js', () => ({
+	createTextmodeExportPlugin: vi.fn(() => ({
+		name: 'textmode.export',
+		version: 'test',
+		install: vi.fn(),
+	})),
 }));
 
 describe('OverlayManager', () => {
@@ -65,15 +79,73 @@ describe('OverlayManager', () => {
 
 		manager.createOverlay(canvas, { fontSize: 16 });
 
-		expect(textmode.create).toHaveBeenCalledWith({
-			canvas,
-			overlay: true,
-			pixelDensity: 1,
-			fontSize: 16,
-			loadingScreen: { transition: 'none' },
-		});
+		expect(textmode.create).toHaveBeenCalledWith(
+			expect.objectContaining({
+				canvas,
+				overlay: true,
+				pixelDensity: 1,
+				fontSize: 16,
+				loadingScreen: { transition: 'none' },
+				plugins: [expect.objectContaining({ name: 'textmode.export' })],
+			})
+		);
 		expect(instances[0]?.canvas.style.pointerEvents).toBe('none');
 		expect(instances[0]?.canvas.style.mixBlendMode).toBe('normal');
+	});
+
+	it('exports the active overlay with fixed one-click options', async () => {
+		const canvas = createCanvas('source');
+		document.body.append(canvas);
+		const manager = new OverlayManager(vi.fn());
+
+		const overlay = manager.createOverlay(canvas);
+
+		await manager.exportOverlay(overlay.id, 'txt');
+		await manager.exportOverlay(overlay.id, 'svg');
+		await manager.exportOverlay(overlay.id, 'png');
+		await manager.exportOverlay(overlay.id, 'jpg');
+
+		expect(instances[0]?.saveStrings).toHaveBeenCalledWith({
+			filename: 'textmode-overlay.txt',
+			preserveTrailingSpaces: false,
+			emptyCharacter: ' ',
+		});
+		expect(instances[0]?.saveSVG).toHaveBeenCalledWith({
+			filename: 'textmode-overlay.svg',
+			includeBackgroundRectangles: true,
+			drawMode: 'fill',
+			strokeWidth: 1,
+		});
+		expect(instances[0]?.saveCanvas).toHaveBeenCalledWith({
+			filename: 'textmode-overlay.png',
+			format: 'png',
+			scale: 1,
+		});
+		expect(instances[0]?.saveCanvas).toHaveBeenCalledWith({
+			filename: 'textmode-overlay.jpg',
+			format: 'jpg',
+			scale: 1,
+		});
+	});
+
+	it('records export failures on the overlay descriptor', async () => {
+		const canvas = createCanvas('source');
+		document.body.append(canvas);
+		const onChange = vi.fn();
+		const manager = new OverlayManager(onChange);
+
+		const overlay = manager.createOverlay(canvas);
+		instances[0]?.saveSVG.mockImplementation(() => {
+			throw new Error('SVG export failed.');
+		});
+
+		await expect(manager.exportOverlay(overlay.id, 'svg')).rejects.toThrow('SVG export failed.');
+
+		expect(manager.list()[0]).toMatchObject({
+			status: 'error',
+			latestError: 'SVG export failed.',
+		});
+		expect(onChange).toHaveBeenCalled();
 	});
 });
 

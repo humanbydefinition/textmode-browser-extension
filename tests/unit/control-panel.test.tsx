@@ -22,6 +22,7 @@ describe('ControlPanel', () => {
 				headerFontUrl: HEADER_FONT_URL,
 				onStartPicking: vi.fn(),
 				onUpdateOverlay: vi.fn(),
+				onExportOverlay: vi.fn(),
 				onRemoveOverlay: vi.fn(),
 				onClose: vi.fn(),
 			});
@@ -62,6 +63,7 @@ describe('ControlPanel', () => {
 				headerFontUrl: HEADER_FONT_URL,
 				onStartPicking: vi.fn(),
 				onUpdateOverlay: vi.fn(),
+				onExportOverlay: vi.fn(),
 				onRemoveOverlay: vi.fn(),
 				onClose: vi.fn(),
 			});

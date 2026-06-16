@@ -25,6 +25,7 @@ describe('createRuntimeActionHandler', () => {
 			startPicking: vi.fn(),
 			listOverlays: vi.fn(() => overlays),
 			updateOverlay: vi.fn(() => overlays),
+			exportOverlay: vi.fn(async () => overlays),
 			removeOverlay: vi.fn(() => []),
 			pauseAll: vi.fn(() => overlays),
 			resumeAll: vi.fn(() => overlays),
@@ -55,6 +56,19 @@ describe('createRuntimeActionHandler', () => {
 		expect(response).toEqual({ ok: true, overlays });
 	});
 
+	it('delegates overlay exports to the overlay manager boundary', async () => {
+		const handler = createRuntimeActionHandler(deps);
+
+		const response = await handler.handle({
+			type: 'EXPORT_OVERLAY',
+			id: 'overlay-1',
+			format: 'png',
+		});
+
+		expect(deps.exportOverlay).toHaveBeenCalledWith('overlay-1', 'png');
+		expect(response).toEqual({ ok: true, overlays });
+	});
+
 	it('broadcasts user-readable errors without throwing', async () => {
 		vi.mocked(deps.updateOverlay).mockImplementation(() => {
 			throw new Error('Overlay overlay-1 no longer exists.');
@@ -71,6 +85,24 @@ describe('createRuntimeActionHandler', () => {
 		expect(response).toEqual({
 			ok: false,
 			error: 'Overlay overlay-1 no longer exists.',
+			overlays,
+		});
+	});
+
+	it('broadcasts async export errors without throwing', async () => {
+		vi.mocked(deps.exportOverlay).mockRejectedValue(new Error('Export failed.'));
+		const handler = createRuntimeActionHandler(deps);
+
+		const response = await handler.handle({
+			type: 'EXPORT_OVERLAY',
+			id: 'overlay-1',
+			format: 'svg',
+		});
+
+		expect(deps.broadcastError).toHaveBeenCalledWith('Export failed.');
+		expect(response).toEqual({
+			ok: false,
+			error: 'Export failed.',
 			overlays,
 		});
 	});

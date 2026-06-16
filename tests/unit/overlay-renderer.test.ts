@@ -15,12 +15,15 @@ describe('textmodeOverlayRenderer', () => {
 
 		textmodeOverlayRenderer.create(canvas, { ...DEFAULT_OVERLAY_SETTINGS, fontSize: 16 });
 
-		expect(textmode.create).toHaveBeenCalledWith({
-			canvas,
-			overlay: true,
-			pixelDensity: 1,
-			fontSize: 16,
-			loadingScreen: { transition: 'none' },
-		});
+		expect(textmode.create).toHaveBeenCalledWith(
+			expect.objectContaining({
+				canvas,
+				overlay: true,
+				pixelDensity: 1,
+				fontSize: 16,
+				loadingScreen: { transition: 'none' },
+				plugins: [expect.objectContaining({ name: 'textmode.export' })],
+			})
+		);
 	});
 });

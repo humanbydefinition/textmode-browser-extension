@@ -27,9 +27,8 @@ export class ElementPicker {
 			position: 'fixed',
 			zIndex: PICKER_HIGHLIGHT_Z_INDEX,
 			pointerEvents: 'none',
-			border: '2px solid #38bdf8',
 			borderRadius: '4px',
-			boxShadow: '0 0 0 1px rgba(2, 6, 23, 0.8)',
+			boxShadow: 'inset 0 0 0 2px #38bdf8',
 			background: 'rgba(56, 189, 248, 0.06)',
 			display: 'none',
 		});

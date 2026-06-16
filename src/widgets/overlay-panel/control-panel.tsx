@@ -34,7 +34,7 @@ export class ControlPanel implements PanelHost {
 			top: '10px',
 			right: '10px',
 			zIndex: '2147483646',
-			width: '340px',
+			width: '300px',
 			maxWidth: 'calc(100vw - 32px)',
 		});
 
@@ -44,7 +44,7 @@ export class ControlPanel implements PanelHost {
 			:host {
 				all: initial;
 				display: block;
-				width: min(340px, calc(100vw - 32px));
+				width: min(300px, calc(100vw - 32px));
 				color-scheme: dark;
 				box-shadow: 0 18px 42px rgb(0 0 0 / 0.42);
 			}

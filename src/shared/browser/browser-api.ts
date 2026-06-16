@@ -8,6 +8,7 @@ export type ActionClickedListener = Parameters<typeof browser.action.onClicked.a
 
 export interface BrowserPort {
 	getActiveTab(): Promise<Browser.tabs.Tab | undefined>;
+	getExtensionAssetUrl(path: string): string;
 	injectContentRuntime(tabId: number): Promise<void>;
 	sendMessageToTab<TResponse>(tabId: number, message: RuntimeMessage): Promise<TResponse>;
 	sendMessageToRuntime<TResponse>(message: RuntimeMessage): Promise<TResponse>;
@@ -22,6 +23,9 @@ export const browserPort: BrowserPort = {
 	async getActiveTab() {
 		const tabs = await browser.tabs.query({ active: true, currentWindow: true });
 		return tabs[0];
+	},
+	getExtensionAssetUrl(path) {
+		return chrome.runtime.getURL(path);
 	},
 	async injectContentRuntime(tabId) {
 		await browser.scripting.executeScript({
@@ -53,6 +57,7 @@ export const browserPort: BrowserPort = {
 };
 
 export const getActiveTab = browserPort.getActiveTab;
+export const getExtensionAssetUrl = browserPort.getExtensionAssetUrl;
 export const injectContentRuntime = browserPort.injectContentRuntime;
 export const sendMessageToTab = browserPort.sendMessageToTab;
 export const sendMessageToRuntime = browserPort.sendMessageToRuntime;

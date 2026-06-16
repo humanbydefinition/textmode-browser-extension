@@ -1,9 +1,11 @@
 import { createRoot, type Root } from 'react-dom/client';
 import type { OverlayDescriptor, OverlaySettings } from '../../domain/overlay/overlay-settings';
+import { TEXTMODE_HEADER_FONT_FAMILY } from '../../shared/config/extension-assets';
 import { OverlayPanelApp } from './OverlayPanelApp';
 import panelStyles from './popup.css?inline';
 
 export interface ControlPanelOptions {
+	headerFontUrl: string;
 	onStartPicking: () => void;
 	onUpdateOverlay: (id: string, settings: Partial<OverlaySettings>) => void;
 	onRemoveOverlay: (id: string) => void;
@@ -28,6 +30,7 @@ export class ControlPanel implements PanelHost {
 	private readonly onShadowKeyDown: EventListener;
 
 	public constructor(private readonly options: ControlPanelOptions) {
+		installHeaderFont(options.headerFontUrl);
 		this.container = document.createElement('div');
 		this.container.id = PANEL_HOST_ID;
 		this.container.dataset.textmodeAsciiExtensionUi = 'true';
@@ -55,6 +58,14 @@ export class ControlPanel implements PanelHost {
 		};
 		const styleEl = document.createElement('style');
 		styleEl.textContent = `
+			@font-face {
+				font-family: '${TEXTMODE_HEADER_FONT_FAMILY}';
+				src: url(${JSON.stringify(this.options.headerFontUrl)}) format('truetype');
+				font-weight: 400;
+				font-style: normal;
+				font-display: swap;
+			}
+
 			:host {
 				all: initial;
 				display: block;
@@ -116,4 +127,27 @@ export class ControlPanel implements PanelHost {
 			/>
 		);
 	}
+}
+
+function installHeaderFont(fontUrl: string): void {
+	if (typeof FontFace === 'undefined' || !document.fonts || hasHeaderFontFace()) {
+		return;
+	}
+
+	const fontFace = new FontFace(TEXTMODE_HEADER_FONT_FAMILY, `url(${JSON.stringify(fontUrl)})`, {
+		display: 'swap',
+		style: 'normal',
+		weight: '400',
+	});
+
+	document.fonts.add(fontFace);
+	void fontFace.load().catch(() => {
+		document.fonts.delete(fontFace);
+	});
+}
+
+function hasHeaderFontFace(): boolean {
+	return [...document.fonts].some(
+		(fontFace) => fontFace.family === TEXTMODE_HEADER_FONT_FAMILY && fontFace.status !== 'error'
+	);
 }

@@ -37,6 +37,11 @@ describe('OverlayPanelApp', () => {
 		});
 
 		expect(host.textContent).toContain('no media selected.');
+		expect(host.querySelector('.tm-panel__title h1')?.getAttribute('aria-label')).toBe('textmode overlay');
+		expect([...host.querySelectorAll('.tm-panel__title h1 span')].map((span) => span.textContent)).toEqual([
+			'textmode',
+			'overlay',
+		]);
 		expect(host.querySelector<HTMLButtonElement>('.tm-remove-button')?.disabled).toBe(true);
 		expect(host.querySelector<HTMLAnchorElement>('.tm-built-with a')?.href).toBe('https://code.textmode.art/');
 		expect(host.querySelector<HTMLAnchorElement>('.tm-support-link')?.href).toBe(

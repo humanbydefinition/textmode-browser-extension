@@ -117,9 +117,15 @@ summary {
 }
 
 .tm-panel__title h1 {
-	color: var(--tm-neutral-fa);
-	font-size: 17px;
+	display: grid;
+	gap: 2px;
+	font-family: 'Bescii Mono', monospace;
+	font-size: 14px;
+	font-weight: 400;
+	font-synthesis: none;
 	line-height: 1;
+	color: var(--tm-neutral-fa);
+	white-space: normal;
 }
 
 .tm-panel__actions {

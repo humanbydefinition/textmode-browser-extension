@@ -1,10 +1,11 @@
 import { toUserMessage } from '../../shared/errors/errors';
 import { isPopupToContentMessage, isRuntimeMessage, type RuntimeAck } from '../../shared/messaging/messages';
-import { addRuntimeMessageListener, sendMessageToRuntime } from '../../shared/browser/browser-api';
+import { addRuntimeMessageListener, getExtensionAssetUrl } from '../../shared/browser/browser-api';
+import { TEXTMODE_HEADER_FONT_RESOURCE } from '../../shared/config/extension-assets';
 import type { OverlaySettings } from '../../domain/overlay/overlay-settings';
 import { ElementPicker, type SelectableElement } from '../../features/media-picker/element-picker';
 import { OverlayManager } from '../../features/textmode-overlay/overlay-manager';
-import { broadcastError, broadcastOverlayList } from './page-state';
+import { broadcastError, broadcastOverlayList, broadcastPickingCancelled, broadcastPickingStarted } from './page-state';
 import { createRuntimeActionHandler } from './runtime-actions';
 import type { ControlPanel } from '../../widgets/overlay-panel/control-panel';
 
@@ -65,6 +66,7 @@ export class PageRuntime {
 		} else {
 			const { ControlPanel } = await import('../../widgets/overlay-panel/control-panel');
 			this.controlPanel = new ControlPanel({
+				headerFontUrl: getExtensionAssetUrl(TEXTMODE_HEADER_FONT_RESOURCE),
 				onStartPicking: () => this.startPicking(),
 				onUpdateOverlay: (id, settings) => {
 					this.manager.updateOverlay(id, settings);
@@ -95,11 +97,11 @@ export class PageRuntime {
 			},
 			onCancel: () => {
 				this.picker = undefined;
-				void sendMessageToRuntime({ type: 'PICKING_CANCELLED' });
+				broadcastPickingCancelled();
 			},
 		});
 		this.picker.start();
-		void sendMessageToRuntime({ type: 'PICKING_STARTED' });
+		broadcastPickingStarted();
 	}
 
 	private createOverlay(element: SelectableElement, settings?: Partial<OverlaySettings>): void {

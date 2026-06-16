@@ -1,9 +1,12 @@
 import { act } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { DEFAULT_OVERLAY_SETTINGS } from '../../src/domain/overlay/overlay-settings';
+import { TEXTMODE_HEADER_FONT_FAMILY } from '../../src/shared/config/extension-assets';
 import { ControlPanel } from '../../src/widgets/overlay-panel/control-panel';
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
+
+const HEADER_FONT_URL = 'chrome-extension://extension-id/fonts/Bescii-Mono.ttf';
 
 describe('ControlPanel', () => {
 	beforeEach(() => {
@@ -16,6 +19,7 @@ describe('ControlPanel', () => {
 
 		act(() => {
 			panel = new ControlPanel({
+				headerFontUrl: HEADER_FONT_URL,
 				onStartPicking: vi.fn(),
 				onUpdateOverlay: vi.fn(),
 				onRemoveOverlay: vi.fn(),
@@ -38,6 +42,12 @@ describe('ControlPanel', () => {
 		expect(host).not.toBeNull();
 		expect(host?.dataset.textmodeAsciiExtensionUi).toBe('true');
 		expect(host?.shadowRoot?.textContent).toContain('video selected');
+		expect(host?.shadowRoot?.querySelector('style')?.textContent).toContain(
+			`src: url("${HEADER_FONT_URL}") format('truetype');`
+		);
+		expect(host?.shadowRoot?.querySelector('style')?.textContent).toContain(
+			`font-family: '${TEXTMODE_HEADER_FONT_FAMILY}'`
+		);
 		expect(document.body.textContent).not.toContain('video selected');
 
 		act(() => panel.unmount());
@@ -49,6 +59,7 @@ describe('ControlPanel', () => {
 
 		act(() => {
 			panel = new ControlPanel({
+				headerFontUrl: HEADER_FONT_URL,
 				onStartPicking: vi.fn(),
 				onUpdateOverlay: vi.fn(),
 				onRemoveOverlay: vi.fn(),

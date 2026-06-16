@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { TEXTMODE_HEADER_FONT_RESOURCE } from '../../src/shared/config/extension-assets';
 import { baseExtensionManifest, createExtensionManifest } from '../../src/shared/config/extension-manifest';
 
 describe('extension manifest', () => {
@@ -15,8 +16,13 @@ describe('extension manifest', () => {
 		expect(baseExtensionManifest.action?.default_popup).toBeUndefined();
 	});
 
-	it('does not statically expose runtime assets', () => {
-		expect(baseExtensionManifest.web_accessible_resources).toBeUndefined();
+	it('exposes only the packaged header font to page contexts', () => {
+		expect(baseExtensionManifest.web_accessible_resources).toEqual([
+			{
+				resources: [TEXTMODE_HEADER_FONT_RESOURCE],
+				matches: ['*://*/*'],
+			},
+		]);
 	});
 
 	it('declares no Firefox data collection for store policy compliance', () => {

@@ -13,6 +13,7 @@ import { ColorPicker } from './components/color-picker';
 import { SettingField, ToggleField } from './components/SettingField';
 import { Slider } from './components/slider';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './components/tabs';
+import { ToggleGroup, ToggleGroupItem } from './components/toggle-group';
 
 interface OverlaySettingsFormProps {
 	settings: OverlaySettings;
@@ -138,17 +139,28 @@ function ColorModeField({ label, mode, color, onModeChange, onColorChange }: Col
 	return (
 		<SettingField label={label}>
 			<div className="tm-color-row">
-				<select
-					className="tm-select"
+				<ToggleGroup
+					type="single"
 					value={mode}
-					onChange={(event) => onModeChange(event.currentTarget.value as OverlaySettings['charColorMode'])}
+					className="tm-toggle-group tm-color-mode-group"
+					aria-label={`${label} color mode`}
+					onValueChange={(nextMode) => {
+						if (nextMode) {
+							onModeChange(nextMode as OverlaySettings['charColorMode']);
+						}
+					}}
 				>
 					{sourceColorModeOptions.map((option) => (
-						<option key={option} value={option}>
+						<ToggleGroupItem
+							key={option}
+							value={option}
+							className="tm-toggle-group-item tm-color-mode-item"
+							aria-label={`${label} ${labelFromValue(option)}`}
+						>
 							{labelFromValue(option)}
-						</option>
+						</ToggleGroupItem>
 					))}
-				</select>
+				</ToggleGroup>
 				<ColorPicker label={label} value={color} onChange={onColorChange} />
 			</div>
 		</SettingField>

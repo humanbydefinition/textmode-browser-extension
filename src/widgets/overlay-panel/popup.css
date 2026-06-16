@@ -85,6 +85,12 @@ select {
 	overflow: hidden;
 }
 
+.tm-panel,
+[data-slot='popover-content'].tm-color-popover {
+	-webkit-user-select: none;
+	user-select: none;
+}
+
 .tm-panel__header {
 	display: flex;
 	align-items: center;
@@ -540,6 +546,15 @@ select {
 	color: var(--tm-neutral-d4);
 	padding: 0 8px;
 	outline: none;
+}
+
+.tm-input,
+input[type='text'],
+textarea,
+[contenteditable='true'],
+[contenteditable='plaintext-only'] {
+	-webkit-user-select: text;
+	user-select: text;
 }
 
 [data-slot='slider'] {

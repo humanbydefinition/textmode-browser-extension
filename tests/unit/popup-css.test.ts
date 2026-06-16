@@ -42,6 +42,15 @@ describe('popup layout CSS', () => {
 		expect(popupCss).not.toContain('.tm-status--active');
 	});
 
+	it('prevents selecting static UI text while preserving editable controls', () => {
+		expect(popupCss).toContain(".tm-panel,\n[data-slot='popover-content'].tm-color-popover");
+		expect(popupCss).toContain('-webkit-user-select: none;');
+		expect(popupCss).toContain('user-select: none;');
+		expect(popupCss).toContain(".tm-input,\ninput[type='text'],\ntextarea,\n[contenteditable='true'],\n[contenteditable='plaintext-only']");
+		expect(popupCss).toContain('-webkit-user-select: text;');
+		expect(popupCss).toContain('user-select: text;');
+	});
+
 	it('styles color popovers without relying on generated Tailwind output', () => {
 		expect(popupCss).toContain("[data-slot='popover-content'].tm-color-popover");
 		expect(popupCss).toContain('background: var(--popover, var(--tm-neutral-09, #090909));');

@@ -31,4 +31,14 @@ describe('mergeOverlaySettings', () => {
 		expect(settings.glyphRamp).toBe(DEFAULT_OVERLAY_SETTINGS.glyphRamp);
 		expect(settings.cellColor).toBe(DEFAULT_OVERLAY_SETTINGS.cellColor);
 	});
+
+	it('preserves alpha-channel colors', () => {
+		const settings = mergeOverlaySettings(DEFAULT_OVERLAY_SETTINGS, {
+			charColor: '#ff77aa80',
+			cellColor: '#000000cc',
+		});
+
+		expect(settings.charColor).toBe('#ff77aa80');
+		expect(settings.cellColor).toBe('#000000cc');
+	});
 });

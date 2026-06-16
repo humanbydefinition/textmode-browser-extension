@@ -22,6 +22,7 @@ export class ControlPanel implements PanelHost {
 	private readonly container: HTMLDivElement;
 	private readonly shadowRoot: ShadowRoot;
 	private readonly mountPoint: HTMLDivElement;
+	private readonly portalRoot: HTMLDivElement;
 	private readonly reactRoot: Root;
 	private overlays: OverlayDescriptor[] = [];
 
@@ -62,6 +63,12 @@ export class ControlPanel implements PanelHost {
 		this.mountPoint = document.createElement('div');
 		this.mountPoint.className = 'tm-extension-root';
 		this.shadowRoot.appendChild(this.mountPoint);
+
+		this.portalRoot = document.createElement('div');
+		this.portalRoot.className = 'tm-extension-root tm-popover-layer';
+		this.portalRoot.dataset.textmodeOverlayPortalRoot = 'true';
+		this.shadowRoot.appendChild(this.portalRoot);
+
 		this.reactRoot = createRoot(this.mountPoint);
 		this.render();
 	}

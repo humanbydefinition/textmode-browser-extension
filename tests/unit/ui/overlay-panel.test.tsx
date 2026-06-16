@@ -70,6 +70,8 @@ describe('OverlayPanelApp', () => {
 			'canvas#demo-canvas.really-long-class'
 		);
 		expect(host.querySelector('.tm-status')).toBeNull();
+		expect(host.querySelector<HTMLButtonElement>('button[aria-label="characters color"]')?.disabled).toBe(false);
+		expect(host.querySelector<HTMLButtonElement>('button[aria-label="cells color"]')?.disabled).toBe(false);
 
 		const overlayToggle = host.querySelector<HTMLInputElement>('input[type="checkbox"]');
 		expect(overlayToggle).not.toBeNull();

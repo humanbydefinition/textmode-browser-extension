@@ -65,11 +65,11 @@ export function mergeOverlaySettings(base: OverlaySettings, patch: Partial<Overl
 		next.glyphRamp = DEFAULT_OVERLAY_SETTINGS.glyphRamp;
 	}
 
-	if (!/^#[0-9a-f]{6}$/i.test(next.charColor)) {
+	if (!isOverlayColor(next.charColor)) {
 		next.charColor = DEFAULT_OVERLAY_SETTINGS.charColor;
 	}
 
-	if (!/^#[0-9a-f]{6}$/i.test(next.cellColor)) {
+	if (!isOverlayColor(next.cellColor)) {
 		next.cellColor = DEFAULT_OVERLAY_SETTINGS.cellColor;
 	}
 
@@ -91,4 +91,8 @@ function clamp(value: number, min: number, max: number): number {
 		return min;
 	}
 	return Math.min(max, Math.max(min, value));
+}
+
+function isOverlayColor(value: string): boolean {
+	return /^#[0-9a-f]{6}(?:[0-9a-f]{2})?$/i.test(value);
 }

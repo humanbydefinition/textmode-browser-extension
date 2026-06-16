@@ -7,6 +7,7 @@ import {
 	overlaySettingLimits,
 	sourceColorModeOptions,
 } from './overlay-ui-model';
+import { ColorPicker } from './components/color-picker';
 import { SettingField, ToggleField } from './components/SettingField';
 import { Slider } from './components/slider';
 
@@ -123,14 +124,7 @@ function ColorModeField({ label, mode, color, onModeChange, onColorChange }: Col
 						</option>
 					))}
 				</select>
-				<input
-					className="tm-color-input"
-					type="color"
-					value={color}
-					disabled={mode === 'sampled'}
-					onChange={(event) => onColorChange(event.currentTarget.value)}
-					aria-label={`${label} fixed color`}
-				/>
+				<ColorPicker label={label} value={color} onChange={onColorChange} />
 			</div>
 		</SettingField>
 	);

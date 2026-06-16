@@ -46,6 +46,31 @@ test('Chrome extension can select a canvas and create an overlay', async () => {
 
 		await expect(page.getByText('canvas selected')).toBeVisible();
 		await expect(page.locator('canvas[data-textmode-ascii-extension-ui="true"]')).toHaveCount(1);
+		await page.getByText('advanced settings').click();
+		await page.getByRole('button', { name: /characters color/i }).click();
+		await expect(page.locator('[data-slot="popover-content"]')).toBeVisible();
+
+		const popoverState = await page.evaluate(() => {
+			const panelHost = document.querySelector('#textmode-ascii-overlay-control-panel-root');
+			const popover = panelHost?.shadowRoot?.querySelector<HTMLElement>('[data-slot="popover-content"]');
+			const bodyPopover = document.body.querySelector('[data-slot="popover-content"]');
+			const styles = popover ? getComputedStyle(popover) : null;
+
+			return {
+				isInsideShadowRoot: Boolean(popover),
+				isLeakedToBody: Boolean(bodyPopover),
+				backgroundColor: styles?.backgroundColor ?? '',
+				color: styles?.color ?? '',
+			};
+		});
+
+		expect(popoverState).toMatchObject({
+			isInsideShadowRoot: true,
+			isLeakedToBody: false,
+		});
+		expect(popoverState.backgroundColor).not.toBe('rgba(0, 0, 0, 0)');
+		expect(popoverState.backgroundColor).not.toBe('transparent');
+		expect(popoverState.color).not.toBe('');
 	} finally {
 		await context.close();
 		await rm(userDataDir, { recursive: true, force: true });

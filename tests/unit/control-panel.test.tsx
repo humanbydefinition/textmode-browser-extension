@@ -43,6 +43,45 @@ describe('ControlPanel', () => {
 		act(() => panel.unmount());
 		expect(document.querySelector('#textmode-ascii-overlay-control-panel-root')).toBeNull();
 	});
+
+	it('keeps color popovers inside the panel Shadow DOM', () => {
+		let panel!: ControlPanel;
+
+		act(() => {
+			panel = new ControlPanel({
+				onStartPicking: vi.fn(),
+				onUpdateOverlay: vi.fn(),
+				onRemoveOverlay: vi.fn(),
+				onClose: vi.fn(),
+			});
+			panel.mount();
+			panel.updateState([
+				{
+					id: 'overlay-1',
+					elementKind: 'canvas',
+					elementLabel: 'canvas#demo-canvas 320x180',
+					bounds: { x: 0, y: 0, width: 320, height: 180 },
+					settings: DEFAULT_OVERLAY_SETTINGS,
+					status: 'active',
+				},
+			]);
+		});
+
+		const host = document.querySelector<HTMLElement>('#textmode-ascii-overlay-control-panel-root');
+		const colorTrigger = host?.shadowRoot?.querySelector<HTMLButtonElement>(
+			'button[aria-label="characters color"]'
+		);
+		expect(colorTrigger).not.toBeNull();
+
+		act(() => {
+			colorTrigger?.click();
+		});
+
+		expect(host?.shadowRoot?.querySelector('[data-slot="popover-content"]')).not.toBeNull();
+		expect(document.body.querySelector('[data-slot="popover-content"]')).toBeNull();
+
+		act(() => panel.unmount());
+	});
 });
 
 class MockResizeObserver {

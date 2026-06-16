@@ -1,5 +1,9 @@
-import { DEFAULT_OVERLAY_SETTINGS, mergeOverlaySettings, type OverlaySettings } from './overlay-settings';
-import { readLocalStorageKey, writeLocalStorage } from './browser-api';
+import {
+	DEFAULT_OVERLAY_SETTINGS,
+	mergeOverlaySettings,
+	type OverlaySettings,
+} from '../../domain/overlay/overlay-settings';
+import { readLocalStorageKey, writeLocalStorage } from '../browser/browser-api';
 
 const ORIGIN_DEFAULTS_PREFIX = 'origin-defaults:';
 

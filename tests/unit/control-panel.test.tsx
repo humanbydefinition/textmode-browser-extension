@@ -1,7 +1,7 @@
 import { act } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { ControlPanel } from '../../src/content/control-panel';
-import { DEFAULT_OVERLAY_SETTINGS } from '../../src/shared/overlay-settings';
+import { DEFAULT_OVERLAY_SETTINGS } from '../../src/domain/overlay/overlay-settings';
+import { ControlPanel } from '../../src/widgets/overlay-panel/control-panel';
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 

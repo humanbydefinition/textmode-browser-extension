@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
-const popupCss = readFileSync(resolve(import.meta.dirname, '../../src/popup/popup.css'), 'utf8');
+const popupCss = readFileSync(resolve(import.meta.dirname, '../../src/widgets/overlay-panel/popup.css'), 'utf8');
 
 describe('popup layout CSS', () => {
 	it('contains nested controls instead of allowing horizontal overflow', () => {

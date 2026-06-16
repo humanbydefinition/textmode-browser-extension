@@ -1,5 +1,5 @@
 import * as React from 'react';
-import type { OverlayDescriptor, OverlaySettings } from '../shared/overlay-settings';
+import type { OverlayDescriptor, OverlaySettings } from '../../domain/overlay/overlay-settings';
 import { Badge } from './components/Badge';
 import { OverlaySettingsForm } from './OverlaySettingsForm';
 

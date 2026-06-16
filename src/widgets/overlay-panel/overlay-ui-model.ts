@@ -1,4 +1,8 @@
-import { OVERLAY_SETTING_LIMITS, SOURCE_COLOR_MODES, type SourceColorMode } from '../shared/overlay-settings';
+import {
+	OVERLAY_SETTING_LIMITS,
+	SOURCE_COLOR_MODES,
+	type SourceColorMode,
+} from '../../domain/overlay/overlay-settings';
 
 export const sourceColorModeOptions: readonly SourceColorMode[] = SOURCE_COLOR_MODES;
 export const overlaySettingLimits = OVERLAY_SETTING_LIMITS;

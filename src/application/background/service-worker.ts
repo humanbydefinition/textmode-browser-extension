@@ -1,5 +1,5 @@
-import { ensureContentRuntime } from '../application/runtime/runtime-injection';
-import { addActionClickedListener, addInstalledListener, sendMessageToTab } from '../shared/browser-api';
+import { addActionClickedListener, addInstalledListener, sendMessageToTab } from '../../shared/browser/browser-api';
+import { ensureContentRuntime } from './runtime-injection';
 
 export function startBackgroundServiceWorker(): void {
 	addInstalledListener(() => {

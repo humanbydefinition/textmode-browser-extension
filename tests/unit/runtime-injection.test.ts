@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { ensureContentRuntime } from '../../src/application/runtime/runtime-injection';
-import { injectContentRuntime, sendMessageToTab } from '../../src/shared/browser-api';
+import { ensureContentRuntime } from '../../src/application/background/runtime-injection';
+import { injectContentRuntime, sendMessageToTab } from '../../src/shared/browser/browser-api';
 
-vi.mock('../../src/shared/browser-api', () => ({
+vi.mock('../../src/shared/browser/browser-api', () => ({
 	injectContentRuntime: vi.fn(),
 	sendMessageToTab: vi.fn(),
 }));

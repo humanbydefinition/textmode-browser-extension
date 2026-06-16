@@ -24,7 +24,7 @@ describe('content runtime', () => {
 	});
 
 	it('does not create a sticky in-page settings panel on startup', async () => {
-		await import('../../src/content/content-runtime');
+		await import('../../src/application/page-runtime/page-runtime');
 
 		expect(document.querySelector('[data-textmode-ascii-extension-ui="true"]')).toBeNull();
 		expect(document.querySelector('aside')).toBeNull();

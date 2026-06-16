@@ -1,4 +1,4 @@
-import type { ElementKind } from '../shared/overlay-settings';
+import type { ElementKind } from '../../domain/overlay/overlay-settings';
 
 export type SelectableElement = HTMLCanvasElement | HTMLVideoElement;
 

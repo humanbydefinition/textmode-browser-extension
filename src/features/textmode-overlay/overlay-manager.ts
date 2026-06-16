@@ -1,15 +1,13 @@
-import { textmode } from 'textmode.js';
-import { getMediaSecurityHint, toUserMessage } from '../shared/errors';
+import { getMediaSecurityHint, toUserMessage } from '../../shared/errors/errors';
 import {
 	DEFAULT_OVERLAY_SETTINGS,
 	getElementBounds,
 	mergeOverlaySettings,
 	type OverlayDescriptor,
 	type OverlaySettings,
-} from '../shared/overlay-settings';
-import { describeElement, type SelectableElement } from './element-picker';
-
-type TextmodeInstance = ReturnType<typeof textmode.create>;
+} from '../../domain/overlay/overlay-settings';
+import { describeElement, type SelectableElement } from '../media-picker/element-picker';
+import { textmodeOverlayRenderer, type OverlayRendererPort, type TextmodeInstance } from './overlay-renderer';
 
 interface OverlayController {
 	id: string;
@@ -27,7 +25,10 @@ export class OverlayManager {
 	private readonly resizeObserver = new ResizeObserver(() => this.syncCanvasStyles());
 	private readonly mutationObserver = new MutationObserver(() => this.removeDetachedOverlays());
 
-	public constructor(private readonly onChange: () => void) {
+	public constructor(
+		private readonly onChange: () => void,
+		private readonly renderer: OverlayRendererPort = textmodeOverlayRenderer
+	) {
 		this.mutationObserver.observe(document.documentElement, { childList: true, subtree: true });
 	}
 
@@ -52,13 +53,7 @@ export class OverlayManager {
 		this.resizeObserver.observe(element);
 
 		try {
-			const instance = textmode.create({
-				canvas: element,
-				overlay: true,
-				pixelDensity: 1,
-				fontSize: settings.fontSize,
-				loadingScreen: { transition: 'none' },
-			});
+			const instance = this.renderer.create(element, settings);
 			controller.instance = instance;
 			instance.canvas.dataset.textmodeAsciiExtensionUi = 'true';
 			instance.canvas.style.pointerEvents = 'none';

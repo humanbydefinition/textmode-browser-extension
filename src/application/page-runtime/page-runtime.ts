@@ -1,16 +1,12 @@
-import { toUserMessage } from '../shared/errors';
-import {
-	isPopupToContentMessage,
-	isRuntimeMessage,
-	type PopupToContentMessage,
-	type RuntimeAck,
-} from '../shared/messages';
-import { addRuntimeMessageListener, sendMessageToRuntime } from '../shared/browser-api';
-import type { OverlaySettings } from '../shared/overlay-settings';
-import { ElementPicker, type SelectableElement } from './element-picker';
-import { OverlayManager } from './overlay-manager';
+import { toUserMessage } from '../../shared/errors/errors';
+import { isPopupToContentMessage, isRuntimeMessage, type RuntimeAck } from '../../shared/messaging/messages';
+import { addRuntimeMessageListener, sendMessageToRuntime } from '../../shared/browser/browser-api';
+import type { OverlaySettings } from '../../domain/overlay/overlay-settings';
+import { ElementPicker, type SelectableElement } from '../../features/media-picker/element-picker';
+import { OverlayManager } from '../../features/textmode-overlay/overlay-manager';
 import { broadcastError, broadcastOverlayList } from './page-state';
-import type { ControlPanel } from './control-panel';
+import { createRuntimeActionHandler } from './runtime-actions';
+import type { ControlPanel } from '../../widgets/overlay-panel/control-panel';
 
 declare global {
 	interface Window {
@@ -22,6 +18,17 @@ export class PageRuntime {
 	private picker?: ElementPicker;
 	private controlPanel?: ControlPanel;
 	private readonly manager = new OverlayManager(() => this.sync());
+	private readonly actions = createRuntimeActionHandler({
+		toggleControlPanel: () => this.toggleControlPanel(),
+		startPicking: () => this.startPicking(),
+		listOverlays: () => this.manager.list(),
+		updateOverlay: (id, settings) => this.manager.updateOverlay(id, settings),
+		removeOverlay: (id) => this.manager.removeOverlay(id),
+		pauseAll: () => this.manager.pauseAll(),
+		resumeAll: () => this.manager.resumeAll(),
+		removeAll: () => this.manager.removeAll(),
+		broadcastError,
+	});
 
 	public constructor() {
 		addRuntimeMessageListener((message: unknown, _sender, sendResponse) => {
@@ -49,43 +56,14 @@ export class PageRuntime {
 			return { ok: false, error: 'Unsupported page-to-popup message received by content runtime.' };
 		}
 
-		return this.handlePopupMessage(message);
-	}
-
-	private async handlePopupMessage(message: PopupToContentMessage): Promise<RuntimeAck> {
-		try {
-			switch (message.type) {
-				case 'TOGGLE_OVERLAY':
-					await this.toggleControlPanel();
-					return { ok: true, overlays: this.manager.list() };
-				case 'START_PICKING':
-					this.startPicking();
-					return { ok: true, overlays: this.manager.list() };
-				case 'LIST_OVERLAYS':
-					return { ok: true, overlays: this.manager.list() };
-				case 'UPDATE_OVERLAY':
-					return { ok: true, overlays: this.manager.updateOverlay(message.id, message.settings) };
-				case 'REMOVE_OVERLAY':
-					return { ok: true, overlays: this.manager.removeOverlay(message.id) };
-				case 'PAUSE_ALL':
-					return { ok: true, overlays: this.manager.pauseAll() };
-				case 'RESUME_ALL':
-					return { ok: true, overlays: this.manager.resumeAll() };
-				case 'REMOVE_ALL':
-					return { ok: true, overlays: this.manager.removeAll() };
-			}
-		} catch (error) {
-			const messageText = toUserMessage(error);
-			broadcastError(messageText);
-			return { ok: false, error: messageText, overlays: this.manager.list() };
-		}
+		return this.actions.handle(message);
 	}
 
 	private async toggleControlPanel(): Promise<void> {
 		if (this.controlPanel) {
 			this.destroyControlPanel();
 		} else {
-			const { ControlPanel } = await import('./control-panel');
+			const { ControlPanel } = await import('../../widgets/overlay-panel/control-panel');
 			this.controlPanel = new ControlPanel({
 				onStartPicking: () => this.startPicking(),
 				onUpdateOverlay: (id, settings) => {

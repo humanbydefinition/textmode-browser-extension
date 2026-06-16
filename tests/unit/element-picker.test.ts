@@ -1,5 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { ElementPicker, getSelectableElements, isSelectableElement } from '../../src/content/element-picker';
+import {
+	ElementPicker,
+	getSelectableElements,
+	isSelectableElement,
+} from '../../src/features/media-picker/element-picker';
 
 describe('element-picker', () => {
 	beforeEach(() => {

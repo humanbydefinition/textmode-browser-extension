@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { HeartHandshake, MousePointer2, Trash2, X } from 'lucide-react';
-import type { OverlayDescriptor, OverlaySettings } from '../shared/overlay-settings';
+import type { OverlayDescriptor, OverlaySettings } from '../../domain/overlay/overlay-settings';
 import { Button } from './components/Button';
 import { OverlayCard } from './OverlayCard';
 

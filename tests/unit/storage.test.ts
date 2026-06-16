@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { getOriginDefaultsKey } from '../../src/shared/storage';
+import { getOriginDefaultsKey } from '../../src/shared/storage/origin-defaults';
 
 describe('getOriginDefaultsKey', () => {
 	it('namespaces origin defaults', () => {

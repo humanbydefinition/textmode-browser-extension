@@ -1,8 +1,8 @@
 import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { DEFAULT_OVERLAY_SETTINGS, type OverlayDescriptor } from '../../../src/shared/overlay-settings';
-import { OverlayPanelApp } from '../../../src/ui/OverlayPanelApp';
+import { DEFAULT_OVERLAY_SETTINGS, type OverlayDescriptor } from '../../../src/domain/overlay/overlay-settings';
+import { OverlayPanelApp } from '../../../src/widgets/overlay-panel/OverlayPanelApp';
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { DEFAULT_OVERLAY_SETTINGS, mergeOverlaySettings } from '../../src/shared/overlay-settings';
+import { DEFAULT_OVERLAY_SETTINGS, mergeOverlaySettings } from '../../src/domain/overlay/overlay-settings';
 
 describe('mergeOverlaySettings', () => {
 	it('merges patches over defaults', () => {

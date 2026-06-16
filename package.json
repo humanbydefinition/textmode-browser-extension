@@ -25,8 +25,9 @@
 		"lint": "eslint .",
 		"format": "prettier --write .",
 		"check:format": "prettier --check .",
+		"check:boundaries": "node ./scripts/check-boundaries.mjs",
 		"check:manifest:chrome": "node ./scripts/check-generated-manifest.mjs",
-		"check": "npm run check:format && npm run lint && npm run typecheck && npm run test && npm run build:chrome && npm run check:manifest:chrome",
+		"check": "npm run check:format && npm run lint && npm run check:boundaries && npm run typecheck && npm run test && npm run build:chrome && npm run check:manifest:chrome",
 		"e2e": "npm run build:e2e:chrome && playwright test"
 	},
 	"dependencies": {

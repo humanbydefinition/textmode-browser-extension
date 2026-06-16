@@ -1,5 +1,5 @@
-import { injectContentRuntime, sendMessageToTab } from '../../shared/browser-api';
-import type { RuntimeAck } from '../../shared/messages';
+import { injectContentRuntime, sendMessageToTab } from '../../shared/browser/browser-api';
+import type { RuntimeAck } from '../../shared/messaging/messages';
 
 export interface EnsureContentRuntimeOptions {
 	attempts?: number;

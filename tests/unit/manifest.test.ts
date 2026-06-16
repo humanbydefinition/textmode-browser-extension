@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { baseExtensionManifest, createExtensionManifest } from '../../src/shared/extension-manifest';
+import { baseExtensionManifest, createExtensionManifest } from '../../src/shared/config/extension-manifest';
 
 describe('extension manifest', () => {
 	it('preserves the least-privilege action-triggered baseline', () => {

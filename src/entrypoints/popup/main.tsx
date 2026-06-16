@@ -1,1 +1,1 @@
-import '../../popup/popup';
+import '../../application/popup/popup';

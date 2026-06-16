@@ -1,5 +1,5 @@
 import { defineUnlistedScript } from 'wxt/utils/define-unlisted-script';
-import { startPageRuntime } from '../content/content-runtime';
+import { startPageRuntime } from '../application/page-runtime/page-runtime';
 
 export default defineUnlistedScript({
 	main() {

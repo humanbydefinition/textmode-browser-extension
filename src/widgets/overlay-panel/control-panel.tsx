@@ -1,7 +1,7 @@
 import { createRoot, type Root } from 'react-dom/client';
-import panelStyles from '../popup/popup.css?inline';
-import type { OverlayDescriptor, OverlaySettings } from '../shared/overlay-settings';
-import { OverlayPanelApp } from '../ui/OverlayPanelApp';
+import type { OverlayDescriptor, OverlaySettings } from '../../domain/overlay/overlay-settings';
+import { OverlayPanelApp } from './OverlayPanelApp';
+import panelStyles from './popup.css?inline';
 
 export interface ControlPanelOptions {
 	onStartPicking: () => void;
@@ -10,9 +10,15 @@ export interface ControlPanelOptions {
 	onClose: () => void;
 }
 
+export interface PanelHost {
+	mount(): void;
+	unmount(): void;
+	updateState(overlays: OverlayDescriptor[]): void;
+}
+
 const PANEL_HOST_ID = 'textmode-ascii-overlay-control-panel-root';
 
-export class ControlPanel {
+export class ControlPanel implements PanelHost {
 	private readonly container: HTMLDivElement;
 	private readonly shadowRoot: ShadowRoot;
 	private readonly mountPoint: HTMLDivElement;

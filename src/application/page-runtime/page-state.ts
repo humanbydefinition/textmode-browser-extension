@@ -1,5 +1,5 @@
-import type { OverlayDescriptor } from '../shared/overlay-settings';
-import { sendMessageToRuntime } from '../shared/browser-api';
+import type { OverlayDescriptor } from '../../domain/overlay/overlay-settings';
+import { sendMessageToRuntime } from '../../shared/browser/browser-api';
 
 export function broadcastOverlayList(overlays: OverlayDescriptor[]): void {
 	void sendMessageToRuntime({

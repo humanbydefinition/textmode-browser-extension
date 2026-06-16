@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { textmode } from 'textmode.js';
-import { OverlayManager } from '../../src/content/overlay-manager';
+import { OverlayManager } from '../../src/features/textmode-overlay/overlay-manager';
 
 interface MockTextmodeInstance {
 	canvas: HTMLCanvasElement;

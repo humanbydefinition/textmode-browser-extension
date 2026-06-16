@@ -1,5 +1,5 @@
 import * as React from 'react';
-import type { OverlaySettings } from '../shared/overlay-settings';
+import type { OverlaySettings } from '../../domain/overlay/overlay-settings';
 import {
 	formatPercent,
 	formatPixels,

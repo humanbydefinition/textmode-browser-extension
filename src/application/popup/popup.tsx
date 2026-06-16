@@ -1,10 +1,10 @@
-import './popup.css';
+import '../../widgets/overlay-panel/popup.css';
 import { createRoot } from 'react-dom/client';
-import { ensureContentRuntime } from '../application/runtime/runtime-injection';
-import { addRuntimeMessageListener, getActiveTab, sendMessageToTab } from '../shared/browser-api';
-import type { ContentToPopupMessage, RuntimeAck, RuntimeMessage } from '../shared/messages';
-import type { OverlayDescriptor, OverlaySettings } from '../shared/overlay-settings';
-import { OverlayPanelApp } from '../ui/OverlayPanelApp';
+import { ensureContentRuntime } from '../background/runtime-injection';
+import { addRuntimeMessageListener, getActiveTab, sendMessageToTab } from '../../shared/browser/browser-api';
+import type { ContentToPopupMessage, RuntimeAck, RuntimeMessage } from '../../shared/messaging/messages';
+import type { OverlayDescriptor, OverlaySettings } from '../../domain/overlay/overlay-settings';
+import { OverlayPanelApp } from '../../widgets/overlay-panel/OverlayPanelApp';
 
 const root = createRoot(getElement('root'));
 let overlays: OverlayDescriptor[] = [];

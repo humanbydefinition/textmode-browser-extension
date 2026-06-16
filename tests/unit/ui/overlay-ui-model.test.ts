@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { OVERLAY_SETTING_LIMITS } from '../../../src/shared/overlay-settings';
-import { formatPercent, formatPixels, overlaySettingLimits } from '../../../src/ui/overlay-ui-model';
+import { OVERLAY_SETTING_LIMITS } from '../../../src/domain/overlay/overlay-settings';
+import { formatPercent, formatPixels, overlaySettingLimits } from '../../../src/widgets/overlay-panel/overlay-ui-model';
 
 describe('overlay UI model', () => {
 	it('reuses runtime overlay setting limits', () => {

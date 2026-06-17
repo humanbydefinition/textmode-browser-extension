@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<title>ASCII Overlay Fixture</title>
+		<style>
+			body {
+				margin: 0;
+				display: grid;
+				gap: 24px;
+				padding: 24px;
+				background: #111827;
+			}
+			canvas,
+			video {
+				width: 320px;
+				height: 180px;
+				background: #020617;
+			}
+		</style>
+	</head>
+	<body>
+		<canvas id="demo-canvas" width="320" height="180"></canvas>
+		<video id="demo-video" width="320" height="180" muted playsinline></video>
+		<script>
+			const canvas = document.querySelector('#demo-canvas');
+			const ctx = canvas.getContext('2d');
+			let frame = 0;
+			function draw() {
+				frame += 1;
+				ctx.fillStyle = '#020617';
+				ctx.fillRect(0, 0, canvas.width, canvas.height);
+				ctx.fillStyle = '#38bdf8';
+				ctx.fillRect(30 + Math.sin(frame / 20) * 20, 50, 80, 60);
+				ctx.fillStyle = '#f8fafc';
+				ctx.font = '24px monospace';
+				ctx.fillText('ASCII', 150, 96);
+				requestAnimationFrame(draw);
+			}
+			draw();
+		</script>
+	</body>
+</html>

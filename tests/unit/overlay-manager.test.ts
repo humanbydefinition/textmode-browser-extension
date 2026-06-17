@@ -1,0 +1,239 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { textmode } from 'textmode.js';
+import { OverlayManager } from '../../src/features/textmode-overlay/overlay-manager';
+import { getMediaSecurityHint } from '../../src/shared/errors/errors';
+
+interface MockTextmodeInstance {
+	canvas: HTMLCanvasElement;
+	setup: ReturnType<typeof vi.fn>;
+	draw: ReturnType<typeof vi.fn>;
+	clear: ReturnType<typeof vi.fn>;
+	image: ReturnType<typeof vi.fn>;
+	targetFrameRate: ReturnType<typeof vi.fn>;
+	noLoop: ReturnType<typeof vi.fn>;
+	loop: ReturnType<typeof vi.fn>;
+	fontSize: ReturnType<typeof vi.fn>;
+	saveCanvas: ReturnType<typeof vi.fn>;
+	saveSVG: ReturnType<typeof vi.fn>;
+	saveStrings: ReturnType<typeof vi.fn>;
+	destroy: ReturnType<typeof vi.fn>;
+}
+
+const instances: MockTextmodeInstance[] = [];
+
+vi.mock('textmode.js', () => ({
+	textmode: {
+		create: vi.fn(() => {
+			const source = createMockSource();
+			const instance = {
+				canvas: document.createElement('canvas'),
+				setup: vi.fn(),
+				draw: vi.fn(),
+				clear: vi.fn(),
+				image: vi.fn(),
+				targetFrameRate: vi.fn(),
+				noLoop: vi.fn(),
+				loop: vi.fn(),
+				fontSize: vi.fn((value?: number) => (value === undefined ? 8 : undefined)),
+				saveCanvas: vi.fn(async () => undefined),
+				saveSVG: vi.fn(),
+				saveStrings: vi.fn(),
+				destroy: vi.fn(),
+				get overlay() {
+					return source;
+				},
+			};
+			instances.push(instance);
+			return instance;
+		}),
+	},
+}));
+
+vi.mock('textmode.export.js', () => ({
+	createTextmodeExportPlugin: vi.fn(() => ({
+		name: 'textmode.export',
+		version: 'test',
+		install: vi.fn(),
+	})),
+}));
+
+describe('OverlayManager', () => {
+	beforeEach(() => {
+		instances.length = 0;
+		document.body.replaceChildren();
+		vi.stubGlobal('ResizeObserver', MockResizeObserver);
+		vi.stubGlobal('WebGL2RenderingContext', class WebGL2RenderingContext {});
+	});
+
+	it('replaces the existing overlay when a new element is selected', () => {
+		const first = createCanvas('first');
+		const second = createCanvas('second');
+		document.body.append(first, second);
+		const onChange = vi.fn();
+		const manager = new OverlayManager(onChange);
+
+		manager.createOverlay(first);
+		manager.createOverlay(second);
+
+		expect(manager.list()).toHaveLength(1);
+		expect(manager.list()[0]?.elementLabel).toContain('#second');
+		expect(instances[0]?.destroy).toHaveBeenCalledTimes(1);
+		expect(instances[1]?.destroy).not.toHaveBeenCalled();
+	});
+
+	it('creates textmode overlays with the current rendering contract', () => {
+		const canvas = createCanvas('source');
+		document.body.append(canvas);
+		const manager = new OverlayManager(vi.fn(), undefined, 'chrome-extension://extension-id/fonts/Bescii-Mono.ttf');
+
+		manager.createOverlay(canvas, { fontSize: 16 });
+
+		expect(textmode.create).toHaveBeenCalledWith(
+			expect.objectContaining({
+				canvas,
+				overlay: true,
+				pixelDensity: 1,
+				fontSize: 16,
+				fontSource: 'chrome-extension://extension-id/fonts/Bescii-Mono.ttf',
+				loadingScreen: { transition: 'none' },
+				plugins: [expect.objectContaining({ name: 'textmode.export' })],
+			})
+		);
+		expect(instances[0]?.canvas.style.pointerEvents).toBe('none');
+		expect(instances[0]?.canvas.style.mixBlendMode).toBe('normal');
+	});
+
+	it('exports the active overlay with fixed one-click options', async () => {
+		const canvas = createCanvas('source');
+		document.body.append(canvas);
+		const manager = new OverlayManager(vi.fn());
+
+		const overlay = manager.createOverlay(canvas);
+
+		await manager.exportOverlay(overlay.id, 'txt');
+		await manager.exportOverlay(overlay.id, 'svg');
+		await manager.exportOverlay(overlay.id, 'png');
+		await manager.exportOverlay(overlay.id, 'jpg');
+
+		expect(instances[0]?.saveStrings).toHaveBeenCalledWith({
+			filename: 'textmode-overlay.txt',
+			preserveTrailingSpaces: false,
+			emptyCharacter: ' ',
+		});
+		expect(instances[0]?.saveSVG).toHaveBeenCalledWith({
+			filename: 'textmode-overlay.svg',
+			includeBackgroundRectangles: true,
+			drawMode: 'fill',
+			strokeWidth: 1,
+		});
+		expect(instances[0]?.saveCanvas).toHaveBeenCalledWith({
+			filename: 'textmode-overlay.png',
+			format: 'png',
+			scale: 1,
+		});
+		expect(instances[0]?.saveCanvas).toHaveBeenCalledWith({
+			filename: 'textmode-overlay.jpg',
+			format: 'jpg',
+			scale: 1,
+		});
+	});
+
+	it('records export failures on the overlay descriptor', async () => {
+		const canvas = createCanvas('source');
+		document.body.append(canvas);
+		const onChange = vi.fn();
+		const manager = new OverlayManager(onChange);
+
+		const overlay = manager.createOverlay(canvas);
+		instances[0]?.saveSVG.mockImplementation(() => {
+			throw new Error('SVG export failed.');
+		});
+
+		await expect(manager.exportOverlay(overlay.id, 'svg')).rejects.toThrow('SVG export failed.');
+
+		expect(manager.list()[0]).toMatchObject({
+			status: 'error',
+			latestError: 'SVG export failed.',
+		});
+		expect(onChange).toHaveBeenCalled();
+	});
+
+	it('clears and skips image rendering when a video has no current frame', () => {
+		const video = createVideo('source');
+		document.body.append(video);
+		const manager = new OverlayManager(vi.fn());
+
+		manager.createOverlay(video);
+		Object.defineProperty(video, 'readyState', { value: video.HAVE_METADATA, configurable: true });
+		Object.defineProperty(video, 'videoWidth', { value: 0, configurable: true });
+
+		const drawCallback = instances[0]?.draw.mock.calls[0]?.[0] as (() => void) | undefined;
+		drawCallback?.();
+
+		expect(instances[0]?.clear).toHaveBeenCalledTimes(1);
+		expect(instances[0]?.image).not.toHaveBeenCalled();
+	});
+
+	it('does not classify transient texImage2D no-video errors as media security failures', () => {
+		expect(getMediaSecurityHint('WebGL: INVALID_VALUE: texImage2D: no video')).toBeUndefined();
+		expect(getMediaSecurityHint('SecurityError: The canvas has been tainted by cross-origin data')).toContain(
+			'cross-origin'
+		);
+	});
+});
+
+class MockResizeObserver {
+	public observe = vi.fn();
+	public unobserve = vi.fn();
+	public disconnect = vi.fn();
+}
+
+function createCanvas(id: string): HTMLCanvasElement {
+	const canvas = document.createElement('canvas');
+	canvas.id = id;
+	mockRect(canvas, 320, 180);
+	return canvas;
+}
+
+function createVideo(id: string): HTMLVideoElement {
+	const video = document.createElement('video');
+	video.id = id;
+	mockRect(video, 640, 360);
+	Object.defineProperty(video, 'readyState', { value: video.HAVE_CURRENT_DATA, configurable: true });
+	Object.defineProperty(video, 'videoWidth', { value: 640, configurable: true });
+	Object.defineProperty(video, 'videoHeight', { value: 360, configurable: true });
+	return video;
+}
+
+function createMockSource(): Record<string, () => unknown> {
+	const source: Record<string, () => unknown> = {};
+	for (const method of [
+		'characters',
+		'conversionMode',
+		'invert',
+		'brightnessRange',
+		'charColorMode',
+		'charColor',
+		'cellColorMode',
+		'cellColor',
+		'background',
+	]) {
+		source[method] = vi.fn(() => source);
+	}
+	return source;
+}
+
+function mockRect(element: Element, width: number, height: number): void {
+	element.getBoundingClientRect = () =>
+		({
+			x: 0,
+			y: 0,
+			left: 0,
+			top: 0,
+			right: width,
+			bottom: height,
+			width,
+			height,
+			toJSON: () => undefined,
+		}) as DOMRect;
+}

@@ -1,0 +1,86 @@
+{
+	"name": "textmode-ascii-overlay-extension",
+	"version": "0.1.0",
+	"description": "Chrome MV3 extension for overlaying real-time textmode.js ASCII conversion on page canvas and video elements.",
+	"type": "module",
+	"license": "MIT",
+	"author": "humanbydefinition",
+	"homepage": "https://code.textmode.art",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/humanbydefinition/textmode-browser-extensions.git"
+	},
+	"bugs": {
+		"url": "https://github.com/humanbydefinition/textmode-browser-extensions/issues"
+	},
+	"keywords": [
+		"ascii-art",
+		"browser-extension",
+		"chrome-extension",
+		"creative-coding",
+		"textmode",
+		"textmode-js",
+		"wxt"
+	],
+	"engines": {
+		"node": ">=20.8.1"
+	},
+	"scripts": {
+		"postinstall": "wxt prepare",
+		"build": "wxt build",
+		"build:chrome": "wxt build -b chrome --mv3",
+		"build:e2e:chrome": "wxt build -b chrome --mv3 --mode e2e",
+		"build:edge": "wxt build -b edge --mv3",
+		"build:firefox": "wxt build -b firefox",
+		"build:safari": "wxt build -b safari",
+		"dev": "wxt",
+		"dev:firefox": "wxt -b firefox",
+		"zip": "wxt zip",
+		"zip:firefox": "wxt zip -b firefox",
+		"test": "vitest run",
+		"test:watch": "vitest",
+		"typecheck": "tsc --noEmit",
+		"lint": "eslint .",
+		"format": "prettier --write .",
+		"check:format": "prettier --check .",
+		"check:boundaries": "node ./scripts/check-boundaries.mjs",
+		"check": "npm run check:format && npm run lint && npm run check:boundaries && npm run typecheck && npm run test && npm run build:chrome",
+		"e2e": "npm run build:e2e:chrome && playwright test"
+	},
+	"dependencies": {
+		"class-variance-authority": "^0.7.1",
+		"clsx": "^2.1.1",
+		"lucide-react": "^0.575.0",
+		"radix-ui": "^1.6.0",
+		"react": "^19.2.7",
+		"react-dom": "^19.2.7",
+		"tailwind-merge": "^3.6.0",
+		"textmode.export.js": "^1.5.1",
+		"textmode.js": "0.17.0-beta.1"
+	},
+	"overrides": {
+		"esbuild": "0.28.1",
+		"shell-quote": "1.8.4",
+		"tmp": "0.2.7",
+		"uuid": "11.1.1"
+	},
+	"devDependencies": {
+		"@playwright/test": "^1.57.0",
+		"@types/chrome": "^0.1.34",
+		"@types/node": "^24.0.13",
+		"@types/react": "^19.2.17",
+		"@types/react-dom": "^19.2.3",
+		"@typescript-eslint/eslint-plugin": "^8.59.2",
+		"@typescript-eslint/parser": "^8.59.2",
+		"@vitejs/plugin-react": "^5.2.0",
+		"eslint": "^9.39.2",
+		"globals": "^17.5.0",
+		"jsdom": "^27.4.0",
+		"prettier": "^3.8.3",
+		"typescript": "^5.9.2",
+		"typescript-eslint": "^8.59.2",
+		"vite": "^8.0.16",
+		"vitest": "^4.1.9",
+		"wxt": "^0.20.26"
+	}
+}

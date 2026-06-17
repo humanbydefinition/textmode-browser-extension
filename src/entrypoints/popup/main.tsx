@@ -1,0 +1,1 @@
+import '../../application/popup/popup';

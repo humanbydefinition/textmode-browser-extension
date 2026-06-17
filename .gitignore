@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.output/
+.wxt/
+coverage/
+test-results/
+playwright-report/
+.DS_Store
+.agents/
+skills-lock.json

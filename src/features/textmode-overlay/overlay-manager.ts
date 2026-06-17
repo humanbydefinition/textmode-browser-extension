@@ -69,6 +69,7 @@ export class OverlayManager {
 			instance.draw(() => {
 				instance.clear();
 				if (!controller.settings.enabled || !instance.overlay) return;
+				if (!canRenderElement(controller.element)) return;
 				this.configureSource(controller);
 				const grid = instance.grid;
 				if (!grid) return;
@@ -308,4 +309,12 @@ function assertCanCreateOverlay(element: SelectableElement): void {
 	if (element instanceof HTMLVideoElement && element.readyState === 0) {
 		throw new Error('The selected video has not loaded enough metadata to be sampled yet.');
 	}
+}
+
+function canRenderElement(element: SelectableElement): boolean {
+	if (!(element instanceof HTMLVideoElement)) {
+		return true;
+	}
+
+	return element.readyState >= element.HAVE_CURRENT_DATA && element.videoWidth > 0 && element.videoHeight > 0;
 }

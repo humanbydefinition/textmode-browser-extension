@@ -30,7 +30,7 @@ export function createExtensionManifest({ browser, mode }: ExtensionManifestOpti
 
 export const baseExtensionManifest: UserManifest = {
 	name: 'textmode overlay',
-	description: 'turn live video and canvas elements into adjustable ascii overlays.',
+	description: 'turn visible canvas and video elements on the current tab into live ASCII art.',
 	permissions: ['activeTab', 'scripting', 'storage'],
 	web_accessible_resources: [
 		{

@@ -1,9 +1,18 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { textmode } from 'textmode.js';
 import { OverlayManager } from '../../src/features/textmode-overlay/overlay-manager';
+import { getMediaSecurityHint } from '../../src/shared/errors/errors';
 
 interface MockTextmodeInstance {
 	canvas: HTMLCanvasElement;
+	setup: ReturnType<typeof vi.fn>;
+	draw: ReturnType<typeof vi.fn>;
+	clear: ReturnType<typeof vi.fn>;
+	image: ReturnType<typeof vi.fn>;
+	targetFrameRate: ReturnType<typeof vi.fn>;
+	noLoop: ReturnType<typeof vi.fn>;
+	loop: ReturnType<typeof vi.fn>;
+	fontSize: ReturnType<typeof vi.fn>;
 	saveCanvas: ReturnType<typeof vi.fn>;
 	saveSVG: ReturnType<typeof vi.fn>;
 	saveStrings: ReturnType<typeof vi.fn>;
@@ -148,6 +157,29 @@ describe('OverlayManager', () => {
 		});
 		expect(onChange).toHaveBeenCalled();
 	});
+
+	it('clears and skips image rendering when a video has no current frame', () => {
+		const video = createVideo('source');
+		document.body.append(video);
+		const manager = new OverlayManager(vi.fn());
+
+		manager.createOverlay(video);
+		Object.defineProperty(video, 'readyState', { value: video.HAVE_METADATA, configurable: true });
+		Object.defineProperty(video, 'videoWidth', { value: 0, configurable: true });
+
+		const drawCallback = instances[0]?.draw.mock.calls[0]?.[0] as (() => void) | undefined;
+		drawCallback?.();
+
+		expect(instances[0]?.clear).toHaveBeenCalledTimes(1);
+		expect(instances[0]?.image).not.toHaveBeenCalled();
+	});
+
+	it('does not classify transient texImage2D no-video errors as media security failures', () => {
+		expect(getMediaSecurityHint('WebGL: INVALID_VALUE: texImage2D: no video')).toBeUndefined();
+		expect(getMediaSecurityHint('SecurityError: The canvas has been tainted by cross-origin data')).toContain(
+			'cross-origin'
+		);
+	});
 });
 
 class MockResizeObserver {
@@ -161,6 +193,16 @@ function createCanvas(id: string): HTMLCanvasElement {
 	canvas.id = id;
 	mockRect(canvas, 320, 180);
 	return canvas;
+}
+
+function createVideo(id: string): HTMLVideoElement {
+	const video = document.createElement('video');
+	video.id = id;
+	mockRect(video, 640, 360);
+	Object.defineProperty(video, 'readyState', { value: video.HAVE_CURRENT_DATA, configurable: true });
+	Object.defineProperty(video, 'videoWidth', { value: 640, configurable: true });
+	Object.defineProperty(video, 'videoHeight', { value: 360, configurable: true });
+	return video;
 }
 
 function createMockSource(): Record<string, () => unknown> {

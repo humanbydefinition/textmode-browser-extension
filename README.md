@@ -71,12 +71,6 @@ Build the unpacked Chrome extension:
 npm run build:chrome
 ```
 
-Build the unpacked Firefox extension:
-
-```sh
-npm run build:firefox
-```
-
 Load the extension in Chrome:
 
 1. Open `chrome://extensions`.

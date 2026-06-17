@@ -37,13 +37,13 @@
 
 ## Browser Support
 
-| Browser                                               | Build Command           | Output                | Availability   |
-| ----------------------------------------------------- | ----------------------- | --------------------- | -------------- |
-| [Chrome](https://www.google.com/chrome/)              | `npm run build:chrome`  | `.output/chrome-mv3`  | Pending review |
-| [Edge](https://www.microsoft.com/en-us/edge)          | `npm run build:edge`    | `.output/edge-mv3`    | Pending review |
-| [Opera](https://www.opera.com/download)               | `npm run build:chrome`  | `.output/chrome-mv3`  | Pending review |
+| Browser                                               | Build Command           | Output                | Availability                                                                       |
+| ----------------------------------------------------- | ----------------------- | --------------------- | ---------------------------------------------------------------------------------- |
+| [Chrome](https://www.google.com/chrome/)              | `npm run build:chrome`  | `.output/chrome-mv3`  | Pending review                                                                     |
+| [Edge](https://www.microsoft.com/en-us/edge)          | `npm run build:edge`    | `.output/edge-mv3`    | Pending review                                                                     |
+| [Opera](https://www.opera.com/download)               | `npm run build:chrome`  | `.output/chrome-mv3`  | Pending review                                                                     |
 | [Firefox](https://www.mozilla.org/en-US/firefox/new/) | `npm run build:firefox` | `.output/firefox-mv2` | [Pending review](https://addons.mozilla.org/en-US/firefox/addon/textmode-overlay/) |
-| [Safari](https://www.apple.com/safari/)               | `npm run build:safari`  | `.output/safari-mv2`  | Not planned    |
+| [Safari](https://www.apple.com/safari/)               | `npm run build:safari`  | `.output/safari-mv2`  | Not planned                                                                        |
 
 ## Quick Start
 

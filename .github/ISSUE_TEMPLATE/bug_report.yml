@@ -1,0 +1,118 @@
+name: Bug report
+description: Report a reproducible extension problem
+title: 'bug: '
+labels:
+    - bug
+body:
+    - type: markdown
+      attributes:
+          value: |
+              Thanks for taking the time to report a problem.
+
+              Please remove private page content, credentials, tokens, proprietary media, and personal data before posting.
+              For suspected vulnerabilities, do not use this form. Follow SECURITY.md instead.
+    - type: textarea
+      id: summary
+      attributes:
+          label: Summary
+          description: What happened?
+      validations:
+          required: true
+    - type: textarea
+      id: steps
+      attributes:
+          label: Steps to reproduce
+          description: List the smallest steps that reproduce the issue.
+          placeholder: |
+              1. Open ...
+              2. Click ...
+              3. Select ...
+      validations:
+          required: true
+    - type: textarea
+      id: expected
+      attributes:
+          label: Expected behavior
+          description: What did you expect to happen?
+      validations:
+          required: true
+    - type: textarea
+      id: actual
+      attributes:
+          label: Actual behavior
+          description: What happened instead?
+      validations:
+          required: true
+    - type: dropdown
+      id: browser
+      attributes:
+          label: Browser
+          options:
+              - Chrome
+              - Edge
+              - Firefox
+              - Safari
+              - Other
+      validations:
+          required: true
+    - type: input
+      id: browser-version
+      attributes:
+          label: Browser version
+          placeholder: 'Example: Chrome 126.0.6478.127'
+      validations:
+          required: true
+    - type: input
+      id: os
+      attributes:
+          label: Operating system
+          placeholder: 'Example: macOS 15.5, Windows 11, Ubuntu 24.04'
+      validations:
+          required: true
+    - type: dropdown
+      id: build-target
+      attributes:
+          label: Extension build target
+          options:
+              - chrome-mv3
+              - edge-mv3
+              - firefox
+              - safari
+              - e2e
+              - unknown
+      validations:
+          required: true
+    - type: dropdown
+      id: media-kind
+      attributes:
+          label: Media kind
+          options:
+              - canvas
+              - video
+              - both canvas and video
+              - unsupported page
+              - unknown
+      validations:
+          required: true
+    - type: textarea
+      id: media-details
+      attributes:
+          label: Media or page details
+          description: Include only public or sanitized details.
+          placeholder: 'Example: same-origin video, cross-origin canvas, local fixture, streaming page, DRM-protected media'
+    - type: textarea
+      id: logs
+      attributes:
+          label: Logs, screenshots, or recordings
+          description: Optional. Remove private data first.
+    - type: checkboxes
+      id: checks
+      attributes:
+          label: Pre-flight checks
+          options:
+              - label: I searched existing issues.
+                required: true
+              - label: I removed private or sensitive content from this report.
+                required: true
+              - label: This is not a security vulnerability report.
+                required: true

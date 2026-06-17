@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+    - name: Security report
+      url: https://github.com/humanbydefinition/textmode-browser-extensions/security/policy
+      about: Please report suspected vulnerabilities privately.
+    - name: textmode.js documentation
+      url: https://code.textmode.art
+      about: Read the textmode.js docs for library usage and API help.
+    - name: textmode.js editor
+      url: https://editor.textmode.art
+      about: Try textmode.js sketches directly in the browser.

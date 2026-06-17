@@ -3,7 +3,25 @@
 	"version": "0.1.0",
 	"description": "Chrome MV3 extension for overlaying real-time textmode.js ASCII conversion on page canvas and video elements.",
 	"type": "module",
-	"private": true,
+	"license": "MIT",
+	"author": "humanbydefinition",
+	"homepage": "https://code.textmode.art",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/humanbydefinition/textmode-browser-extensions.git"
+	},
+	"bugs": {
+		"url": "https://github.com/humanbydefinition/textmode-browser-extensions/issues"
+	},
+	"keywords": [
+		"ascii-art",
+		"browser-extension",
+		"chrome-extension",
+		"creative-coding",
+		"textmode",
+		"textmode-js",
+		"wxt"
+	],
 	"engines": {
 		"node": ">=20.8.1"
 	},

@@ -1,7 +1,6 @@
-import { createRoot, type Root } from 'react-dom/client';
 import type { OverlayDescriptor, OverlayExportFormat, OverlaySettings } from '../../domain/overlay/overlay-settings';
 import { TEXTMODE_HEADER_FONT_FAMILY } from '../../shared/config/extension-assets';
-import { OverlayPanelApp } from './OverlayPanelApp';
+import { OverlayPanelView } from './overlay-panel-view';
 import panelStyles from './popup.css?inline';
 
 export interface ControlPanelOptions {
@@ -26,7 +25,7 @@ export class ControlPanel implements PanelHost {
 	private readonly shadowRoot: ShadowRoot;
 	private readonly mountPoint: HTMLDivElement;
 	private readonly portalRoot: HTMLDivElement;
-	private readonly reactRoot: Root;
+	private readonly view: OverlayPanelView;
 	private overlays: OverlayDescriptor[] = [];
 	private readonly onShadowKeyDown: EventListener;
 
@@ -90,7 +89,15 @@ export class ControlPanel implements PanelHost {
 		this.portalRoot.dataset.textmodeOverlayPortalRoot = 'true';
 		this.shadowRoot.appendChild(this.portalRoot);
 
-		this.reactRoot = createRoot(this.mountPoint);
+		this.view = new OverlayPanelView({
+			portalContainer: this.portalRoot,
+			onStartPicking: this.options.onStartPicking,
+			onUpdateOverlay: this.options.onUpdateOverlay,
+			onExportOverlay: this.options.onExportOverlay,
+			onRemoveOverlay: this.options.onRemoveOverlay,
+			onClose: this.options.onClose,
+		});
+		this.mountPoint.append(this.view.element);
 		this.render();
 	}
 
@@ -104,7 +111,7 @@ export class ControlPanel implements PanelHost {
 
 	public unmount(): void {
 		this.shadowRoot.removeEventListener('keydown', this.onShadowKeyDown, true);
-		this.reactRoot.unmount();
+		this.view.dispose();
 		this.container.remove();
 	}
 
@@ -114,16 +121,7 @@ export class ControlPanel implements PanelHost {
 	}
 
 	private render(): void {
-		this.reactRoot.render(
-			<OverlayPanelApp
-				overlays={this.overlays}
-				onStartPicking={this.options.onStartPicking}
-				onUpdateOverlay={this.options.onUpdateOverlay}
-				onExportOverlay={this.options.onExportOverlay}
-				onRemoveOverlay={this.options.onRemoveOverlay}
-				onClose={this.options.onClose}
-			/>
-		);
+		this.view.update(this.overlays);
 	}
 }
 

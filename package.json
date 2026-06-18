@@ -50,13 +50,6 @@
 		"e2e": "npm run build:e2e:chrome && playwright test"
 	},
 	"dependencies": {
-		"class-variance-authority": "^0.7.1",
-		"clsx": "^2.1.1",
-		"lucide-react": "^0.575.0",
-		"radix-ui": "^1.6.0",
-		"react": "^19.2.7",
-		"react-dom": "^19.2.7",
-		"tailwind-merge": "^3.6.0",
 		"textmode.export.js": "^1.5.1",
 		"textmode.js": "0.17.0-beta.1"
 	},
@@ -70,11 +63,8 @@
 		"@playwright/test": "^1.57.0",
 		"@types/chrome": "^0.1.34",
 		"@types/node": "^24.0.13",
-		"@types/react": "^19.2.17",
-		"@types/react-dom": "^19.2.3",
 		"@typescript-eslint/eslint-plugin": "^8.59.2",
 		"@typescript-eslint/parser": "^8.59.2",
-		"@vitejs/plugin-react": "^5.2.0",
 		"eslint": "^9.39.2",
 		"globals": "^17.5.0",
 		"jsdom": "^27.4.0",

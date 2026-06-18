@@ -1,13 +1,26 @@
 import '../../widgets/overlay-panel/popup.css';
-import { createRoot } from 'react-dom/client';
 import { ensureContentRuntime } from '../background/runtime-injection';
 import { addRuntimeMessageListener, getActiveTab, sendMessageToTab } from '../../shared/browser/browser-api';
 import type { ContentToPopupMessage, RuntimeAck, RuntimeMessage } from '../../shared/messaging/messages';
 import type { OverlayDescriptor, OverlayExportFormat, OverlaySettings } from '../../domain/overlay/overlay-settings';
-import { OverlayPanelApp } from '../../widgets/overlay-panel/OverlayPanelApp';
+import { OverlayPanelView } from '../../widgets/overlay-panel/overlay-panel-view';
 
-const root = createRoot(getElement('root'));
+const root = getElement('root');
+const portalRoot = document.createElement('div');
+portalRoot.className = 'tm-extension-root tm-popover-layer';
+portalRoot.dataset.textmodeOverlayPortalRoot = 'true';
+document.body.append(portalRoot);
+
 let overlays: OverlayDescriptor[] = [];
+
+const view = new OverlayPanelView({
+	portalContainer: portalRoot,
+	onStartPicking: () => void execute({ type: 'START_PICKING' }),
+	onUpdateOverlay: (id, settings) => updateOverlay(id, settings),
+	onExportOverlay: (id, format) => exportOverlay(id, format),
+	onRemoveOverlay: (id) => void execute({ type: 'REMOVE_OVERLAY', id }),
+});
+root.append(view.element);
 
 addRuntimeMessageListener((message: ContentToPopupMessage) => {
 	if (message.type === 'OVERLAY_LIST_CHANGED') {
@@ -30,15 +43,7 @@ async function refresh(): Promise<void> {
 }
 
 function render(): void {
-	root.render(
-		<OverlayPanelApp
-			overlays={overlays}
-			onStartPicking={() => void execute({ type: 'START_PICKING' })}
-			onUpdateOverlay={(id, settings) => updateOverlay(id, settings)}
-			onExportOverlay={(id, format) => exportOverlay(id, format)}
-			onRemoveOverlay={(id) => void execute({ type: 'REMOVE_OVERLAY', id })}
-		/>
-	);
+	view.update(overlays);
 }
 
 async function execute(message: RuntimeMessage): Promise<void> {

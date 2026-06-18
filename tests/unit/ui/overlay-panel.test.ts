@@ -1,42 +1,28 @@
-import { act } from 'react';
-import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { DEFAULT_OVERLAY_SETTINGS, type OverlayDescriptor } from '../../../src/domain/overlay/overlay-settings';
 import { getAdjacentGlyphRampPreset } from '../../../src/domain/overlay/glyph-ramp-registry';
-import { OverlayPanelApp } from '../../../src/widgets/overlay-panel/OverlayPanelApp';
+import { OverlayPanelView } from '../../../src/widgets/overlay-panel/overlay-panel-view';
 
-(globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
-
-describe('OverlayPanelApp', () => {
+describe('OverlayPanelView', () => {
 	let host: HTMLDivElement;
-	let root: Root;
+	let portalRoot: HTMLDivElement;
 
 	beforeEach(() => {
-		vi.stubGlobal('ResizeObserver', MockResizeObserver);
 		host = document.createElement('div');
-		document.body.append(host);
-		root = createRoot(host);
+		portalRoot = document.createElement('div');
+		document.body.append(host, portalRoot);
 	});
 
 	afterEach(() => {
-		act(() => root.unmount());
 		host.remove();
+		portalRoot.remove();
 	});
 
 	it('renders the empty state and starts picking', () => {
 		const onStartPicking = vi.fn();
-
-		act(() => {
-			root.render(
-				<OverlayPanelApp
-					overlays={[]}
-					onStartPicking={onStartPicking}
-					onUpdateOverlay={vi.fn()}
-					onExportOverlay={vi.fn()}
-					onRemoveOverlay={vi.fn()}
-				/>
-			);
-		});
+		const view = createView({ onStartPicking });
+		view.update([]);
+		host.append(view.element);
 
 		expect(host.querySelector('.tm-empty-state')).not.toBeNull();
 		expect(host.querySelector('.tm-overlay-card')).toBeNull();
@@ -50,42 +36,27 @@ describe('OverlayPanelApp', () => {
 		const onExportOverlay = vi.fn();
 		const onRemoveOverlay = vi.fn();
 		const overlay = createOverlay();
-
-		act(() => {
-			root.render(
-				<OverlayPanelApp
-					overlays={[overlay]}
-					onStartPicking={vi.fn()}
-					onUpdateOverlay={onUpdateOverlay}
-					onExportOverlay={onExportOverlay}
-					onRemoveOverlay={onRemoveOverlay}
-				/>
-			);
-		});
+		const view = createView({ onUpdateOverlay, onExportOverlay, onRemoveOverlay });
+		view.update([overlay]);
+		host.append(view.element);
 
 		expect(host.querySelector('.tm-overlay-card')).not.toBeNull();
 
 		const overlayToggle = host.querySelector<HTMLInputElement>('input[type="checkbox"]');
 		expect(overlayToggle).not.toBeNull();
-		act(() => {
-			overlayToggle!.click();
-		});
+		overlayToggle!.click();
 
 		expect(onUpdateOverlay).toHaveBeenCalledWith('overlay-1', { enabled: false });
 
 		const exportButton = host.querySelector<HTMLButtonElement>('button[aria-label="export PNG"]');
 		expect(exportButton).not.toBeNull();
-		act(() => {
-			exportButton!.click();
-		});
+		exportButton!.click();
 
 		expect(onExportOverlay).toHaveBeenCalledWith('overlay-1', 'png');
 
 		const removeButton = host.querySelector<HTMLButtonElement>('.tm-panel__footer .tm-remove-button');
 		expect(removeButton?.disabled).toBe(false);
-		act(() => {
-			removeButton?.click();
-		});
+		removeButton?.click();
 		expect(onRemoveOverlay).toHaveBeenCalledWith('overlay-1');
 	});
 
@@ -93,30 +64,30 @@ describe('OverlayPanelApp', () => {
 		const onUpdateOverlay = vi.fn();
 		const overlay = createOverlay();
 		const expectedPreset = getAdjacentGlyphRampPreset(overlay.settings.fontId, overlay.settings.glyphRamp, 1);
-
-		act(() => {
-			root.render(
-				<OverlayPanelApp
-					overlays={[overlay]}
-					onStartPicking={vi.fn()}
-					onUpdateOverlay={onUpdateOverlay}
-					onExportOverlay={vi.fn()}
-					onRemoveOverlay={vi.fn()}
-				/>
-			);
-		});
+		const view = createView({ onUpdateOverlay });
+		view.update([overlay]);
+		host.append(view.element);
 
 		expect(host.textContent).toContain('classic');
 
 		const nextGlyphRampButton = host.querySelector<HTMLButtonElement>('button[aria-label="next glyph ramp"]');
 		expect(nextGlyphRampButton).not.toBeNull();
-		act(() => {
-			nextGlyphRampButton!.click();
-		});
+		nextGlyphRampButton!.click();
 
 		expect(onUpdateOverlay).toHaveBeenCalledWith('overlay-1', { glyphRamp: expectedPreset.glyphRamp });
 	});
 });
+
+function createView(overrides: Partial<ConstructorParameters<typeof OverlayPanelView>[0]> = {}): OverlayPanelView {
+	return new OverlayPanelView({
+		portalContainer: document.querySelector<HTMLDivElement>('body > div:last-child')!,
+		onStartPicking: vi.fn(),
+		onUpdateOverlay: vi.fn(),
+		onExportOverlay: vi.fn(),
+		onRemoveOverlay: vi.fn(),
+		...overrides,
+	});
+}
 
 function createOverlay(): OverlayDescriptor {
 	return {
@@ -127,10 +98,4 @@ function createOverlay(): OverlayDescriptor {
 		settings: DEFAULT_OVERLAY_SETTINGS,
 		status: 'active',
 	};
-}
-
-class MockResizeObserver {
-	public observe = vi.fn();
-	public unobserve = vi.fn();
-	public disconnect = vi.fn();
 }

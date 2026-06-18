@@ -94,7 +94,7 @@ The project uses a feature-sliced layout:
 - `src/application`: background, page runtime, and popup orchestration.
 - `src/domain`: pure overlay settings, descriptors, and helpers.
 - `src/features`: media picker and textmode overlay behavior.
-- `src/widgets`: React UI and local UI primitives.
+- `src/widgets`: Overlay UI and local UI primitives.
 - `src/shared`: browser adapter, messaging, errors, config, storage, and utilities.
 
 ## Making a Change

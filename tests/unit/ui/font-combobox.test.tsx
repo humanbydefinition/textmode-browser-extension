@@ -14,7 +14,7 @@ function createFont(id: BundledFontId, displayName: string): BundledFontEntry {
 		author: 'Test Author',
 		authorUrl: 'https://example.com/author',
 		sourceUrl: 'https://example.com/source',
-		assetPath: `fonts/${displayName}.ttf`,
+		assetPath: `fonts/${displayName}.woff`,
 		cssFontFamily: `Font-${displayName}`,
 	};
 }

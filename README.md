@@ -18,7 +18,6 @@
   &nbsp;&nbsp;
   <img alt="Chrome MV3" src="https://img.shields.io/badge/Chrome-MV3-4285F4?logo=googlechrome&logoColor=white" /><!--
   --><img alt="Edge MV3" src="https://img.shields.io/badge/Edge-MV3-0078D7?logo=microsoftedge&logoColor=white" /><!--
-  --><img alt="Opera MV3" src="https://img.shields.io/badge/Opera-MV3-FF1B2D?logo=opera&logoColor=white" /><!--
   --><img alt="Firefox MV2" src="https://img.shields.io/badge/Firefox-MV2-FF7139?logo=firefoxbrowser&logoColor=white" /><!--
   --><img alt="Safari MV2" src="https://img.shields.io/badge/Safari-MV2-006CFF?logo=safari&logoColor=white" />
   &nbsp;&nbsp;

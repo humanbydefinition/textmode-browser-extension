@@ -14,5 +14,5 @@ skills-lock.json
 public/fonts/*
 !public/fonts/Bescii-Mono.woff
 !public/fonts/UrsaFont.woff
-!public/fonts/atascii.ttf
-!public/fonts/cpc464.ttf
+!public/fonts/atascii.woff
+!public/fonts/cpc464.woff

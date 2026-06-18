@@ -8,3 +8,8 @@ playwright-report/
 .DS_Store
 .agents/
 skills-lock.json
+public/fonts/*
+!public/fonts/Bescii-Mono.ttf
+!public/fonts/UrsaFont.woff
+!public/fonts/atascii.ttf
+!public/fonts/cpc464.ttf

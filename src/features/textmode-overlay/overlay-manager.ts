@@ -8,7 +8,7 @@ import {
 	type OverlayExportFormat,
 	type OverlaySettings,
 } from '../../domain/overlay/overlay-settings';
-import { getFontAssetUrl } from '../../domain/fonts/font-registry';
+import { getFontAssetUrl, resolveFontId } from '../../domain/fonts/font-registry';
 import { describeElement, type SelectableElement } from '../media-picker/element-picker';
 import { textmodeOverlayRenderer, type ExportableTextmodeInstance, type OverlayRendererPort } from './overlay-renderer';
 
@@ -44,7 +44,7 @@ export class OverlayManager {
 		this.clearOverlays();
 
 		const id = `overlay-${Date.now().toString(36)}-${++this.idCounter}`;
-		const settings = mergeOverlaySettings(DEFAULT_OVERLAY_SETTINGS, initialSettings);
+		const settings = this.normalizeSettings(mergeOverlaySettings(DEFAULT_OVERLAY_SETTINGS, initialSettings));
 		const controller: OverlayController = {
 			id,
 			element,
@@ -58,7 +58,7 @@ export class OverlayManager {
 
 		try {
 			const fontSource = getFontAssetUrl(settings.fontId);
-			const instance = this.renderer.create(element, settings, { fontSource });
+			const instance = this.renderer.create(element, settings, fontSource ? { fontSource } : undefined);
 			controller.instance = instance;
 			controller.loadedFontId = settings.fontId;
 			instance.canvas.dataset.textmodeAsciiExtensionUi = 'true';
@@ -99,7 +99,7 @@ export class OverlayManager {
 			throw new Error(`Overlay ${id} no longer exists.`);
 		}
 
-		controller.settings = mergeOverlaySettings(controller.settings, patch);
+		controller.settings = this.normalizeSettings(mergeOverlaySettings(controller.settings, patch));
 		try {
 			this.applyControllerSettings(controller);
 			controller.latestError = undefined;
@@ -221,6 +221,18 @@ export class OverlayManager {
 		}
 
 		this.configureSource(controller);
+	}
+
+	private normalizeSettings(settings: OverlaySettings): OverlaySettings {
+		const resolvedFontId = resolveFontId(settings.fontId);
+		if (!resolvedFontId || resolvedFontId === settings.fontId) {
+			return settings;
+		}
+
+		return {
+			...settings,
+			fontId: resolvedFontId,
+		};
 	}
 
 	private configureSource(controller: OverlayController): void {

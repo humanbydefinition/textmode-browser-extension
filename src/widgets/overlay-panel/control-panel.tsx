@@ -5,7 +5,7 @@ import { OverlayPanelApp } from './OverlayPanelApp';
 import panelStyles from './popup.css?inline';
 
 export interface ControlPanelOptions {
-	headerFontUrl: string;
+	headerFontUrl?: string | null;
 	onStartPicking: () => void;
 	onUpdateOverlay: (id: string, settings: Partial<OverlaySettings>) => void;
 	onExportOverlay: (id: string, format: OverlayExportFormat) => void;
@@ -31,7 +31,9 @@ export class ControlPanel implements PanelHost {
 	private readonly onShadowKeyDown: EventListener;
 
 	public constructor(private readonly options: ControlPanelOptions) {
-		installHeaderFont(options.headerFontUrl);
+		if (options.headerFontUrl) {
+			installHeaderFont(options.headerFontUrl);
+		}
 		this.container = document.createElement('div');
 		this.container.id = PANEL_HOST_ID;
 		this.container.dataset.textmodeAsciiExtensionUi = 'true';
@@ -59,13 +61,7 @@ export class ControlPanel implements PanelHost {
 		};
 		const styleEl = document.createElement('style');
 		styleEl.textContent = `
-			@font-face {
-				font-family: '${TEXTMODE_HEADER_FONT_FAMILY}';
-				src: url(${JSON.stringify(this.options.headerFontUrl)}) format('truetype');
-				font-weight: 400;
-				font-style: normal;
-				font-display: swap;
-			}
+			${this.options.headerFontUrl ? createHeaderFontFaceCss(this.options.headerFontUrl) : ''}
 
 			:host {
 				all: initial;
@@ -129,6 +125,18 @@ export class ControlPanel implements PanelHost {
 			/>
 		);
 	}
+}
+
+function createHeaderFontFaceCss(fontUrl: string): string {
+	return `
+		@font-face {
+			font-family: '${TEXTMODE_HEADER_FONT_FAMILY}';
+			src: url(${JSON.stringify(fontUrl)}) format('truetype');
+			font-weight: 400;
+			font-style: normal;
+			font-display: swap;
+		}
+	`;
 }
 
 function installHeaderFont(fontUrl: string): void {

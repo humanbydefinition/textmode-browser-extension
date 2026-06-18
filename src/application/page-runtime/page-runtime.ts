@@ -1,8 +1,9 @@
 import { toUserMessage } from '../../shared/errors/errors';
 import { isPopupToContentMessage, isRuntimeMessage, type RuntimeAck } from '../../shared/messaging/messages';
-import { addRuntimeMessageListener, getExtensionAssetUrl } from '../../shared/browser/browser-api';
-import { TEXTMODE_HEADER_FONT_RESOURCE } from '../../shared/config/extension-assets';
+import { addRuntimeMessageListener } from '../../shared/browser/browser-api';
+import { TEXTMODE_HEADER_FONT_ID } from '../../shared/config/extension-assets';
 import type { OverlaySettings } from '../../domain/overlay/overlay-settings';
+import { getFontAssetUrl } from '../../domain/fonts/font-registry';
 import { ElementPicker, type SelectableElement } from '../../features/media-picker/element-picker';
 import { OverlayManager } from '../../features/textmode-overlay/overlay-manager';
 import { broadcastError, broadcastOverlayList, broadcastPickingCancelled, broadcastPickingStarted } from './page-state';
@@ -18,7 +19,7 @@ declare global {
 export class PageRuntime {
 	private picker?: ElementPicker;
 	private controlPanel?: ControlPanel;
-	private readonly fontUrl = getExtensionAssetUrl(TEXTMODE_HEADER_FONT_RESOURCE);
+	private readonly fontUrl = getFontAssetUrl(TEXTMODE_HEADER_FONT_ID);
 	private readonly manager: OverlayManager;
 	private readonly actions: RuntimeActionHandler;
 

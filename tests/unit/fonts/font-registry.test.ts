@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { getAvailableFonts, getFontAssetUrl, getFontEntry, getFontEntryOrDefault } from '@/domain/fonts/font-registry';
-import { BUNDLED_FONT_IDS, type BundledFontId } from '@/domain/overlay/overlay-settings';
+import { createFontRegistry } from '@/domain/fonts/font-registry';
+
+const TEST_FONT_ASSET_PATHS = ['fonts/Bescii-Mono.ttf', 'fonts/UrsaFont.woff', 'fonts/atascii.ttf', 'fonts/cpc464.ttf'];
 
 describe('font-registry', () => {
 	beforeEach(() => {
@@ -15,13 +16,18 @@ describe('font-registry', () => {
 		vi.unstubAllGlobals();
 	});
 
-	it('returns all 18 bundled font entries', () => {
-		const fonts = getAvailableFonts();
-		expect(fonts).toHaveLength(18);
+	it('returns only fonts with matching local asset files', () => {
+		const registry = createFontRegistry(TEST_FONT_ASSET_PATHS);
+		const fonts = registry.getAvailableFonts();
+
+		expect(fonts).toHaveLength(4);
+		expect(fonts.map((font) => font.id)).toEqual(['ursafont', 'atascii', 'bescii', 'cpc464']);
 	});
 
 	it('every font has all required metadata fields', () => {
-		for (const font of getAvailableFonts()) {
+		const registry = createFontRegistry(TEST_FONT_ASSET_PATHS);
+
+		for (const font of registry.getAvailableFonts()) {
 			expect(font, font.id).toHaveProperty('id');
 			expect(font, font.id).toHaveProperty('displayName');
 			expect(font, font.id).toHaveProperty('author');
@@ -39,45 +45,40 @@ describe('font-registry', () => {
 		}
 	});
 
-	it('matches the BUNDLED_FONT_IDS set', () => {
-		const fontIds = getAvailableFonts().map((f: { id: string }) => f.id);
-		for (const id of BUNDLED_FONT_IDS) {
-			expect(fontIds).toContain(id);
-		}
+	it('getFontEntry returns null for known fonts without local assets', () => {
+		const registry = createFontRegistry(TEST_FONT_ASSET_PATHS);
+		expect(registry.getFontEntry('chunky')).toBeNull();
+		expect(registry.getFontEntry('bescii')?.id).toBe('bescii');
 	});
 
-	it('getFontEntry returns the correct entry for valid ids', () => {
-		for (const id of BUNDLED_FONT_IDS) {
-			const entry = getFontEntry(id);
-			expect(entry).not.toBeNull();
-			expect(entry!.id).toBe(id);
-		}
+	it('preferred font selection falls back to the default available font', () => {
+		const registry = createFontRegistry(TEST_FONT_ASSET_PATHS);
+		expect(registry.getPreferredFontEntry('chunky')?.id).toBe('bescii');
+		expect(registry.resolveFontId('chunky')).toBe('bescii');
 	});
 
-	it('getFontEntryOrDefault falls back to default for unknown ids', () => {
-		const entry = getFontEntryOrDefault('unknown' as BundledFontId);
-		expect(entry).not.toBeNull();
-		expect(BUNDLED_FONT_IDS).toContain(entry.id);
-	});
-
-	it('getFontAssetUrl resolves to a chrome extension URL', () => {
-		const url = getFontAssetUrl('chunky');
-		expect(url).toBe('chrome-extension://test/fonts/CHUNKY.ttf');
+	it('getFontAssetUrl resolves only available fonts to extension URLs', () => {
+		const registry = createFontRegistry(TEST_FONT_ASSET_PATHS);
+		expect(registry.getFontAssetUrl('bescii')).toBe('chrome-extension://test/fonts/Bescii-Mono.ttf');
+		expect(registry.getFontAssetUrl('chunky')).toBeNull();
 	});
 
 	it('every font has a unique assetPath', () => {
-		const paths = getAvailableFonts().map((f: { assetPath: string }) => f.assetPath);
+		const registry = createFontRegistry(TEST_FONT_ASSET_PATHS);
+		const paths = registry.getAvailableFonts().map((f: { assetPath: string }) => f.assetPath);
 		expect(new Set(paths).size).toBe(paths.length);
 	});
 
 	it('every font displayName is non-empty', () => {
-		for (const font of getAvailableFonts()) {
+		const registry = createFontRegistry(TEST_FONT_ASSET_PATHS);
+		for (const font of registry.getAvailableFonts()) {
 			expect(font.displayName.length).toBeGreaterThan(0);
 		}
 	});
 
 	it('every font authorUrl and sourceUrl are valid URLs', () => {
-		for (const font of getAvailableFonts()) {
+		const registry = createFontRegistry(TEST_FONT_ASSET_PATHS);
+		for (const font of registry.getAvailableFonts()) {
 			expect(() => new URL(font.authorUrl)).not.toThrow();
 			expect(() => new URL(font.sourceUrl)).not.toThrow();
 		}

@@ -1,7 +1,7 @@
 {
 	"name": "textmode-ascii-overlay-extension",
 	"version": "1.0.0",
-	"description": "Chrome MV3 extension for overlaying real-time textmode.js ASCII conversion on page canvas and video elements.",
+	"description": "Browser extension for overlaying real-time textmode.js ASCII conversion on page canvas and video elements.",
 	"type": "module",
 	"license": "MIT",
 	"author": "humanbydefinition",
@@ -31,12 +31,14 @@
 		"build:chrome": "wxt build -b chrome --mv3",
 		"build:e2e:chrome": "wxt build -b chrome --mv3 --mode e2e",
 		"build:edge": "wxt build -b edge --mv3",
-		"build:firefox": "wxt build -b firefox",
+		"build:firefox": "wxt build -b firefox --mv3",
 		"build:safari": "wxt build -b safari",
 		"dev": "wxt",
-		"dev:firefox": "wxt -b firefox",
+		"dev:firefox": "wxt -b firefox --mv3",
 		"zip": "wxt zip",
-		"zip:firefox": "wxt zip -b firefox",
+		"zip:firefox": "wxt zip -b firefox --mv3",
+		"lint:firefox": "npm run build:firefox && web-ext lint --source-dir .output/firefox-mv3 --self-hosted",
+		"sign:firefox": "node ./scripts/sign-firefox.mjs",
 		"test": "vitest run",
 		"test:watch": "vitest",
 		"typecheck": "tsc --noEmit",
@@ -44,7 +46,7 @@
 		"format": "prettier --write .",
 		"check:format": "prettier --check .",
 		"check:boundaries": "node ./scripts/check-boundaries.mjs",
-		"check": "npm run check:format && npm run lint && npm run check:boundaries && npm run typecheck && npm run test && npm run build:chrome",
+		"check": "npm run check:format && npm run lint && npm run check:boundaries && npm run typecheck && npm run test && npm run build:chrome && npm run lint:firefox",
 		"e2e": "npm run build:e2e:chrome && playwright test"
 	},
 	"dependencies": {
@@ -81,6 +83,7 @@
 		"typescript-eslint": "^8.59.2",
 		"vite": "^8.0.16",
 		"vitest": "^4.1.9",
+		"web-ext": "^10.4.0",
 		"wxt": "^0.20.26"
 	}
 }

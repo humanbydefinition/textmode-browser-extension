@@ -5,7 +5,7 @@ import { ControlPanel } from '../../src/widgets/overlay-panel/control-panel';
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
-const HEADER_FONT_URL = 'chrome-extension://extension-id/fonts/Bescii-Mono.ttf';
+const HEADER_FONT_URL = 'chrome-extension://extension-id/fonts/Bescii-Mono.woff';
 
 describe('ControlPanel', () => {
 	beforeEach(() => {

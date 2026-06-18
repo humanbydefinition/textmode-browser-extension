@@ -5,6 +5,11 @@ const CONTENT_SCRIPT_FILE = '/content-runtime.js';
 
 export type RuntimeMessageListener = Parameters<typeof browser.runtime.onMessage.addListener>[0];
 export type ActionClickedListener = Parameters<typeof browser.action.onClicked.addListener>[0];
+type ToolbarActionApi = typeof browser.action | typeof browser.browserAction;
+type BrowserWithOptionalToolbarApis = typeof browser & {
+	action?: typeof browser.action;
+	browserAction?: typeof browser.browserAction;
+};
 
 export interface BrowserPort {
 	getActiveTab(): Promise<Browser.tabs.Tab | undefined>;
@@ -44,9 +49,17 @@ export const browserPort: BrowserPort = {
 		browser.runtime.onInstalled.addListener(listener);
 	},
 	addActionClickedListener(listener) {
-		browser.action.onClicked.addListener(listener);
+		resolveToolbarActionApi(browser).onClicked.addListener(listener);
 	},
 };
+
+export function resolveToolbarActionApi(api: BrowserWithOptionalToolbarApis): ToolbarActionApi {
+	const toolbarAction = api.action ?? api.browserAction;
+	if (!toolbarAction) {
+		throw new Error('No browser toolbar action API is available.');
+	}
+	return toolbarAction;
+}
 
 export const getActiveTab = browserPort.getActiveTab;
 export const getExtensionAssetUrl = browserPort.getExtensionAssetUrl;

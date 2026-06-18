@@ -1,5 +1,7 @@
 import type { TargetBrowser, UserManifest } from 'wxt';
 
+export const FIREFOX_EXTENSION_ID = 'textmode-overlay@humanbydefinition.com';
+
 export interface ExtensionManifestOptions {
 	browser: TargetBrowser;
 	mode?: string;
@@ -18,6 +20,7 @@ export function createExtensionManifest({ browser, mode, fontResources }: Extens
 	if (browser === 'firefox') {
 		manifest.browser_specific_settings = {
 			gecko: {
+				id: FIREFOX_EXTENSION_ID,
 				data_collection_permissions: {
 					required: ['none'],
 				},

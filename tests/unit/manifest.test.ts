@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { createExtensionManifest } from '../../src/shared/config/extension-manifest';
+import { createExtensionManifest, FIREFOX_EXTENSION_ID } from '../../src/shared/config/extension-manifest';
 
-const TEST_FONT_RESOURCES = ['fonts/Bescii-Mono.ttf', 'fonts/UrsaFont.woff'];
+const TEST_FONT_RESOURCES = ['fonts/Bescii-Mono.woff', 'fonts/UrsaFont.woff'];
 
 describe('extension manifest', () => {
 	it('keeps the default build action-triggered and least-privilege', () => {
@@ -12,12 +12,13 @@ describe('extension manifest', () => {
 		expect(manifest.action?.default_popup).toBeUndefined();
 	});
 
-	it('declares no Firefox data collection for store policy compliance', () => {
+	it('declares Firefox signing identity and no data collection for store policy compliance', () => {
 		expect(
 			createExtensionManifest({ browser: 'firefox', fontResources: TEST_FONT_RESOURCES })
 				.browser_specific_settings
 		).toEqual({
 			gecko: {
+				id: FIREFOX_EXTENSION_ID,
 				data_collection_permissions: {
 					required: ['none'],
 				},

@@ -1,5 +1,5 @@
 import type { TargetBrowser, UserManifest } from 'wxt';
-import { TEXTMODE_HEADER_FONT_RESOURCE } from './extension-assets';
+import { FONT_RESOURCES } from './extension-assets';
 
 export interface ExtensionManifestOptions {
 	browser: TargetBrowser;
@@ -31,10 +31,10 @@ export function createExtensionManifest({ browser, mode }: ExtensionManifestOpti
 export const baseExtensionManifest: UserManifest = {
 	name: 'Textmode Overlay',
 	description: 'Turn <canvas> and <video> elements into live ASCII art.',
-	permissions: ['activeTab', 'scripting', 'storage'],
+	permissions: ['activeTab', 'scripting'],
 	web_accessible_resources: [
 		{
-			resources: [TEXTMODE_HEADER_FONT_RESOURCE],
+			resources: [...FONT_RESOURCES],
 			matches: ['*://*/*'],
 		},
 	],

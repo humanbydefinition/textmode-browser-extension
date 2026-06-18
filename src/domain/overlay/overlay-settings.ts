@@ -6,6 +6,30 @@ export type OverlayExportFormat = 'txt' | 'svg' | 'png' | 'jpg';
 export const SOURCE_COLOR_MODES = ['sampled', 'fixed'] as const;
 export const OVERLAY_EXPORT_FORMATS = ['txt', 'svg', 'png', 'jpg'] as const;
 
+export const BUNDLED_FONT_IDS = [
+	'chunky',
+	'cultistScript',
+	'frogblock',
+	'ursafont',
+	'atascii',
+	'bescii',
+	'c64ProMono',
+	'unscii8',
+	'unscii8Alt',
+	'unscii8Mcr',
+	'unscii8Thin',
+	'unscii8Fantasy',
+	'cpc464',
+	'rook',
+	'dungeonmode',
+	'publicPixel',
+	'myceliumOG',
+	't64',
+] as const;
+
+export type BundledFontId = (typeof BUNDLED_FONT_IDS)[number];
+export const DEFAULT_FONT_ID: BundledFontId = 'bescii';
+
 export const OVERLAY_SETTING_LIMITS = {
 	opacity: { min: 0, max: 1, step: 0.05 },
 	fontSize: { min: 1, max: 64, step: 1 },
@@ -15,6 +39,7 @@ export interface OverlaySettings {
 	enabled: boolean;
 	opacity: number;
 	fontSize: number;
+	fontId: BundledFontId;
 	glyphRamp: string;
 	invert: boolean;
 	charColorMode: SourceColorMode;
@@ -44,6 +69,7 @@ export const DEFAULT_OVERLAY_SETTINGS: OverlaySettings = {
 	enabled: true,
 	opacity: 1,
 	fontSize: 8,
+	fontId: DEFAULT_FONT_ID,
 	glyphRamp: ' .:-=+*#%@',
 	invert: false,
 	charColorMode: 'sampled',
@@ -75,7 +101,15 @@ export function mergeOverlaySettings(base: OverlaySettings, patch: Partial<Overl
 		next.cellColor = DEFAULT_OVERLAY_SETTINGS.cellColor;
 	}
 
+	if (!isBundledFontId(next.fontId)) {
+		next.fontId = DEFAULT_FONT_ID;
+	}
+
 	return next;
+}
+
+export function isBundledFontId(value: unknown): value is BundledFontId {
+	return typeof value === 'string' && (BUNDLED_FONT_IDS as readonly string[]).includes(value);
 }
 
 export function getElementBounds(element: Element): ElementBounds {

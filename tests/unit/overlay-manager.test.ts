@@ -13,6 +13,7 @@ interface MockTextmodeInstance {
 	noLoop: ReturnType<typeof vi.fn>;
 	loop: ReturnType<typeof vi.fn>;
 	fontSize: ReturnType<typeof vi.fn>;
+	loadFont: ReturnType<typeof vi.fn>;
 	saveCanvas: ReturnType<typeof vi.fn>;
 	saveSVG: ReturnType<typeof vi.fn>;
 	saveStrings: ReturnType<typeof vi.fn>;
@@ -35,6 +36,7 @@ vi.mock('textmode.js', () => ({
 				noLoop: vi.fn(),
 				loop: vi.fn(),
 				fontSize: vi.fn((value?: number) => (value === undefined ? 8 : undefined)),
+				loadFont: vi.fn(async () => undefined),
 				saveCanvas: vi.fn(async () => undefined),
 				saveSVG: vi.fn(),
 				saveStrings: vi.fn(),
@@ -63,6 +65,11 @@ describe('OverlayManager', () => {
 		document.body.replaceChildren();
 		vi.stubGlobal('ResizeObserver', MockResizeObserver);
 		vi.stubGlobal('WebGL2RenderingContext', class WebGL2RenderingContext {});
+		vi.stubGlobal('chrome', {
+			runtime: {
+				getURL: vi.fn((path: string) => `chrome-extension://test/${path}`),
+			},
+		});
 	});
 
 	it('replaces the existing overlay when a new element is selected', () => {
@@ -84,7 +91,7 @@ describe('OverlayManager', () => {
 	it('creates textmode overlays with the current rendering contract', () => {
 		const canvas = createCanvas('source');
 		document.body.append(canvas);
-		const manager = new OverlayManager(vi.fn(), undefined, 'chrome-extension://extension-id/fonts/Bescii-Mono.ttf');
+		const manager = new OverlayManager(vi.fn());
 
 		manager.createOverlay(canvas, { fontSize: 16 });
 
@@ -94,7 +101,6 @@ describe('OverlayManager', () => {
 				overlay: true,
 				pixelDensity: 1,
 				fontSize: 16,
-				fontSource: 'chrome-extension://extension-id/fonts/Bescii-Mono.ttf',
 				loadingScreen: { transition: 'none' },
 				plugins: [expect.objectContaining({ name: 'textmode.export' })],
 			})

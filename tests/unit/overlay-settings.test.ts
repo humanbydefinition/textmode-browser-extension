@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { DEFAULT_OVERLAY_SETTINGS, mergeOverlaySettings } from '../../src/domain/overlay/overlay-settings';
+import {
+	DEFAULT_FONT_ID,
+	DEFAULT_OVERLAY_SETTINGS,
+	isBundledFontId,
+	mergeOverlaySettings,
+} from '../../src/domain/overlay/overlay-settings';
 
 describe('mergeOverlaySettings', () => {
 	it('merges patches over defaults', () => {
@@ -40,5 +45,33 @@ describe('mergeOverlaySettings', () => {
 
 		expect(settings.charColor).toBe('#ff77aa80');
 		expect(settings.cellColor).toBe('#000000cc');
+	});
+
+	it('repairs invalid fontId by falling back to default', () => {
+		const settings = mergeOverlaySettings(DEFAULT_OVERLAY_SETTINGS, {
+			fontId: 'not_a_real_font',
+		} as Record<string, unknown> as Partial<Record<string, unknown>>);
+
+		expect(settings.fontId).toBe(DEFAULT_FONT_ID);
+	});
+
+	describe('isBundledFontId', () => {
+		it('returns true for known font ids', () => {
+			expect(isBundledFontId('chunky')).toBe(true);
+			expect(isBundledFontId('bescii')).toBe(true);
+			expect(isBundledFontId('t64')).toBe(true);
+		});
+
+		it('returns false for unknown strings', () => {
+			expect(isBundledFontId('helvetica')).toBe(false);
+			expect(isBundledFontId('')).toBe(false);
+			expect(isBundledFontId('chunkyy')).toBe(false);
+		});
+
+		it('returns false for non-string values', () => {
+			expect(isBundledFontId(null)).toBe(false);
+			expect(isBundledFontId(undefined)).toBe(false);
+			expect(isBundledFontId(42)).toBe(false);
+		});
 	});
 });

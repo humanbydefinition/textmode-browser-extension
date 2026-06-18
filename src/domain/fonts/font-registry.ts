@@ -55,7 +55,7 @@ const GLYPH_SOURCE_META: Record<BundledFontId, FontMeta> = {
 		sourceUrl: 'https://ursafrank.itch.io/ursafont',
 	},
 	atascii: {
-		assetPath: 'fonts/atascii.ttf',
+		assetPath: 'fonts/atascii.woff',
 		cssFontFamily: 'Font-Atascii',
 		author: 'Damian Vila',
 		authorUrl: 'https://codeberg.org/Dmian/font-atascii',
@@ -101,7 +101,7 @@ const GLYPH_SOURCE_META: Record<BundledFontId, FontMeta> = {
 		...UNSCII_META,
 	},
 	cpc464: {
-		assetPath: 'fonts/cpc464.ttf',
+		assetPath: 'fonts/cpc464.woff',
 		cssFontFamily: 'Font-CPC464',
 		author: 'Damian Vila',
 		authorUrl: 'https://codeberg.org/Dmian/font-cpc464',

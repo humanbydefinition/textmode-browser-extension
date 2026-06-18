@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createFontRegistry } from '@/domain/fonts/font-registry';
 
-const TEST_FONT_ASSET_PATHS = ['fonts/Bescii-Mono.woff', 'fonts/UrsaFont.woff', 'fonts/atascii.ttf', 'fonts/cpc464.ttf'];
+const TEST_FONT_ASSET_PATHS = ['fonts/Bescii-Mono.woff', 'fonts/UrsaFont.woff', 'fonts/atascii.woff', 'fonts/cpc464.woff'];
 
 describe('font-registry', () => {
 	beforeEach(() => {

@@ -489,6 +489,37 @@ select {
 	font-variant-numeric: tabular-nums;
 }
 
+.tm-glyph-ramp-actions {
+	display: inline-flex;
+	align-items: center;
+	justify-content: flex-end;
+	gap: 4px;
+	min-width: 0;
+	max-width: 66%;
+}
+
+.tm-glyph-ramp-name {
+	min-width: 0;
+	max-width: 108px;
+	overflow: hidden;
+	color: var(--tm-neutral-d4);
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.tm-button--glyph-nav {
+	width: 22px;
+	height: 22px;
+	min-height: 22px;
+	border-radius: calc(var(--tm-radius) - 2px);
+	padding: 0;
+}
+
+.tm-button--glyph-nav svg {
+	width: 12px;
+	height: 12px;
+}
+
 .tm-toggle-row {
 	display: flex;
 	align-items: center;

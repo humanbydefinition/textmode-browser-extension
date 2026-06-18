@@ -2,6 +2,7 @@ import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { DEFAULT_OVERLAY_SETTINGS, type OverlayDescriptor } from '../../../src/domain/overlay/overlay-settings';
+import { getAdjacentGlyphRampPreset } from '../../../src/domain/overlay/glyph-ramp-registry';
 import { OverlayPanelApp } from '../../../src/widgets/overlay-panel/OverlayPanelApp';
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
@@ -86,6 +87,34 @@ describe('OverlayPanelApp', () => {
 			removeButton?.click();
 		});
 		expect(onRemoveOverlay).toHaveBeenCalledWith('overlay-1');
+	});
+
+	it('cycles glyph ramp presets from the advanced controls', () => {
+		const onUpdateOverlay = vi.fn();
+		const overlay = createOverlay();
+		const expectedPreset = getAdjacentGlyphRampPreset(overlay.settings.fontId, overlay.settings.glyphRamp, 1);
+
+		act(() => {
+			root.render(
+				<OverlayPanelApp
+					overlays={[overlay]}
+					onStartPicking={vi.fn()}
+					onUpdateOverlay={onUpdateOverlay}
+					onExportOverlay={vi.fn()}
+					onRemoveOverlay={vi.fn()}
+				/>
+			);
+		});
+
+		expect(host.textContent).toContain('classic');
+
+		const nextGlyphRampButton = host.querySelector<HTMLButtonElement>('button[aria-label="next glyph ramp"]');
+		expect(nextGlyphRampButton).not.toBeNull();
+		act(() => {
+			nextGlyphRampButton!.click();
+		});
+
+		expect(onUpdateOverlay).toHaveBeenCalledWith('overlay-1', { glyphRamp: expectedPreset.glyphRamp });
 	});
 });
 

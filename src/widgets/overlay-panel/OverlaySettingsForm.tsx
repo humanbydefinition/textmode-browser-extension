@@ -1,7 +1,8 @@
 import * as React from 'react';
-import { Download, FileCode2, FileText, ImageDown } from 'lucide-react';
-import type { OverlayExportFormat, OverlaySettings } from '../../domain/overlay/overlay-settings';
+import { ArrowLeft, ArrowRight, Download, FileCode2, FileText, ImageDown } from 'lucide-react';
+import type { BundledFontId, OverlayExportFormat, OverlaySettings } from '../../domain/overlay/overlay-settings';
 import { getAvailableFonts, getPreferredFontEntry, resolveFontId } from '../../domain/fonts/font-registry';
+import { getAdjacentGlyphRampPreset, getGlyphRampPresetName } from '../../domain/overlay/glyph-ramp-registry';
 import {
 	formatPercent,
 	formatPixels,
@@ -27,6 +28,7 @@ export function OverlaySettingsForm({ settings, onChange, onExport }: OverlaySet
 	const availableFonts = getAvailableFonts();
 	const resolvedFontId = resolveFontId(settings.fontId);
 	const selectedFont = getPreferredFontEntry(settings.fontId);
+	const glyphRampFontId = resolvedFontId ?? settings.fontId;
 
 	React.useEffect(() => {
 		if (resolvedFontId && resolvedFontId !== settings.fontId) {
@@ -92,14 +94,11 @@ export function OverlaySettingsForm({ settings, onChange, onExport }: OverlaySet
 							onModeChange={(cellColorMode) => onChange({ cellColorMode })}
 							onColorChange={(cellColor) => onChange({ cellColor })}
 						/>
-						<SettingField label="glyph ramp">
-							<input
-								className="tm-input"
-								type="text"
-								value={settings.glyphRamp}
-								onChange={(event) => onChange({ glyphRamp: event.currentTarget.value })}
-							/>
-						</SettingField>
+						<GlyphRampField
+							fontId={glyphRampFontId}
+							value={settings.glyphRamp}
+							onChange={(glyphRamp) => onChange({ glyphRamp })}
+						/>
 						<SettingField label="font" value={selectedFont?.displayName ?? 'System default'}>
 							<FontCombobox
 								fonts={availableFonts}
@@ -111,6 +110,61 @@ export function OverlaySettingsForm({ settings, onChange, onExport }: OverlaySet
 					</div>
 				</TabsContent>
 			</Tabs>
+		</div>
+	);
+}
+
+interface GlyphRampFieldProps {
+	fontId: BundledFontId;
+	value: string;
+	onChange: (glyphRamp: string) => void;
+}
+
+function GlyphRampField({ fontId, value, onChange }: GlyphRampFieldProps): React.JSX.Element {
+	const inputId = React.useId();
+	const presetName = getGlyphRampPresetName(fontId, value);
+
+	function selectAdjacentPreset(direction: -1 | 1): void {
+		onChange(getAdjacentGlyphRampPreset(fontId, value, direction).glyphRamp);
+	}
+
+	return (
+		<div className="tm-field">
+			<div className="tm-field__label">
+				<label htmlFor={inputId}>glyph ramp</label>
+				<div className="tm-glyph-ramp-actions">
+					<output className="tm-glyph-ramp-name">{presetName}</output>
+					<Button
+						type="button"
+						variant="ghost"
+						size="icon"
+						className="tm-button tm-button--ghost tm-button--glyph-nav"
+						aria-label="previous glyph ramp"
+						title="previous glyph ramp"
+						onClick={() => selectAdjacentPreset(-1)}
+					>
+						<ArrowLeft aria-hidden="true" />
+					</Button>
+					<Button
+						type="button"
+						variant="ghost"
+						size="icon"
+						className="tm-button tm-button--ghost tm-button--glyph-nav"
+						aria-label="next glyph ramp"
+						title="next glyph ramp"
+						onClick={() => selectAdjacentPreset(1)}
+					>
+						<ArrowRight aria-hidden="true" />
+					</Button>
+				</div>
+			</div>
+			<input
+				id={inputId}
+				className="tm-input"
+				type="text"
+				value={value}
+				onChange={(event) => onChange(event.currentTarget.value)}
+			/>
 		</div>
 	);
 }

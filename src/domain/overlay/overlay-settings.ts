@@ -25,6 +25,7 @@ export const BUNDLED_FONT_IDS = [
 	'publicPixel',
 	'myceliumOG',
 	't64',
+	'kitchenSink',
 ] as const;
 
 export type BundledFontId = (typeof BUNDLED_FONT_IDS)[number];

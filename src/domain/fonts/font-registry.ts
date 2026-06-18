@@ -142,6 +142,13 @@ const GLYPH_SOURCE_META: Record<BundledFontId, FontMeta> = {
 		authorUrl: 'https://littlebitspace.com/',
 		sourceUrl: 'https://littlebitspace.com/resources/',
 	},
+	kitchenSink: {
+		assetPath: 'fonts/KitchenSink.ttf',
+		cssFontFamily: 'Font-Kitchen-Sink',
+		author: 'Polyducks',
+		authorUrl: 'https://polyducks.co.uk/',
+		sourceUrl: 'https://polyducks.itch.io/kitchen-sink-textmode-font',
+	},
 };
 
 const AVAILABLE_FONTS: readonly BundledFontEntry[] = Object.entries(GLYPH_SOURCE_META).map(([id, meta]) => ({
@@ -205,6 +212,7 @@ function idToDisplayName(id: BundledFontId): string {
 		publicPixel: 'Public Pixel',
 		myceliumOG: 'Mycelium OG',
 		t64: 'T64',
+		kitchenSink: 'Kitchen Sink',
 	};
 	return displayNames[id];
 }

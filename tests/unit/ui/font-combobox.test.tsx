@@ -139,4 +139,14 @@ describe('FontCombobox', () => {
 		expect(links[0]!.href).toBe('https://example.com/source');
 		expect(links[0]!.target).toBe('_blank');
 	});
+
+	it('shows an unavailable state when no local fonts exist', () => {
+		act(() => {
+			root.render(<FontCombobox fonts={[]} value="chunky" onChange={vi.fn()} />);
+		});
+
+		const trigger = host.querySelector<HTMLButtonElement>('[role="combobox"]');
+		expect(trigger?.disabled).toBe(true);
+		expect(trigger?.textContent).toContain('No local fonts');
+	});
 });

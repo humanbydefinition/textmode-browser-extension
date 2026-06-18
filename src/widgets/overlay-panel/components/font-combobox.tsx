@@ -14,12 +14,13 @@ export interface FontComboboxProps {
 }
 
 export function FontCombobox({ fonts, value, onChange, disabled = false }: FontComboboxProps): React.JSX.Element {
-	const selectedFont = fonts.find((f) => f.id === value) ?? fonts[0];
+	const selectedFont = fonts.find((f) => f.id === value) ?? fonts[0] ?? null;
 	const triggerRef = React.useRef<HTMLButtonElement>(null);
 	const inputRef = React.useRef<HTMLInputElement>(null);
 	const [open, setOpen] = React.useState(false);
 	const [query, setQuery] = React.useState('');
 	const [portalContainer, setPortalContainer] = React.useState<HTMLElement | null>(null);
+	const isDisabled = disabled || fonts.length === 0;
 
 	React.useLayoutEffect(() => {
 		setPortalContainer(getPopoverPortalContainer(triggerRef.current?.getRootNode(), document.body));
@@ -55,12 +56,12 @@ export function FontCombobox({ fonts, value, onChange, disabled = false }: FontC
 				<button
 					ref={triggerRef}
 					type="button"
-					disabled={disabled}
+					disabled={isDisabled}
 					className="tm-font-combobox__trigger"
 					role="combobox"
 					aria-expanded={open}
 				>
-					<span className="tm-font-combobox__value">{selectedFont?.displayName ?? 'Select font...'}</span>
+					<span className="tm-font-combobox__value">{selectedFont?.displayName ?? 'No local fonts'}</span>
 					<ChevronDown aria-hidden="true" className="tm-font-combobox__chevron" />
 				</button>
 			</PopoverTrigger>

@@ -1,4 +1,5 @@
 import { DEFAULT_FONT_ID, type BundledFontId } from '../overlay/overlay-settings';
+import { availableFontAssetPaths } from '../../shared/config/available-font-assets';
 
 export type BundledFontEntry = {
 	id: BundledFontId;
@@ -149,6 +150,41 @@ const AVAILABLE_FONTS: readonly BundledFontEntry[] = Object.entries(GLYPH_SOURCE
 	...meta,
 }));
 
+export interface FontRegistry {
+	getAvailableFonts(): readonly BundledFontEntry[];
+	getFontEntry(fontId: BundledFontId): BundledFontEntry | null;
+	getPreferredFontEntry(fontId: BundledFontId): BundledFontEntry | null;
+	resolveFontId(fontId: BundledFontId): BundledFontId | null;
+	getFontAssetUrl(fontId: BundledFontId): string | null;
+}
+
+export function createFontRegistry(fontAssetPaths: readonly string[]): FontRegistry {
+	const availableAssetPathSet = new Set(fontAssetPaths);
+	const availableFonts = AVAILABLE_FONTS.filter((font) => availableAssetPathSet.has(font.assetPath));
+	const fallbackFont = availableFonts.find((font) => font.id === DEFAULT_FONT_ID) ?? availableFonts[0] ?? null;
+
+	function getFontEntry(fontId: BundledFontId): BundledFontEntry | null {
+		return availableFonts.find((font) => font.id === fontId) ?? null;
+	}
+
+	function getPreferredFontEntry(fontId: BundledFontId): BundledFontEntry | null {
+		return getFontEntry(fontId) ?? fallbackFont;
+	}
+
+	return {
+		getAvailableFonts: () => availableFonts,
+		getFontEntry,
+		getPreferredFontEntry,
+		resolveFontId: (fontId) => getPreferredFontEntry(fontId)?.id ?? null,
+		getFontAssetUrl: (fontId) => {
+			const entry = getFontEntry(fontId);
+			return entry ? chrome.runtime.getURL(entry.assetPath) : null;
+		},
+	};
+}
+
+const fontRegistry = createFontRegistry(availableFontAssetPaths);
+
 function idToDisplayName(id: BundledFontId): string {
 	const displayNames: Record<BundledFontId, string> = {
 		chunky: 'CHUNKY',
@@ -174,19 +210,23 @@ function idToDisplayName(id: BundledFontId): string {
 }
 
 export function getFontEntry(fontId: BundledFontId): BundledFontEntry | null {
-	return AVAILABLE_FONTS.find((f) => f.id === fontId) ?? null;
+	return fontRegistry.getFontEntry(fontId);
 }
 
-export function getFontEntryOrDefault(fontId: BundledFontId): BundledFontEntry {
-	return getFontEntry(fontId) ?? AVAILABLE_FONTS.find((f) => f.id === DEFAULT_FONT_ID) ?? AVAILABLE_FONTS[0]!;
+export function getPreferredFontEntry(fontId: BundledFontId): BundledFontEntry | null {
+	return fontRegistry.getPreferredFontEntry(fontId);
 }
 
 export function getAvailableFonts(): readonly BundledFontEntry[] {
-	return AVAILABLE_FONTS;
+	return fontRegistry.getAvailableFonts();
 }
 
-export function getFontAssetUrl(fontId: BundledFontId): string {
-	return chrome.runtime.getURL(GLYPH_SOURCE_META[fontId].assetPath);
+export function resolveFontId(fontId: BundledFontId): BundledFontId | null {
+	return fontRegistry.resolveFontId(fontId);
+}
+
+export function getFontAssetUrl(fontId: BundledFontId): string | null {
+	return fontRegistry.getFontAssetUrl(fontId);
 }
 
 export { isBundledFontId } from '../overlay/overlay-settings';

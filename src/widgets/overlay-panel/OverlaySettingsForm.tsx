@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Download, FileCode2, FileText, ImageDown } from 'lucide-react';
 import type { OverlayExportFormat, OverlaySettings } from '../../domain/overlay/overlay-settings';
-import { getAvailableFonts, getFontEntryOrDefault } from '../../domain/fonts/font-registry';
+import { getAvailableFonts, getPreferredFontEntry, resolveFontId } from '../../domain/fonts/font-registry';
 import {
 	formatPercent,
 	formatPixels,
@@ -24,6 +24,16 @@ interface OverlaySettingsFormProps {
 }
 
 export function OverlaySettingsForm({ settings, onChange, onExport }: OverlaySettingsFormProps): React.JSX.Element {
+	const availableFonts = getAvailableFonts();
+	const resolvedFontId = resolveFontId(settings.fontId);
+	const selectedFont = getPreferredFontEntry(settings.fontId);
+
+	React.useEffect(() => {
+		if (resolvedFontId && resolvedFontId !== settings.fontId) {
+			onChange({ fontId: resolvedFontId });
+		}
+	}, [onChange, resolvedFontId, settings.fontId]);
+
 	return (
 		<div className="tm-settings-form">
 			<section className="tm-control-group" aria-label="quick overlay controls">
@@ -90,11 +100,12 @@ export function OverlaySettingsForm({ settings, onChange, onExport }: OverlaySet
 								onChange={(event) => onChange({ glyphRamp: event.currentTarget.value })}
 							/>
 						</SettingField>
-						<SettingField label="font" value={getFontEntryOrDefault(settings.fontId).displayName}>
+						<SettingField label="font" value={selectedFont?.displayName ?? 'System default'}>
 							<FontCombobox
-								fonts={getAvailableFonts()}
-								value={settings.fontId}
+								fonts={availableFonts}
+								value={resolvedFontId ?? settings.fontId}
 								onChange={(fontId) => onChange({ fontId })}
+								disabled={availableFonts.length === 0}
 							/>
 						</SettingField>
 					</div>

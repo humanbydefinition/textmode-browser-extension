@@ -22,6 +22,12 @@ describe('isRuntimeMessage', () => {
 		expect(isRuntimeMessage({ type: 'OPEN_PORTAL' })).toBe(false);
 	});
 
+	it('accepts UPDATE_OVERLAY with fontId', () => {
+		expect(isRuntimeMessage({ type: 'UPDATE_OVERLAY', id: 'overlay-1', settings: { fontId: 'chunky' } })).toBe(
+			true
+		);
+	});
+
 	it('rejects malformed overlay mutation messages', () => {
 		expect(isRuntimeMessage({ type: 'REMOVE_OVERLAY' })).toBe(false);
 		expect(isRuntimeMessage({ type: 'REMOVE_OVERLAY', id: 1 })).toBe(false);

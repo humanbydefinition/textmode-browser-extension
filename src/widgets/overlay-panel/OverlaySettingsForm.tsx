@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { Download, FileCode2, FileText, ImageDown } from 'lucide-react';
 import type { OverlayExportFormat, OverlaySettings } from '../../domain/overlay/overlay-settings';
+import { getAvailableFonts, getFontEntryOrDefault } from '../../domain/fonts/font-registry';
 import {
 	formatPercent,
 	formatPixels,
@@ -10,6 +11,7 @@ import {
 } from './overlay-ui-model';
 import { Button } from './components/button';
 import { ColorPicker } from './components/color-picker';
+import { FontCombobox } from './components/font-combobox';
 import { SettingField, ToggleField } from './components/SettingField';
 import { Slider } from './components/slider';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './components/tabs';
@@ -86,6 +88,13 @@ export function OverlaySettingsForm({ settings, onChange, onExport }: OverlaySet
 								type="text"
 								value={settings.glyphRamp}
 								onChange={(event) => onChange({ glyphRamp: event.currentTarget.value })}
+							/>
+						</SettingField>
+						<SettingField label="font" value={getFontEntryOrDefault(settings.fontId).displayName}>
+							<FontCombobox
+								fonts={getAvailableFonts()}
+								value={settings.fontId}
+								onChange={(fontId) => onChange({ fontId })}
 							/>
 						</SettingField>
 					</div>

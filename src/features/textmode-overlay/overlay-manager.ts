@@ -3,10 +3,12 @@ import {
 	DEFAULT_OVERLAY_SETTINGS,
 	getElementBounds,
 	mergeOverlaySettings,
+	type BundledFontId,
 	type OverlayDescriptor,
 	type OverlayExportFormat,
 	type OverlaySettings,
 } from '../../domain/overlay/overlay-settings';
+import { getFontAssetUrl } from '../../domain/fonts/font-registry';
 import { describeElement, type SelectableElement } from '../media-picker/element-picker';
 import { textmodeOverlayRenderer, type ExportableTextmodeInstance, type OverlayRendererPort } from './overlay-renderer';
 
@@ -18,6 +20,7 @@ interface OverlayController {
 	status: OverlayDescriptor['status'];
 	latestError?: string;
 	previousInlineOpacity: string;
+	loadedFontId?: BundledFontId;
 }
 
 export class OverlayManager {
@@ -28,8 +31,7 @@ export class OverlayManager {
 
 	public constructor(
 		private readonly onChange: () => void,
-		private readonly renderer: OverlayRendererPort = textmodeOverlayRenderer,
-		private readonly fontSource?: string
+		private readonly renderer: OverlayRendererPort = textmodeOverlayRenderer
 	) {
 		this.mutationObserver.observe(document.documentElement, { childList: true, subtree: true });
 	}
@@ -55,8 +57,10 @@ export class OverlayManager {
 		this.resizeObserver.observe(element);
 
 		try {
-			const instance = this.renderer.create(element, settings, { fontSource: this.fontSource });
+			const fontSource = getFontAssetUrl(settings.fontId);
+			const instance = this.renderer.create(element, settings, { fontSource });
 			controller.instance = instance;
+			controller.loadedFontId = settings.fontId;
 			instance.canvas.dataset.textmodeAsciiExtensionUi = 'true';
 			instance.canvas.style.pointerEvents = 'none';
 			instance.canvas.style.opacity = String(settings.opacity);
@@ -204,6 +208,16 @@ export class OverlayManager {
 		const currentFontSize = instance.fontSize();
 		if (typeof currentFontSize === 'number' && currentFontSize !== settings.fontSize) {
 			instance.fontSize(settings.fontSize);
+		}
+
+		if (controller.loadedFontId !== settings.fontId) {
+			const fontUrl = getFontAssetUrl(settings.fontId);
+			if (fontUrl) {
+				controller.loadedFontId = settings.fontId;
+				void instance.loadFont(fontUrl).catch(() => {
+					controller.loadedFontId = undefined;
+				});
+			}
 		}
 
 		this.configureSource(controller);

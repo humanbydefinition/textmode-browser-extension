@@ -23,7 +23,7 @@ export class PageRuntime {
 	private readonly actions: RuntimeActionHandler;
 
 	public constructor() {
-		this.manager = new OverlayManager(() => this.sync(), undefined, this.fontUrl);
+		this.manager = new OverlayManager(() => this.sync());
 		this.actions = createRuntimeActionHandler({
 			toggleControlPanel: () => this.toggleControlPanel(),
 			startPicking: () => this.startPicking(),

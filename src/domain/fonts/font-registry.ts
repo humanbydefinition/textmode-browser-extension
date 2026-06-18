@@ -62,7 +62,7 @@ const GLYPH_SOURCE_META: Record<BundledFontId, FontMeta> = {
 		sourceUrl: 'https://damianvila.com/',
 	},
 	bescii: {
-		assetPath: 'fonts/Bescii-Mono.ttf',
+		assetPath: 'fonts/Bescii-Mono.woff',
 		cssFontFamily: 'Font-Bescii-Mono',
 		author: 'Damian Vila',
 		authorUrl: 'https://codeberg.org/Dmian/font-bescii',

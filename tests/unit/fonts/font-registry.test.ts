@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createFontRegistry } from '@/domain/fonts/font-registry';
 
-const TEST_FONT_ASSET_PATHS = ['fonts/Bescii-Mono.ttf', 'fonts/UrsaFont.woff', 'fonts/atascii.ttf', 'fonts/cpc464.ttf'];
+const TEST_FONT_ASSET_PATHS = ['fonts/Bescii-Mono.woff', 'fonts/UrsaFont.woff', 'fonts/atascii.ttf', 'fonts/cpc464.ttf'];
 
 describe('font-registry', () => {
 	beforeEach(() => {
@@ -59,7 +59,7 @@ describe('font-registry', () => {
 
 	it('getFontAssetUrl resolves only available fonts to extension URLs', () => {
 		const registry = createFontRegistry(TEST_FONT_ASSET_PATHS);
-		expect(registry.getFontAssetUrl('bescii')).toBe('chrome-extension://test/fonts/Bescii-Mono.ttf');
+		expect(registry.getFontAssetUrl('bescii')).toBe('chrome-extension://test/fonts/Bescii-Mono.woff');
 		expect(registry.getFontAssetUrl('chunky')).toBeNull();
 	});
 

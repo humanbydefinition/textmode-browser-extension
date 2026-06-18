@@ -15,8 +15,6 @@ export interface BrowserPort {
 	addRuntimeMessageListener(listener: RuntimeMessageListener): void;
 	addInstalledListener(listener: () => void): void;
 	addActionClickedListener(listener: ActionClickedListener): void;
-	readLocalStorageKey<TValue>(key: string): Promise<Record<string, TValue | undefined>>;
-	writeLocalStorage(values: Record<string, unknown>): Promise<void>;
 }
 
 export const browserPort: BrowserPort = {
@@ -48,12 +46,6 @@ export const browserPort: BrowserPort = {
 	addActionClickedListener(listener) {
 		browser.action.onClicked.addListener(listener);
 	},
-	async readLocalStorageKey<TValue>(key: string) {
-		return browser.storage.local.get(key) as Promise<Record<string, TValue | undefined>>;
-	},
-	async writeLocalStorage(values) {
-		await browser.storage.local.set(values);
-	},
 };
 
 export const getActiveTab = browserPort.getActiveTab;
@@ -64,5 +56,3 @@ export const sendMessageToRuntime = browserPort.sendMessageToRuntime;
 export const addRuntimeMessageListener = browserPort.addRuntimeMessageListener;
 export const addInstalledListener = browserPort.addInstalledListener;
 export const addActionClickedListener = browserPort.addActionClickedListener;
-export const readLocalStorageKey = browserPort.readLocalStorageKey;
-export const writeLocalStorage = browserPort.writeLocalStorage;

@@ -77,5 +77,4 @@ describe('vanilla UI primitives', () => {
 		trigger.remove();
 		portal.remove();
 	});
-
 });

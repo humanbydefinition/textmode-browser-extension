@@ -50,5 +50,4 @@ describe('font-registry', () => {
 		expect(registry.getFontAssetUrl('bescii')).toBe('chrome-extension://test/fonts/Bescii-Mono.woff');
 		expect(registry.getFontAssetUrl('chunky')).toBeNull();
 	});
-
 });

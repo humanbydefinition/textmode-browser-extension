@@ -45,9 +45,7 @@ export const OVERLAY_EXPORT_FORMAT_DEFINITIONS = {
 export type OverlayExportFormat = keyof typeof OVERLAY_EXPORT_FORMAT_DEFINITIONS;
 export type OverlayExportIconName = (typeof OVERLAY_EXPORT_FORMAT_DEFINITIONS)[OverlayExportFormat]['iconName'];
 
-export const OVERLAY_EXPORT_FORMATS = Object.keys(
-	OVERLAY_EXPORT_FORMAT_DEFINITIONS
-) as OverlayExportFormat[];
+export const OVERLAY_EXPORT_FORMATS = Object.keys(OVERLAY_EXPORT_FORMAT_DEFINITIONS) as OverlayExportFormat[];
 
 export function isOverlayExportFormat(value: unknown): value is OverlayExportFormat {
 	return typeof value === 'string' && value in OVERLAY_EXPORT_FORMAT_DEFINITIONS;

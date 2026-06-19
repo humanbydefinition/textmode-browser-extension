@@ -73,7 +73,6 @@ Useful commands:
 | `npm run zip`              | Package the default target.                           |
 | `npm run zip:firefox`      | Package the unsigned Firefox target for AMO upload.   |
 | `npm run lint:firefox`     | Run Mozilla's add-on linter against Firefox output.   |
-| `npm run sign:firefox`     | Create a signed Firefox XPI through AMO credentials.  |
 | `npm run test`             | Run unit tests.                                       |
 | `npm run test:watch`       | Run unit tests in watch mode.                         |
 | `npm run typecheck`        | Run TypeScript without emitting files.                |

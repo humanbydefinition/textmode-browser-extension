@@ -38,7 +38,6 @@
 		"zip": "wxt zip",
 		"zip:firefox": "wxt zip -b firefox --mv3",
 		"lint:firefox": "npm run build:firefox && web-ext lint --source-dir .output/firefox-mv3 --self-hosted",
-		"sign:firefox": "node ./scripts/sign-firefox.mjs",
 		"test": "vitest run",
 		"test:watch": "vitest",
 		"typecheck": "tsc --noEmit",

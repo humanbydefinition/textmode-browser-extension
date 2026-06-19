@@ -149,6 +149,10 @@ select {
 	text-transform: uppercase;
 }
 
+.tm-github-link {
+	text-decoration: none;
+}
+
 .tm-panel__title span {
 	color: #f0f6f0;
 }

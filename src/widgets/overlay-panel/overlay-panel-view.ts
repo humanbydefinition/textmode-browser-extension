@@ -46,7 +46,21 @@ export class OverlayPanelView {
 			icon('heart-handshake'),
 			'support'
 		);
-		const actions = h('div', { className: 'tm-panel__actions' }, supportLink);
+		const githubLink = h(
+			'a',
+			{
+				className: 'tm-button tm-button--ghost tm-button--icon tm-github-link',
+				attributes: {
+					href: 'https://github.com/humanbydefinition/textmode-browser-extension',
+					target: '_blank',
+					rel: 'noreferrer',
+					title: 'GitHub repository',
+					'aria-label': 'GitHub repository',
+				},
+			},
+			icon('github')
+		);
+		const actions = h('div', { className: 'tm-panel__actions' }, supportLink, githubLink);
 		if (options.onClose) {
 			const closeButton = createButton('tm-button tm-button--ghost tm-button--icon', 'close panel');
 			closeButton.append(icon('x'));

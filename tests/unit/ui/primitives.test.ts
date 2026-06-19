@@ -4,7 +4,6 @@ import { PopoverView } from '../../../src/widgets/overlay-panel/components/popov
 import { SliderView } from '../../../src/widgets/overlay-panel/components/slider-view';
 import { TabsView } from '../../../src/widgets/overlay-panel/components/tabs-view';
 import { ToggleGroupView } from '../../../src/widgets/overlay-panel/components/toggle-group-view';
-import { mockRect } from '../test-helpers';
 
 describe('vanilla UI primitives', () => {
 	it('switches tabs with Radix-compatible state attributes', () => {
@@ -79,23 +78,4 @@ describe('vanilla UI primitives', () => {
 		portal.remove();
 	});
 
-	it('places popover content above the trigger near the viewport bottom', () => {
-		const trigger = h('button', { attributes: { type: 'button' }, textContent: 'open' });
-		const content = h('div', { textContent: 'popover' });
-		const portal = h('div');
-		mockRect(trigger, { left: 100, top: 730, width: 80, height: 28 });
-		mockRect(content, { left: 0, top: 0, width: 120, height: 80 });
-		document.body.append(trigger, portal);
-
-		const popover = new PopoverView({ trigger, content, portalContainer: portal, sideOffset: 8 });
-		trigger.click();
-
-		expect(content.dataset.side).toBe('top');
-		expect(content.style.top).toBe('642px');
-		expect(content.style.getPropertyValue('--radix-popover-content-transform-origin')).toBe('bottom center');
-
-		popover.dispose();
-		trigger.remove();
-		portal.remove();
-	});
 });

@@ -18,24 +18,18 @@ describe('font-registry', () => {
 		expect(fonts.map((font) => font.id)).toEqual(['ursafont', 'atascii', 'bescii', 'cpc464']);
 	});
 
-	it('every font has all required metadata fields', () => {
+	it('exposes complete, unique, and valid metadata for available fonts', () => {
 		const registry = createFontRegistry(TEST_FONT_ASSET_PATHS);
+		const paths = new Set<string>();
 
 		for (const font of registry.getAvailableFonts()) {
-			expect(font, font.id).toHaveProperty('id');
-			expect(font, font.id).toHaveProperty('displayName');
-			expect(font, font.id).toHaveProperty('author');
-			expect(font, font.id).toHaveProperty('authorUrl');
-			expect(font, font.id).toHaveProperty('sourceUrl');
-			expect(font, font.id).toHaveProperty('assetPath');
-			expect(font, font.id).toHaveProperty('cssFontFamily');
-			expect(typeof font.id).toBe('string');
-			expect(typeof font.displayName).toBe('string');
-			expect(typeof font.author).toBe('string');
-			expect(typeof font.authorUrl).toBe('string');
-			expect(typeof font.sourceUrl).toBe('string');
-			expect(typeof font.assetPath).toBe('string');
-			expect(typeof font.cssFontFamily).toBe('string');
+			expect(font.displayName, font.id).not.toBe('');
+			expect(font.author, font.id).not.toBe('');
+			expect(font.cssFontFamily, font.id).not.toBe('');
+			expect(paths.has(font.assetPath), font.id).toBe(false);
+			expect(() => new URL(font.authorUrl)).not.toThrow();
+			expect(() => new URL(font.sourceUrl)).not.toThrow();
+			paths.add(font.assetPath);
 		}
 	});
 
@@ -57,24 +51,4 @@ describe('font-registry', () => {
 		expect(registry.getFontAssetUrl('chunky')).toBeNull();
 	});
 
-	it('every font has a unique assetPath', () => {
-		const registry = createFontRegistry(TEST_FONT_ASSET_PATHS);
-		const paths = registry.getAvailableFonts().map((f: { assetPath: string }) => f.assetPath);
-		expect(new Set(paths).size).toBe(paths.length);
-	});
-
-	it('every font displayName is non-empty', () => {
-		const registry = createFontRegistry(TEST_FONT_ASSET_PATHS);
-		for (const font of registry.getAvailableFonts()) {
-			expect(font.displayName.length).toBeGreaterThan(0);
-		}
-	});
-
-	it('every font authorUrl and sourceUrl are valid URLs', () => {
-		const registry = createFontRegistry(TEST_FONT_ASSET_PATHS);
-		for (const font of registry.getAvailableFonts()) {
-			expect(() => new URL(font.authorUrl)).not.toThrow();
-			expect(() => new URL(font.sourceUrl)).not.toThrow();
-		}
-	});
 });

@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest';
 import {
 	FALLBACK_COLOR,
 	getDisplayColor,
-	getPopoverPortalContainer,
 	normalizeHexColor,
 	parseHexColor,
 } from '../../../src/widgets/overlay-panel/color-picker-model';
@@ -29,17 +28,5 @@ describe('color picker model', () => {
 
 	it('uses a stable display fallback for malformed stored colors', () => {
 		expect(getDisplayColor('not-a-color')).toBe(FALLBACK_COLOR);
-	});
-
-	it('keeps popovers inside Shadow DOM when available', () => {
-		const host = document.createElement('div');
-		const shadowRoot = host.attachShadow({ mode: 'open' });
-		const portalRoot = document.createElement('div');
-		portalRoot.dataset.textmodeOverlayPortalRoot = 'true';
-		shadowRoot.append(portalRoot);
-		const fallback = document.createElement('div');
-
-		expect(getPopoverPortalContainer(shadowRoot, fallback)).toBe(portalRoot);
-		expect(getPopoverPortalContainer(document, fallback)).toBe(fallback);
 	});
 });

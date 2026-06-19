@@ -26,10 +26,6 @@ export type ContentToPopupMessage =
 
 export type RuntimeMessage = PopupToContentMessage | ContentToPopupMessage | { type: 'PING' };
 
-export interface OverlayListResponse {
-	overlays: OverlayDescriptor[];
-}
-
 export interface RuntimeAck {
 	ok: boolean;
 	error?: string;

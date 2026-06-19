@@ -8,10 +8,6 @@ export function removeChildren(element: Element): void {
 	element.replaceChildren();
 }
 
-export function text(value: string): Text {
-	return document.createTextNode(value);
-}
-
 export function h<K extends keyof HTMLElementTagNameMap>(
 	tagName: K,
 	options: ElementOptions = {},
@@ -21,28 +17,6 @@ export function h<K extends keyof HTMLElementTagNameMap>(
 	applyOptions(element, options);
 	appendChildren(element, children);
 	return element;
-}
-
-export function svgIcon(paths: string[], className?: string): SVGSVGElement {
-	const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-	svg.setAttribute('viewBox', '0 0 24 24');
-	svg.setAttribute('fill', 'none');
-	svg.setAttribute('stroke', 'currentColor');
-	svg.setAttribute('stroke-width', '2');
-	svg.setAttribute('stroke-linecap', 'round');
-	svg.setAttribute('stroke-linejoin', 'round');
-	svg.setAttribute('aria-hidden', 'true');
-	if (className) {
-		svg.setAttribute('class', className);
-	}
-
-	for (const pathData of paths) {
-		const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-		path.setAttribute('d', pathData);
-		svg.append(path);
-	}
-
-	return svg;
 }
 
 export function setStyleProperty(element: HTMLElement, name: string, value: string): void {
@@ -59,7 +33,11 @@ export function on<K extends keyof HTMLElementEventMap>(
 	return () => element.removeEventListener(type, listener as EventListener, options);
 }
 
-export function appendChildren(parent: Node, children: Array<Node | string | null | undefined>): void {
+function text(value: string): Text {
+	return document.createTextNode(value);
+}
+
+function appendChildren(parent: Node, children: Array<Node | string | null | undefined>): void {
 	for (const child of children) {
 		if (child == null) continue;
 		parent.appendChild(typeof child === 'string' ? text(child) : child);

@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { DEFAULT_OVERLAY_SETTINGS } from '../../src/domain/overlay/overlay-settings';
 import { ControlPanel } from '../../src/widgets/overlay-panel/control-panel';
+import { MockResizeObserver } from './test-helpers';
 
 const HEADER_FONT_URL = 'chrome-extension://extension-id/fonts/Bescii-Mono.woff';
 
@@ -78,9 +79,3 @@ describe('ControlPanel', () => {
 		panel.unmount();
 	});
 });
-
-class MockResizeObserver {
-	public observe = vi.fn();
-	public unobserve = vi.fn();
-	public disconnect = vi.fn();
-}

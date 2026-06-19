@@ -12,15 +12,9 @@ export interface ControlPanelOptions {
 	onClose: () => void;
 }
 
-export interface PanelHost {
-	mount(): void;
-	unmount(): void;
-	updateState(overlays: OverlayDescriptor[]): void;
-}
-
 const PANEL_HOST_ID = 'textmode-ascii-overlay-control-panel-root';
 
-export class ControlPanel implements PanelHost {
+export class ControlPanel {
 	private readonly container: HTMLDivElement;
 	private readonly shadowRoot: ShadowRoot;
 	private readonly mountPoint: HTMLDivElement;

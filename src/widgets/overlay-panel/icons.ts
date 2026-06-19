@@ -1,5 +1,3 @@
-import { svgIcon } from './dom';
-
 export type IconName =
 	| 'arrow-left'
 	| 'arrow-right'
@@ -59,4 +57,26 @@ const iconPaths: Record<IconName, string[]> = {
 
 export function icon(name: IconName, className?: string): SVGSVGElement {
 	return svgIcon(iconPaths[name], className);
+}
+
+function svgIcon(paths: string[], className?: string): SVGSVGElement {
+	const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+	svg.setAttribute('viewBox', '0 0 24 24');
+	svg.setAttribute('fill', 'none');
+	svg.setAttribute('stroke', 'currentColor');
+	svg.setAttribute('stroke-width', '2');
+	svg.setAttribute('stroke-linecap', 'round');
+	svg.setAttribute('stroke-linejoin', 'round');
+	svg.setAttribute('aria-hidden', 'true');
+	if (className) {
+		svg.setAttribute('class', className);
+	}
+
+	for (const pathData of paths) {
+		const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+		path.setAttribute('d', pathData);
+		svg.append(path);
+	}
+
+	return svg;
 }

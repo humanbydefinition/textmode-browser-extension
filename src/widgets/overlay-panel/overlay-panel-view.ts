@@ -2,6 +2,7 @@ import type { OverlayDescriptor, OverlayExportFormat, OverlaySettings } from '..
 import { h, removeChildren } from './dom';
 import { icon } from './icons';
 import { OverlayCardView } from './panel/overlay-card-view';
+import { createButton } from './settings/form-controls';
 
 export interface OverlayPanelViewOptions {
 	portalContainer: HTMLElement;
@@ -124,11 +125,4 @@ export class OverlayPanelView {
 	public dispose(): void {
 		this.overlayCard?.dispose();
 	}
-}
-
-function createButton(className: string, ariaLabel?: string): HTMLButtonElement {
-	return h('button', {
-		className,
-		attributes: { type: 'button', ...(ariaLabel ? { 'aria-label': ariaLabel } : {}) },
-	});
 }

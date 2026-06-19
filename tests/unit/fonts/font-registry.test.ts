@@ -2,12 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { createFontRegistry } from '@/domain/fonts/font-registry';
 import { createRuntimeFontRegistry } from '@/shared/fonts/runtime-font-registry';
 
-const TEST_FONT_ASSET_PATHS = [
-	'fonts/Bescii-Mono.ttf',
-	'fonts/UrsaFont.ttf',
-	'fonts/atascii.ttf',
-	'fonts/cpc464.ttf',
-];
+const TEST_FONT_ASSET_PATHS = ['fonts/Bescii-Mono.ttf', 'fonts/UrsaFont.ttf', 'fonts/atascii.ttf', 'fonts/cpc464.ttf'];
 
 describe('font-registry', () => {
 	it('returns only fonts with matching local asset files', () => {

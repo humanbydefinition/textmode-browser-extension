@@ -22,8 +22,11 @@ describe('extension manifest', () => {
 	it('includes browser_specific_settings with the provided firefoxExtensionId', () => {
 		const customId = '{abc123-def456}';
 		expect(
-			createExtensionManifest({ browser: 'firefox', fontResources: TEST_FONT_RESOURCES, firefoxExtensionId: customId })
-				.browser_specific_settings
+			createExtensionManifest({
+				browser: 'firefox',
+				fontResources: TEST_FONT_RESOURCES,
+				firefoxExtensionId: customId,
+			}).browser_specific_settings
 		).toEqual({
 			gecko: {
 				id: customId,
@@ -36,8 +39,11 @@ describe('extension manifest', () => {
 
 	it('does not add browser_specific_settings for non-Firefox browsers, even with an ID', () => {
 		expect(
-			createExtensionManifest({ browser: 'chrome', fontResources: TEST_FONT_RESOURCES, firefoxExtensionId: '{some-id}' })
-				.browser_specific_settings
+			createExtensionManifest({
+				browser: 'chrome',
+				fontResources: TEST_FONT_RESOURCES,
+				firefoxExtensionId: '{some-id}',
+			}).browser_specific_settings
 		).toBeUndefined();
 	});
 

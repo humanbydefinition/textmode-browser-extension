@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { createExtensionManifest, FIREFOX_EXTENSION_ID } from '../../src/shared/config/extension-manifest';
 
-const TEST_FONT_RESOURCES = ['fonts/Bescii-Mono.woff', 'fonts/UrsaFont.woff'];
+const TEST_FONT_RESOURCES = ['fonts/Bescii-Mono.ttf', 'fonts/UrsaFont.ttf'];
 
 describe('extension manifest', () => {
 	it('keeps the default build action-triggered and least-privilege', () => {

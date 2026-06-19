@@ -10,7 +10,7 @@ function createFont(id: BundledFontId, displayName: string): BundledFontEntry {
 		author: 'Test Author',
 		authorUrl: 'https://example.com/author',
 		sourceUrl: 'https://example.com/source',
-		assetPath: `fonts/${displayName}.woff`,
+		assetPath: `fonts/${displayName}.ttf`,
 		cssFontFamily: `Font-${displayName}`,
 	};
 }

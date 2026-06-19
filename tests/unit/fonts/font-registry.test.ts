@@ -3,10 +3,10 @@ import { createFontRegistry } from '@/domain/fonts/font-registry';
 import { createRuntimeFontRegistry } from '@/shared/fonts/runtime-font-registry';
 
 const TEST_FONT_ASSET_PATHS = [
-	'fonts/Bescii-Mono.woff',
-	'fonts/UrsaFont.woff',
-	'fonts/atascii.woff',
-	'fonts/cpc464.woff',
+	'fonts/Bescii-Mono.ttf',
+	'fonts/UrsaFont.ttf',
+	'fonts/atascii.ttf',
+	'fonts/cpc464.ttf',
 ];
 
 describe('font-registry', () => {
@@ -47,7 +47,7 @@ describe('font-registry', () => {
 
 	it('getFontAssetUrl resolves only available fonts to extension URLs', () => {
 		const registry = createRuntimeFontRegistry(TEST_FONT_ASSET_PATHS, (path) => `chrome-extension://test/${path}`);
-		expect(registry.getFontAssetUrl('bescii')).toBe('chrome-extension://test/fonts/Bescii-Mono.woff');
+		expect(registry.getFontAssetUrl('bescii')).toBe('chrome-extension://test/fonts/Bescii-Mono.ttf');
 		expect(registry.getFontAssetUrl('chunky')).toBeNull();
 	});
 });

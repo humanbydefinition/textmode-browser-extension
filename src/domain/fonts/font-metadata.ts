@@ -16,7 +16,7 @@ const UNSCII_META: Pick<FontMeta, 'author' | 'authorUrl' | 'sourceUrl'> = {
 export const BUNDLED_FONT_METADATA = {
 	chunky: {
 		displayName: 'CHUNKY',
-		assetPath: 'fonts/CHUNKY.woff',
+		assetPath: 'fonts/CHUNKY.ttf',
 		cssFontFamily: 'Font-Chunky',
 		author: 'batfeula',
 		authorUrl: 'https://batfeula.neocities.org/',
@@ -24,7 +24,7 @@ export const BUNDLED_FONT_METADATA = {
 	},
 	cultistScript: {
 		displayName: 'Cultist Script',
-		assetPath: 'fonts/CultistScript.woff',
+		assetPath: 'fonts/CultistScript.ttf',
 		cssFontFamily: 'Font-CultistScript',
 		author: 'littlebitspace',
 		authorUrl: 'https://littlebitspace.com/',
@@ -32,7 +32,7 @@ export const BUNDLED_FONT_METADATA = {
 	},
 	frogblock: {
 		displayName: 'FROGBLOCK',
-		assetPath: 'fonts/FROGBLOCK-V2.1.woff',
+		assetPath: 'fonts/FROGBLOCK-V2.1.ttf',
 		cssFontFamily: 'Font-Frogblock',
 		author: 'Polyducks',
 		authorUrl: 'https://polyducks.co.uk/',
@@ -40,7 +40,7 @@ export const BUNDLED_FONT_METADATA = {
 	},
 	ursafont: {
 		displayName: 'UrsaFont',
-		assetPath: 'fonts/UrsaFont.woff',
+		assetPath: 'fonts/UrsaFont.ttf',
 		cssFontFamily: 'Font-Ursa',
 		author: 'UrsaFrank',
 		authorUrl: 'https://www.stormrooster.com/',
@@ -48,7 +48,7 @@ export const BUNDLED_FONT_METADATA = {
 	},
 	atascii: {
 		displayName: 'ATASCII',
-		assetPath: 'fonts/atascii.woff',
+		assetPath: 'fonts/atascii.ttf',
 		cssFontFamily: 'Font-Atascii',
 		author: 'Damian Vila',
 		authorUrl: 'https://codeberg.org/Dmian/font-atascii',
@@ -56,7 +56,7 @@ export const BUNDLED_FONT_METADATA = {
 	},
 	bescii: {
 		displayName: 'BESCII',
-		assetPath: 'fonts/Bescii-Mono.woff',
+		assetPath: 'fonts/Bescii-Mono.ttf',
 		cssFontFamily: 'Font-Bescii-Mono',
 		author: 'Damian Vila',
 		authorUrl: 'https://codeberg.org/Dmian/font-bescii',
@@ -64,7 +64,7 @@ export const BUNDLED_FONT_METADATA = {
 	},
 	c64ProMono: {
 		displayName: 'C64 Pro Mono',
-		assetPath: 'fonts/C64_Pro_Mono-STYLE.woff',
+		assetPath: 'fonts/C64_Pro_Mono-STYLE.ttf',
 		cssFontFamily: 'Font-C64-Pro-Mono',
 		author: 'Style',
 		authorUrl: 'https://style64.org/',
@@ -72,37 +72,37 @@ export const BUNDLED_FONT_METADATA = {
 	},
 	unscii8: {
 		displayName: 'UNSCII 8',
-		assetPath: 'fonts/unscii-8.woff',
+		assetPath: 'fonts/unscii-8.ttf',
 		cssFontFamily: 'Font-Unscii-8',
 		...UNSCII_META,
 	},
 	unscii8Alt: {
 		displayName: 'UNSCII 8 Alt',
-		assetPath: 'fonts/unscii-8-alt.woff',
+		assetPath: 'fonts/unscii-8-alt.ttf',
 		cssFontFamily: 'Font-Unscii-8-Alt',
 		...UNSCII_META,
 	},
 	unscii8Mcr: {
 		displayName: 'UNSCII 8 MCR',
-		assetPath: 'fonts/unscii-8-mcr.woff',
+		assetPath: 'fonts/unscii-8-mcr.ttf',
 		cssFontFamily: 'Font-Unscii-8-Mcr',
 		...UNSCII_META,
 	},
 	unscii8Thin: {
 		displayName: 'UNSCII 8 Thin',
-		assetPath: 'fonts/unscii-8-thin.woff',
+		assetPath: 'fonts/unscii-8-thin.ttf',
 		cssFontFamily: 'Font-Unscii-8-Thin',
 		...UNSCII_META,
 	},
 	unscii8Fantasy: {
 		displayName: 'UNSCII 8 Fantasy',
-		assetPath: 'fonts/unscii-8-fantasy.woff',
+		assetPath: 'fonts/unscii-8-fantasy.ttf',
 		cssFontFamily: 'Font-Unscii-8-Fantasy',
 		...UNSCII_META,
 	},
 	cpc464: {
 		displayName: 'CPC464',
-		assetPath: 'fonts/cpc464.woff',
+		assetPath: 'fonts/cpc464.ttf',
 		cssFontFamily: 'Font-CPC464',
 		author: 'Damian Vila',
 		authorUrl: 'https://codeberg.org/Dmian/font-cpc464',
@@ -110,7 +110,7 @@ export const BUNDLED_FONT_METADATA = {
 	},
 	rook: {
 		displayName: 'Rook',
-		assetPath: 'fonts/Rook.woff',
+		assetPath: 'fonts/Rook.ttf',
 		cssFontFamily: 'Font-Rook',
 		author: 'Funky Tiger Highsaturn',
 		authorUrl: 'https://autojunkio.itch.io/',
@@ -118,7 +118,7 @@ export const BUNDLED_FONT_METADATA = {
 	},
 	dungeonmode: {
 		displayName: 'DUNGEON.mode',
-		assetPath: 'fonts/dungeonmode.woff',
+		assetPath: 'fonts/dungeonmode.ttf',
 		cssFontFamily: 'Font-Dungeonmode',
 		author: 'datagoblin',
 		authorUrl: 'https://datagoblin.itch.io/',
@@ -126,7 +126,7 @@ export const BUNDLED_FONT_METADATA = {
 	},
 	publicPixel: {
 		displayName: 'Public Pixel',
-		assetPath: 'fonts/PublicPixel.woff',
+		assetPath: 'fonts/PublicPixel.ttf',
 		cssFontFamily: 'Font-PublicPixel',
 		author: 'GGBotNet',
 		authorUrl: 'https://ggbot.itch.io/',
@@ -134,7 +134,7 @@ export const BUNDLED_FONT_METADATA = {
 	},
 	myceliumOG: {
 		displayName: 'Mycelium OG',
-		assetPath: 'fonts/MyceliumOG.woff',
+		assetPath: 'fonts/MyceliumOG.ttf',
 		cssFontFamily: 'Font-MyceliumOG',
 		author: 'littlebitspace',
 		authorUrl: 'https://littlebitspace.com/',
@@ -142,7 +142,7 @@ export const BUNDLED_FONT_METADATA = {
 	},
 	t64: {
 		displayName: 'T64',
-		assetPath: 'fonts/T64.woff',
+		assetPath: 'fonts/T64.ttf',
 		cssFontFamily: 'Font-T64',
 		author: 'littlebitspace',
 		authorUrl: 'https://littlebitspace.com/',
@@ -150,7 +150,7 @@ export const BUNDLED_FONT_METADATA = {
 	},
 	kitchenSink: {
 		displayName: 'Kitchen Sink',
-		assetPath: 'fonts/KitchenSink.woff',
+		assetPath: 'fonts/KitchenSink.ttf',
 		cssFontFamily: 'Font-Kitchen-Sink',
 		author: 'Polyducks',
 		authorUrl: 'https://polyducks.co.uk/',

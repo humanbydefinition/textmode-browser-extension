@@ -1,5 +1,4 @@
 import type { OverlayDescriptor, OverlayExportFormat, OverlaySettings } from '../../domain/overlay/overlay-settings';
-import { TEXTMODE_HEADER_FONT_FAMILY } from '../../shared/config/extension-assets';
 import { OverlayPanelView } from './overlay-panel-view';
 import panelStyles from './popup.css?inline';
 
@@ -13,6 +12,7 @@ export interface ControlPanelOptions {
 }
 
 const PANEL_HOST_ID = 'textmode-ascii-overlay-control-panel-root';
+const HEADER_FONT_FAMILY = 'Bescii Mono';
 
 export class ControlPanel {
 	private readonly container: HTMLDivElement;
@@ -54,8 +54,6 @@ export class ControlPanel {
 		};
 		const styleEl = document.createElement('style');
 		styleEl.textContent = `
-			${this.options.headerFontUrl ? createHeaderFontFaceCss(this.options.headerFontUrl) : ''}
-
 			:host {
 				all: initial;
 				display: block;
@@ -119,37 +117,44 @@ export class ControlPanel {
 	}
 }
 
-function createHeaderFontFaceCss(fontUrl: string): string {
-	return `
-		@font-face {
-			font-family: '${TEXTMODE_HEADER_FONT_FAMILY}';
-			src: url(${JSON.stringify(fontUrl)}) format('truetype');
-			font-weight: 400;
-			font-style: normal;
-			font-display: swap;
-		}
-	`;
-}
+let headerFontInstallPromise: Promise<void> | undefined;
 
 function installHeaderFont(fontUrl: string): void {
 	if (typeof FontFace === 'undefined' || !document.fonts || hasHeaderFontFace()) {
 		return;
 	}
 
-	const fontFace = new FontFace(TEXTMODE_HEADER_FONT_FAMILY, `url(${JSON.stringify(fontUrl)})`, {
-		display: 'swap',
+	headerFontInstallPromise ??= loadHeaderFont(fontUrl).catch(() => {
+		headerFontInstallPromise = undefined;
+	});
+}
+
+async function loadHeaderFont(fontUrl: string): Promise<void> {
+	const response = await fetch(fontUrl);
+	if (!response.ok) {
+		throw new Error(`Failed to load header font: ${response.status} ${response.statusText}`);
+	}
+
+	const fontData = await response.arrayBuffer();
+	if (hasHeaderFontFace()) return;
+
+	const fontFace = new FontFace(HEADER_FONT_FAMILY, fontData, {
+		display: 'block',
 		style: 'normal',
 		weight: '400',
 	});
 
 	document.fonts.add(fontFace);
-	void fontFace.load().catch(() => {
+	try {
+		await fontFace.load();
+	} catch (error) {
 		document.fonts.delete(fontFace);
-	});
+		throw error;
+	}
 }
 
 function hasHeaderFontFace(): boolean {
 	return [...document.fonts].some(
-		(fontFace) => fontFace.family === TEXTMODE_HEADER_FONT_FAMILY && fontFace.status !== 'error'
+		(fontFace) => fontFace.family === HEADER_FONT_FAMILY && fontFace.status !== 'error'
 	);
 }

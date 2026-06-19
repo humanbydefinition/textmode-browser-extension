@@ -1,5 +1,4 @@
 import { resolve } from 'node:path';
-import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vitest/config';
 import { listProjectFontAssetPaths } from './scripts/font-assets';
 
@@ -11,13 +10,12 @@ export default defineConfig({
 			'@': resolve(import.meta.dirname, 'src'),
 		},
 	},
-	plugins: [react()],
 	define: {
 		__TEXTMODE_AVAILABLE_FONT_ASSET_PATHS__: JSON.stringify(availableFontAssetPaths),
 	},
 	test: {
 		environment: 'jsdom',
 		globals: true,
-		include: ['tests/unit/**/*.test.{ts,tsx}'],
+		include: ['tests/unit/**/*.test.ts'],
 	},
 });

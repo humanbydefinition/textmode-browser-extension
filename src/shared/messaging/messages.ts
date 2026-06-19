@@ -1,6 +1,6 @@
 import {
-	OVERLAY_EXPORT_FORMATS,
 	SOURCE_COLOR_MODES,
+	isOverlayExportFormat,
 	type OverlayDescriptor,
 	type OverlayExportFormat,
 	type OverlaySettings,
@@ -25,10 +25,6 @@ export type ContentToPopupMessage =
 	| { type: 'ERROR'; message: string };
 
 export type RuntimeMessage = PopupToContentMessage | ContentToPopupMessage | { type: 'PING' };
-
-export interface OverlayListResponse {
-	overlays: OverlayDescriptor[];
-}
 
 export interface RuntimeAck {
 	ok: boolean;
@@ -111,10 +107,6 @@ function isOverlaySettingsPatch(value: unknown): value is Partial<OverlaySetting
 
 function isSourceColorMode(value: unknown): value is SourceColorMode {
 	return typeof value === 'string' && SOURCE_COLOR_MODES.includes(value as SourceColorMode);
-}
-
-function isOverlayExportFormat(value: unknown): value is OverlayExportFormat {
-	return typeof value === 'string' && OVERLAY_EXPORT_FORMATS.includes(value as OverlayExportFormat);
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

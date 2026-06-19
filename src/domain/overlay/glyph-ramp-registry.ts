@@ -29,59 +29,7 @@ const GLOBAL_GLYPH_RAMP_PRESETS: readonly GlyphRampPreset[] = [
 	},
 ];
 
-const FONT_GLYPH_RAMP_PRESETS: Partial<Record<BundledFontId, readonly GlyphRampPreset[]>> = {
-	/**
-	atascii: [
-		{
-			id: 'atascii-symbols',
-			name: 'atascii',
-			glyphRamp: ' .,:;+=*#%@',
-		},
-	],
-	c64ProMono: [
-		{
-			id: 'c64-bold',
-			name: 'c64 bold',
-			glyphRamp: ' .,:;+=xX$#@',
-		},
-	],
-	unscii8: [
-		{
-			id: 'unscii-crisp',
-			name: 'unscii',
-			glyphRamp: ' .-:=+*#%@',
-		},
-	],
-	unscii8Alt: [
-		{
-			id: 'unscii-alt-crisp',
-			name: 'unscii alt',
-			glyphRamp: ' .-:=+*#%@',
-		},
-	],
-	unscii8Mcr: [
-		{
-			id: 'unscii-mcr-crisp',
-			name: 'unscii mcr',
-			glyphRamp: ' .-:=+*#%@',
-		},
-	],
-	unscii8Thin: [
-		{
-			id: 'unscii-thin-soft',
-			name: 'unscii thin',
-			glyphRamp: ' .,:;i1tfLCG08@',
-		},
-	],
-	unscii8Fantasy: [
-		{
-			id: 'unscii-fantasy-soft',
-			name: 'unscii fantasy',
-			glyphRamp: ' .,:;i1tfLCG08@',
-		},
-	],
-	*/
-};
+const FONT_GLYPH_RAMP_PRESETS: Partial<Record<BundledFontId, readonly GlyphRampPreset[]>> = {};
 
 export function getGlyphRampPresets(fontId: BundledFontId): readonly GlyphRampPreset[] {
 	return [...GLOBAL_GLYPH_RAMP_PRESETS, ...(FONT_GLYPH_RAMP_PRESETS[fontId] ?? [])];

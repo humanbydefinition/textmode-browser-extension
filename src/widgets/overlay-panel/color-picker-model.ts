@@ -109,17 +109,6 @@ export function getHsvaFromHex(value: string): HsvaColor {
 	return rgbaToHsva(parseHexColor(value) ?? FALLBACK_RGBA);
 }
 
-export function getPopoverPortalContainer(
-	rootNode: Node | null | undefined,
-	fallback: HTMLElement | null
-): HTMLElement | null {
-	if (rootNode instanceof ShadowRoot) {
-		return rootNode.querySelector<HTMLElement>('[data-textmode-overlay-portal-root="true"]') ?? fallback;
-	}
-
-	return fallback;
-}
-
 function getHueRgb(hue: number, chroma: number, x: number): [number, number, number] {
 	if (hue < 60) return [chroma, x, 0];
 	if (hue < 120) return [x, chroma, 0];

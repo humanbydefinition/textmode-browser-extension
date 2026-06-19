@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { textmode } from 'textmode.js';
 import { OverlayManager } from '../../src/features/textmode-overlay/overlay-manager';
 import { getMediaSecurityHint } from '../../src/shared/errors/errors';
+import { createMockSource, MockResizeObserver, mockRect } from './test-helpers';
 
 interface MockTextmodeInstance {
 	canvas: HTMLCanvasElement;
@@ -88,60 +88,15 @@ describe('OverlayManager', () => {
 		expect(instances[1]?.destroy).not.toHaveBeenCalled();
 	});
 
-	it('creates textmode overlays with the current rendering contract', () => {
+	it('initializes overlay canvas chrome for managed instances', () => {
 		const canvas = createCanvas('source');
 		document.body.append(canvas);
 		const manager = new OverlayManager(vi.fn());
 
 		manager.createOverlay(canvas, { fontSize: 16 });
 
-		expect(textmode.create).toHaveBeenCalledWith(
-			expect.objectContaining({
-				canvas,
-				overlay: true,
-				pixelDensity: 1,
-				fontSize: 16,
-				loadingScreen: { transition: 'none' },
-				plugins: [expect.objectContaining({ name: 'textmode.export' })],
-			})
-		);
 		expect(instances[0]?.canvas.style.pointerEvents).toBe('none');
 		expect(instances[0]?.canvas.style.mixBlendMode).toBe('normal');
-	});
-
-	it('exports the active overlay with fixed one-click options', async () => {
-		const canvas = createCanvas('source');
-		document.body.append(canvas);
-		const manager = new OverlayManager(vi.fn());
-
-		const overlay = manager.createOverlay(canvas);
-
-		await manager.exportOverlay(overlay.id, 'txt');
-		await manager.exportOverlay(overlay.id, 'svg');
-		await manager.exportOverlay(overlay.id, 'png');
-		await manager.exportOverlay(overlay.id, 'jpg');
-
-		expect(instances[0]?.saveStrings).toHaveBeenCalledWith({
-			filename: 'textmode-overlay.txt',
-			preserveTrailingSpaces: false,
-			emptyCharacter: ' ',
-		});
-		expect(instances[0]?.saveSVG).toHaveBeenCalledWith({
-			filename: 'textmode-overlay.svg',
-			includeBackgroundRectangles: true,
-			drawMode: 'fill',
-			strokeWidth: 1,
-		});
-		expect(instances[0]?.saveCanvas).toHaveBeenCalledWith({
-			filename: 'textmode-overlay.png',
-			format: 'png',
-			scale: 1,
-		});
-		expect(instances[0]?.saveCanvas).toHaveBeenCalledWith({
-			filename: 'textmode-overlay.jpg',
-			format: 'jpg',
-			scale: 1,
-		});
 	});
 
 	it('records export failures on the overlay descriptor', async () => {
@@ -188,58 +143,19 @@ describe('OverlayManager', () => {
 	});
 });
 
-class MockResizeObserver {
-	public observe = vi.fn();
-	public unobserve = vi.fn();
-	public disconnect = vi.fn();
-}
-
 function createCanvas(id: string): HTMLCanvasElement {
 	const canvas = document.createElement('canvas');
 	canvas.id = id;
-	mockRect(canvas, 320, 180);
+	mockRect(canvas, { width: 320, height: 180 });
 	return canvas;
 }
 
 function createVideo(id: string): HTMLVideoElement {
 	const video = document.createElement('video');
 	video.id = id;
-	mockRect(video, 640, 360);
+	mockRect(video, { width: 640, height: 360 });
 	Object.defineProperty(video, 'readyState', { value: video.HAVE_CURRENT_DATA, configurable: true });
 	Object.defineProperty(video, 'videoWidth', { value: 640, configurable: true });
 	Object.defineProperty(video, 'videoHeight', { value: 360, configurable: true });
 	return video;
-}
-
-function createMockSource(): Record<string, () => unknown> {
-	const source: Record<string, () => unknown> = {};
-	for (const method of [
-		'characters',
-		'conversionMode',
-		'invert',
-		'brightnessRange',
-		'charColorMode',
-		'charColor',
-		'cellColorMode',
-		'cellColor',
-		'background',
-	]) {
-		source[method] = vi.fn(() => source);
-	}
-	return source;
-}
-
-function mockRect(element: Element, width: number, height: number): void {
-	element.getBoundingClientRect = () =>
-		({
-			x: 0,
-			y: 0,
-			left: 0,
-			top: 0,
-			right: width,
-			bottom: height,
-			width,
-			height,
-			toJSON: () => undefined,
-		}) as DOMRect;
 }

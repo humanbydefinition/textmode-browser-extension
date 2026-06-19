@@ -1,14 +1,18 @@
 import type { TargetBrowser, UserManifest } from 'wxt';
 
-export const FIREFOX_EXTENSION_ID = 'textmode-overlay@humanbydefinition.com';
-
 export interface ExtensionManifestOptions {
 	browser: TargetBrowser;
 	mode?: string;
 	fontResources: readonly string[];
+	firefoxExtensionId?: string;
 }
 
-export function createExtensionManifest({ browser, mode, fontResources }: ExtensionManifestOptions): UserManifest {
+export function createExtensionManifest({
+	browser,
+	mode,
+	fontResources,
+	firefoxExtensionId,
+}: ExtensionManifestOptions): UserManifest {
 	const manifest: UserManifest = {
 		...createBaseExtensionManifest(fontResources),
 	};
@@ -17,10 +21,10 @@ export function createExtensionManifest({ browser, mode, fontResources }: Extens
 		manifest.host_permissions = ['<all_urls>'];
 	}
 
-	if (browser === 'firefox') {
+	if (browser === 'firefox' && firefoxExtensionId) {
 		manifest.browser_specific_settings = {
 			gecko: {
-				id: FIREFOX_EXTENSION_ID,
+				id: firefoxExtensionId,
 				data_collection_permissions: {
 					required: ['none'],
 				},

@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { MockResizeObserver } from './test-helpers';
 
 vi.mock('textmode.js', () => ({
 	textmode: {
@@ -30,9 +31,3 @@ describe('content runtime', () => {
 		expect(document.querySelector('aside')).toBeNull();
 	});
 });
-
-class MockResizeObserver {
-	public observe = vi.fn();
-	public unobserve = vi.fn();
-	public disconnect = vi.fn();
-}

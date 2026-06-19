@@ -6,7 +6,6 @@
 		"module": "ESNext",
 		"lib": ["ES2022", "DOM", "DOM.Iterable"],
 		"moduleResolution": "bundler",
-		"jsx": "react-jsx",
 		"verbatimModuleSyntax": true,
 		"moduleDetection": "force",
 		"strict": true,

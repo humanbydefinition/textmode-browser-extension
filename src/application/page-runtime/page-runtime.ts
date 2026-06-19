@@ -1,8 +1,9 @@
 import { toUserMessage } from '../../shared/errors/errors';
 import { isPopupToContentMessage, isRuntimeMessage, type RuntimeAck } from '../../shared/messaging/messages';
-import { addRuntimeMessageListener, getExtensionAssetUrl } from '../../shared/browser/browser-api';
-import { TEXTMODE_HEADER_FONT_RESOURCE } from '../../shared/config/extension-assets';
+import { addRuntimeMessageListener } from '../../shared/browser/browser-api';
 import type { OverlaySettings } from '../../domain/overlay/overlay-settings';
+import { DEFAULT_FONT_ID } from '../../domain/fonts/font-metadata';
+import { getFontAssetUrl } from '../../shared/fonts/runtime-font-registry';
 import { ElementPicker, type SelectableElement } from '../../features/media-picker/element-picker';
 import { OverlayManager } from '../../features/textmode-overlay/overlay-manager';
 import { broadcastError, broadcastOverlayList, broadcastPickingCancelled, broadcastPickingStarted } from './page-state';
@@ -18,12 +19,12 @@ declare global {
 export class PageRuntime {
 	private picker?: ElementPicker;
 	private controlPanel?: ControlPanel;
-	private readonly fontUrl = getExtensionAssetUrl(TEXTMODE_HEADER_FONT_RESOURCE);
+	private readonly headerFontUrl = getFontAssetUrl(DEFAULT_FONT_ID);
 	private readonly manager: OverlayManager;
 	private readonly actions: RuntimeActionHandler;
 
 	public constructor() {
-		this.manager = new OverlayManager(() => this.sync(), undefined, this.fontUrl);
+		this.manager = new OverlayManager(() => this.sync());
 		this.actions = createRuntimeActionHandler({
 			toggleControlPanel: () => this.toggleControlPanel(),
 			startPicking: () => this.startPicking(),
@@ -70,7 +71,7 @@ export class PageRuntime {
 		} else {
 			const { ControlPanel } = await import('../../widgets/overlay-panel/control-panel');
 			this.controlPanel = new ControlPanel({
-				headerFontUrl: this.fontUrl,
+				headerFontUrl: this.headerFontUrl,
 				onStartPicking: () => this.startPicking(),
 				onUpdateOverlay: (id, settings) => {
 					this.manager.updateOverlay(id, settings);

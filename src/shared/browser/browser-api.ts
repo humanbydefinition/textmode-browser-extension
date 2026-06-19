@@ -5,6 +5,11 @@ const CONTENT_SCRIPT_FILE = '/content-runtime.js';
 
 export type RuntimeMessageListener = Parameters<typeof browser.runtime.onMessage.addListener>[0];
 export type ActionClickedListener = Parameters<typeof browser.action.onClicked.addListener>[0];
+type ToolbarActionApi = typeof browser.action | typeof browser.browserAction;
+type BrowserWithOptionalToolbarApis = typeof browser & {
+	action?: typeof browser.action;
+	browserAction?: typeof browser.browserAction;
+};
 
 export interface BrowserPort {
 	getActiveTab(): Promise<Browser.tabs.Tab | undefined>;
@@ -15,8 +20,6 @@ export interface BrowserPort {
 	addRuntimeMessageListener(listener: RuntimeMessageListener): void;
 	addInstalledListener(listener: () => void): void;
 	addActionClickedListener(listener: ActionClickedListener): void;
-	readLocalStorageKey<TValue>(key: string): Promise<Record<string, TValue | undefined>>;
-	writeLocalStorage(values: Record<string, unknown>): Promise<void>;
 }
 
 export const browserPort: BrowserPort = {
@@ -46,15 +49,17 @@ export const browserPort: BrowserPort = {
 		browser.runtime.onInstalled.addListener(listener);
 	},
 	addActionClickedListener(listener) {
-		browser.action.onClicked.addListener(listener);
-	},
-	async readLocalStorageKey<TValue>(key: string) {
-		return browser.storage.local.get(key) as Promise<Record<string, TValue | undefined>>;
-	},
-	async writeLocalStorage(values) {
-		await browser.storage.local.set(values);
+		resolveToolbarActionApi(browser).onClicked.addListener(listener);
 	},
 };
+
+export function resolveToolbarActionApi(api: BrowserWithOptionalToolbarApis): ToolbarActionApi {
+	const toolbarAction = api.action ?? api.browserAction;
+	if (!toolbarAction) {
+		throw new Error('No browser toolbar action API is available.');
+	}
+	return toolbarAction;
+}
 
 export const getActiveTab = browserPort.getActiveTab;
 export const getExtensionAssetUrl = browserPort.getExtensionAssetUrl;
@@ -64,5 +69,3 @@ export const sendMessageToRuntime = browserPort.sendMessageToRuntime;
 export const addRuntimeMessageListener = browserPort.addRuntimeMessageListener;
 export const addInstalledListener = browserPort.addInstalledListener;
 export const addActionClickedListener = browserPort.addActionClickedListener;
-export const readLocalStorageKey = browserPort.readLocalStorageKey;
-export const writeLocalStorage = browserPort.writeLocalStorage;

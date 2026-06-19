@@ -4,6 +4,7 @@ import {
 	getSelectableElements,
 	isSelectableElement,
 } from '../../src/features/media-picker/element-picker';
+import { mockRect } from './test-helpers';
 
 describe('element-picker', () => {
 	beforeEach(() => {
@@ -13,8 +14,8 @@ describe('element-picker', () => {
 	it('includes visible canvas and video elements', () => {
 		const canvas = document.createElement('canvas');
 		const video = document.createElement('video');
-		mockRect(canvas, 320, 180);
-		mockRect(video, 640, 360);
+		mockRect(canvas, { width: 320, height: 180 });
+		mockRect(video, { width: 640, height: 360 });
 		document.body.append(canvas, video);
 
 		expect(getSelectableElements()).toEqual([canvas, video]);
@@ -26,8 +27,8 @@ describe('element-picker', () => {
 		const nested = document.createElement('canvas');
 		ui.dataset.textmodeAsciiExtensionUi = 'true';
 		ui.append(nested);
-		mockRect(canvas, 0, 0);
-		mockRect(nested, 320, 180);
+		mockRect(canvas, { width: 0, height: 0 });
+		mockRect(nested, { width: 320, height: 180 });
 		document.body.append(canvas, ui);
 
 		expect(isSelectableElement(canvas)).toBe(false);
@@ -55,18 +56,3 @@ describe('element-picker', () => {
 		expect(document.documentElement.style.cursor).toBe('');
 	});
 });
-
-function mockRect(element: Element, width: number, height: number): void {
-	element.getBoundingClientRect = () =>
-		({
-			x: 0,
-			y: 0,
-			left: 0,
-			top: 0,
-			right: width,
-			bottom: height,
-			width,
-			height,
-			toJSON: () => undefined,
-		}) as DOMRect;
-}

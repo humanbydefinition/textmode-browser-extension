@@ -13,12 +13,11 @@
 <p align="center">
   <a href="https://www.typescriptlang.org/"><img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white" /></a><!--
   --><a href="https://wxt.dev/"><img alt="WXT" src="https://img.shields.io/badge/WXT-000000?logo=webcomponents.org&logoColor=white" /></a><!--
-  --><a href="https://vite.dev/"><img alt="Vite" src="https://img.shields.io/badge/Vite-646CFF?logo=vite&logoColor=white" /></a><!--
-  --><a href="https://react.dev/"><img alt="React" src="https://img.shields.io/badge/React-20232A?logo=react&logoColor=61DAFB" /></a>
+  --><a href="https://vite.dev/"><img alt="Vite" src="https://img.shields.io/badge/Vite-646CFF?logo=vite&logoColor=white" /></a>
   &nbsp;&nbsp;
   <img alt="Chrome MV3" src="https://img.shields.io/badge/Chrome-MV3-4285F4?logo=googlechrome&logoColor=white" /><!--
   --><img alt="Edge MV3" src="https://img.shields.io/badge/Edge-MV3-0078D7?logo=microsoftedge&logoColor=white" /><!--
-  --><img alt="Firefox MV2" src="https://img.shields.io/badge/Firefox-MV2-FF7139?logo=firefoxbrowser&logoColor=white" /><!--
+  --><img alt="Firefox MV3" src="https://img.shields.io/badge/Firefox-MV3-FF7139?logo=firefoxbrowser&logoColor=white" /><!--
   --><img alt="Safari MV2" src="https://img.shields.io/badge/Safari-MV2-006CFF?logo=safari&logoColor=white" />
   &nbsp;&nbsp;
   <a href="https://ko-fi.com/V7V8JG2FY"><img alt="Ko-fi" src="https://shields.io/badge/ko--fi-donate-ff5f5f?logo=ko-fi" /></a><!--
@@ -37,13 +36,13 @@
 
 ## Browser Support
 
-| Browser                                               | Build Command           | Output                | Availability                                                                       |
-| ----------------------------------------------------- | ----------------------- | --------------------- | ---------------------------------------------------------------------------------- |
-| [Chrome](https://www.google.com/chrome/)              | `npm run build:chrome`  | `.output/chrome-mv3`  | Pending review                                                                     |
-| [Edge](https://www.microsoft.com/en-us/edge)          | `npm run build:edge`    | `.output/edge-mv3`    | Pending review                                                                     |
-| [Opera](https://www.opera.com/download)               | `npm run build:chrome`  | `.output/chrome-mv3`  | Pending review                                                                     |
-| [Firefox](https://www.mozilla.org/en-US/firefox/new/) | `npm run build:firefox` | `.output/firefox-mv2` | [Pending review](https://addons.mozilla.org/en-US/firefox/addon/textmode-overlay/) |
-| [Safari](https://www.apple.com/safari/)               | `npm run build:safari`  | `.output/safari-mv2`  | Not planned                                                                        |
+| Browser                                               | Build                   | Output                | Store                                                                                                          |
+| ----------------------------------------------------- | ----------------------- | --------------------- | -------------------------------------------------------------------------------------------------------------- |
+| [Chrome](https://www.google.com/chrome/)              | `npm run build:chrome`  | `.output/chrome-mv3`  | [Chrome Web Store](https://chromewebstore.google.com/detail/textmode-overlay/nmepplnokndndgeldlhbffhkipimmaia) |
+| [Opera](https://www.opera.com/download)               | `npm run build:chrome`  | `.output/chrome-mv3`  | [Opera Add-ons](https://addons.opera.com/en/extensions/details/textmode-overlay/)                              |
+| [Edge](https://www.microsoft.com/en-us/edge)          | `npm run build:edge`    | `.output/edge-mv3`    | Reviewing                                                                                                      |
+| [Firefox](https://www.mozilla.org/en-US/firefox/new/) | `npm run build:firefox` | `.output/firefox-mv3` | [Reviewing](https://addons.mozilla.org/en-US/firefox/addon/textmode-overlay/)                                  |
+| [Safari](https://www.apple.com/safari/)               | `npm run build:safari`  | `.output/safari-mv2`  | —                                                                                                              |
 
 ## Quick Start
 

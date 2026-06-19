@@ -1,6 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="textmode ASCII overlay">
-	<rect width="128" height="128" rx="24" fill="#08111f"/>
-	<rect x="18" y="22" width="92" height="84" rx="10" fill="#0f172a" stroke="#38bdf8" stroke-width="4"/>
-	<text x="64" y="61" text-anchor="middle" font-family="monospace" font-size="28" font-weight="700" fill="#f8fafc">@#%</text>
-	<text x="64" y="89" text-anchor="middle" font-family="monospace" font-size="20" font-weight="700" fill="#86efac">ASCII</text>
-</svg>

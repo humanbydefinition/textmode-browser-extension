@@ -68,10 +68,11 @@ Useful commands:
 | `npm run dev`              | Start WXT development mode.                           |
 | `npm run build:chrome`     | Build `.output/chrome-mv3`.                           |
 | `npm run build:edge`       | Build `.output/edge-mv3`.                             |
-| `npm run build:firefox`    | Build `.output/firefox-mv2`.                          |
+| `npm run build:firefox`    | Build `.output/firefox-mv3`.                          |
 | `npm run build:safari`     | Build `.output/safari-mv2`.                           |
 | `npm run zip`              | Package the default target.                           |
-| `npm run zip:firefox`      | Package the Firefox target.                           |
+| `npm run zip:firefox`      | Package the unsigned Firefox target for AMO upload.   |
+| `npm run lint:firefox`     | Run Mozilla's add-on linter against Firefox output.   |
 | `npm run test`             | Run unit tests.                                       |
 | `npm run test:watch`       | Run unit tests in watch mode.                         |
 | `npm run typecheck`        | Run TypeScript without emitting files.                |
@@ -92,7 +93,7 @@ The project uses a feature-sliced layout:
 - `src/application`: background, page runtime, and popup orchestration.
 - `src/domain`: pure overlay settings, descriptors, and helpers.
 - `src/features`: media picker and textmode overlay behavior.
-- `src/widgets`: React UI and local UI primitives.
+- `src/widgets`: Overlay UI and local UI primitives.
 - `src/shared`: browser adapter, messaging, errors, config, storage, and utilities.
 
 ## Making a Change

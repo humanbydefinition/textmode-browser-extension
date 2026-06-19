@@ -6,5 +6,13 @@ coverage/
 test-results/
 playwright-report/
 .DS_Store
+.env
+.env.*
+!.env.example
 .agents/
 skills-lock.json
+public/fonts/*
+!public/fonts/Bescii-Mono.ttf
+!public/fonts/UrsaFont.ttf
+!public/fonts/atascii.ttf
+!public/fonts/cpc464.ttf

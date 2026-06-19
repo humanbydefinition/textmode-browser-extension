@@ -1,5 +1,4 @@
 import { DEFAULT_FONT_ID, type BundledFontId } from '../overlay/overlay-settings';
-import { availableFontAssetPaths } from '../../shared/config/available-font-assets';
 
 export type BundledFontEntry = {
 	id: BundledFontId;
@@ -162,7 +161,6 @@ export interface FontRegistry {
 	getFontEntry(fontId: BundledFontId): BundledFontEntry | null;
 	getPreferredFontEntry(fontId: BundledFontId): BundledFontEntry | null;
 	resolveFontId(fontId: BundledFontId): BundledFontId | null;
-	getFontAssetUrl(fontId: BundledFontId): string | null;
 }
 
 export function createFontRegistry(fontAssetPaths: readonly string[]): FontRegistry {
@@ -183,14 +181,8 @@ export function createFontRegistry(fontAssetPaths: readonly string[]): FontRegis
 		getFontEntry,
 		getPreferredFontEntry,
 		resolveFontId: (fontId) => getPreferredFontEntry(fontId)?.id ?? null,
-		getFontAssetUrl: (fontId) => {
-			const entry = getFontEntry(fontId);
-			return entry ? chrome.runtime.getURL(entry.assetPath) : null;
-		},
 	};
 }
-
-const fontRegistry = createFontRegistry(availableFontAssetPaths);
 
 function idToDisplayName(id: BundledFontId): string {
 	const displayNames: Record<BundledFontId, string> = {
@@ -215,26 +207,6 @@ function idToDisplayName(id: BundledFontId): string {
 		kitchenSink: 'Kitchen Sink',
 	};
 	return displayNames[id];
-}
-
-export function getFontEntry(fontId: BundledFontId): BundledFontEntry | null {
-	return fontRegistry.getFontEntry(fontId);
-}
-
-export function getPreferredFontEntry(fontId: BundledFontId): BundledFontEntry | null {
-	return fontRegistry.getPreferredFontEntry(fontId);
-}
-
-export function getAvailableFonts(): readonly BundledFontEntry[] {
-	return fontRegistry.getAvailableFonts();
-}
-
-export function resolveFontId(fontId: BundledFontId): BundledFontId | null {
-	return fontRegistry.resolveFontId(fontId);
-}
-
-export function getFontAssetUrl(fontId: BundledFontId): string | null {
-	return fontRegistry.getFontAssetUrl(fontId);
 }
 
 export { isBundledFontId } from '../overlay/overlay-settings';

@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { BundledFontEntry } from '@/domain/fonts/font-registry';
 import type { BundledFontId } from '@/domain/overlay/overlay-settings';
-import { FontComboboxView } from '@/widgets/overlay-panel/overlay-settings-form-view';
+import { FontComboboxView } from '@/widgets/overlay-panel/font-combobox/font-combobox-view';
 
 function createFont(id: BundledFontId, displayName: string): BundledFontEntry {
 	return {

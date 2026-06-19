@@ -3,7 +3,7 @@ import { isPopupToContentMessage, isRuntimeMessage, type RuntimeAck } from '../.
 import { addRuntimeMessageListener } from '../../shared/browser/browser-api';
 import { TEXTMODE_HEADER_FONT_ID } from '../../shared/config/extension-assets';
 import type { OverlaySettings } from '../../domain/overlay/overlay-settings';
-import { getFontAssetUrl } from '../../domain/fonts/font-registry';
+import { getFontAssetUrl } from '../../shared/fonts/runtime-font-registry';
 import { ElementPicker, type SelectableElement } from '../../features/media-picker/element-picker';
 import { OverlayManager } from '../../features/textmode-overlay/overlay-manager';
 import { broadcastError, broadcastOverlayList, broadcastPickingCancelled, broadcastPickingStarted } from './page-state';

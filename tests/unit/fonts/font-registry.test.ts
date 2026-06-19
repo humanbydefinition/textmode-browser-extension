@@ -1,5 +1,6 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { createFontRegistry } from '@/domain/fonts/font-registry';
+import { createRuntimeFontRegistry } from '@/shared/fonts/runtime-font-registry';
 
 const TEST_FONT_ASSET_PATHS = [
 	'fonts/Bescii-Mono.woff',
@@ -9,18 +10,6 @@ const TEST_FONT_ASSET_PATHS = [
 ];
 
 describe('font-registry', () => {
-	beforeEach(() => {
-		vi.stubGlobal('chrome', {
-			runtime: {
-				getURL: vi.fn((path: string) => `chrome-extension://test/${path}`),
-			},
-		});
-	});
-
-	afterEach(() => {
-		vi.unstubAllGlobals();
-	});
-
 	it('returns only fonts with matching local asset files', () => {
 		const registry = createFontRegistry(TEST_FONT_ASSET_PATHS);
 		const fonts = registry.getAvailableFonts();
@@ -63,7 +52,7 @@ describe('font-registry', () => {
 	});
 
 	it('getFontAssetUrl resolves only available fonts to extension URLs', () => {
-		const registry = createFontRegistry(TEST_FONT_ASSET_PATHS);
+		const registry = createRuntimeFontRegistry(TEST_FONT_ASSET_PATHS, (path) => `chrome-extension://test/${path}`);
 		expect(registry.getFontAssetUrl('bescii')).toBe('chrome-extension://test/fonts/Bescii-Mono.woff');
 		expect(registry.getFontAssetUrl('chunky')).toBeNull();
 	});

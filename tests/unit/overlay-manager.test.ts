@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { textmode } from 'textmode.js';
 import { OverlayManager } from '../../src/features/textmode-overlay/overlay-manager';
 import { getMediaSecurityHint } from '../../src/shared/errors/errors';
+import { createMockSource, MockResizeObserver, mockRect } from './test-helpers';
 
 interface MockTextmodeInstance {
 	canvas: HTMLCanvasElement;
@@ -188,58 +189,19 @@ describe('OverlayManager', () => {
 	});
 });
 
-class MockResizeObserver {
-	public observe = vi.fn();
-	public unobserve = vi.fn();
-	public disconnect = vi.fn();
-}
-
 function createCanvas(id: string): HTMLCanvasElement {
 	const canvas = document.createElement('canvas');
 	canvas.id = id;
-	mockRect(canvas, 320, 180);
+	mockRect(canvas, { width: 320, height: 180 });
 	return canvas;
 }
 
 function createVideo(id: string): HTMLVideoElement {
 	const video = document.createElement('video');
 	video.id = id;
-	mockRect(video, 640, 360);
+	mockRect(video, { width: 640, height: 360 });
 	Object.defineProperty(video, 'readyState', { value: video.HAVE_CURRENT_DATA, configurable: true });
 	Object.defineProperty(video, 'videoWidth', { value: 640, configurable: true });
 	Object.defineProperty(video, 'videoHeight', { value: 360, configurable: true });
 	return video;
-}
-
-function createMockSource(): Record<string, () => unknown> {
-	const source: Record<string, () => unknown> = {};
-	for (const method of [
-		'characters',
-		'conversionMode',
-		'invert',
-		'brightnessRange',
-		'charColorMode',
-		'charColor',
-		'cellColorMode',
-		'cellColor',
-		'background',
-	]) {
-		source[method] = vi.fn(() => source);
-	}
-	return source;
-}
-
-function mockRect(element: Element, width: number, height: number): void {
-	element.getBoundingClientRect = () =>
-		({
-			x: 0,
-			y: 0,
-			left: 0,
-			top: 0,
-			right: width,
-			bottom: height,
-			width,
-			height,
-			toJSON: () => undefined,
-		}) as DOMRect;
 }

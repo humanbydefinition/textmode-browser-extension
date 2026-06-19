@@ -1,11 +1,14 @@
 import { type Cleanup, on } from '../dom';
+import { computePopoverPosition, type PopoverAlign, type PopoverSide } from './popover-position';
 
 export interface PopoverViewOptions {
 	trigger: HTMLElement;
 	content: HTMLElement;
 	portalContainer: HTMLElement;
-	align?: 'start' | 'center' | 'end';
+	align?: PopoverAlign;
+	preferredSide?: PopoverSide;
 	sideOffset?: number;
+	collisionPadding?: number;
 	onOpenChange?: (open: boolean) => void;
 	onOpen?: () => void;
 }
@@ -48,20 +51,23 @@ export class PopoverView {
 		if (!this.open) return;
 		const triggerRect = this.options.trigger.getBoundingClientRect();
 		const contentRect = this.options.content.getBoundingClientRect();
-		const align = this.options.align ?? 'center';
-		const sideOffset = this.options.sideOffset ?? 4;
-
-		let left = triggerRect.left;
-		if (align === 'center') {
-			left = triggerRect.left + triggerRect.width / 2 - contentRect.width / 2;
-		} else if (align === 'end') {
-			left = triggerRect.right - contentRect.width;
-		}
+		const position = computePopoverPosition({
+			triggerRect,
+			contentRect,
+			viewportWidth: window.innerWidth,
+			viewportHeight: window.innerHeight,
+			align: this.options.align,
+			preferredSide: this.options.preferredSide,
+			sideOffset: this.options.sideOffset,
+			collisionPadding: this.options.collisionPadding,
+		});
 
 		this.options.content.style.position = 'fixed';
-		this.options.content.style.top = `${triggerRect.bottom + sideOffset}px`;
-		this.options.content.style.left = `${Math.max(8, left)}px`;
-		this.options.content.style.setProperty('--radix-popover-content-transform-origin', 'top center');
+		this.options.content.style.top = `${position.top}px`;
+		this.options.content.style.left = `${position.left}px`;
+		this.options.content.dataset.side = position.side;
+		this.options.content.dataset.align = position.align;
+		this.options.content.style.setProperty('--radix-popover-content-transform-origin', position.transformOrigin);
 	}
 
 	public dispose(): void {

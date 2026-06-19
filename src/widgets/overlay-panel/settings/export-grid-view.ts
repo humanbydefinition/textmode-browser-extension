@@ -1,3 +1,4 @@
+import { OVERLAY_EXPORT_FORMAT_DEFINITIONS, OVERLAY_EXPORT_FORMATS } from '../../../domain/overlay/export-formats';
 import type { OverlayExportFormat } from '../../../domain/overlay/overlay-settings';
 import { h } from '../dom';
 import { icon } from '../icons';
@@ -7,36 +8,24 @@ export function createExportGrid(onExport: (format: OverlayExportFormat) => void
 	return h(
 		'div',
 		{ className: 'tm-export-grid' },
-		createExportButton('txt', 'TXT', onExport),
-		createExportButton('svg', 'SVG', onExport),
-		createExportButton('png', 'PNG', onExport),
-		createExportButton('jpg', 'JPG', onExport)
+		...OVERLAY_EXPORT_FORMATS.map((format) => createExportButton(format, onExport))
 	);
 }
 
 function createExportButton(
 	format: OverlayExportFormat,
-	label: string,
 	onExport: (format: OverlayExportFormat) => void
 ): HTMLButtonElement {
-	const button = createButton('tm-button tm-button--outline tm-button--sm tm-export-button', `export ${label}`);
+	const definition = OVERLAY_EXPORT_FORMAT_DEFINITIONS[format];
+	const button = createButton(
+		'tm-button tm-button--outline tm-button--sm tm-export-button',
+		`export ${definition.label}`
+	);
 	button.append(
-		icon(getExportIconName(format)),
-		h('span', { textContent: label }),
+		icon(definition.iconName),
+		h('span', { textContent: definition.label }),
 		icon('download', 'tm-export-button__download')
 	);
 	button.addEventListener('click', () => onExport(format));
 	return button;
-}
-
-function getExportIconName(format: OverlayExportFormat): 'file-text' | 'file-code' | 'image-down' {
-	switch (format) {
-		case 'txt':
-			return 'file-text';
-		case 'svg':
-			return 'file-code';
-		case 'png':
-		case 'jpg':
-			return 'image-down';
-	}
 }

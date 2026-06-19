@@ -1,160 +1,6 @@
-import { DEFAULT_FONT_ID, type BundledFontId } from '../overlay/overlay-settings';
+import { BUNDLED_FONTS, DEFAULT_FONT_ID, type BundledFontEntry, type BundledFontId } from './font-metadata';
 
-export type BundledFontEntry = {
-	id: BundledFontId;
-	displayName: string;
-	author: string;
-	authorUrl: string;
-	sourceUrl: string;
-	assetPath: string;
-	cssFontFamily: string;
-};
-
-type FontMeta = {
-	author: string;
-	authorUrl: string;
-	sourceUrl: string;
-	assetPath: string;
-	cssFontFamily: string;
-};
-
-const UNSCII_META: Pick<FontMeta, 'author' | 'authorUrl' | 'sourceUrl'> = {
-	author: 'Viznut',
-	authorUrl: 'https://viznut.fi/',
-	sourceUrl: 'https://viznut.fi/unscii/',
-};
-
-const GLYPH_SOURCE_META: Record<BundledFontId, FontMeta> = {
-	chunky: {
-		assetPath: 'fonts/CHUNKY.woff',
-		cssFontFamily: 'Font-Chunky',
-		author: 'batfeula',
-		authorUrl: 'https://batfeula.neocities.org/',
-		sourceUrl: 'https://batfeula.itch.io/chunky',
-	},
-	cultistScript: {
-		assetPath: 'fonts/CultistScript.woff',
-		cssFontFamily: 'Font-CultistScript',
-		author: 'littlebitspace',
-		authorUrl: 'https://littlebitspace.com/',
-		sourceUrl: 'https://littlebitspace.com/resources/',
-	},
-	frogblock: {
-		assetPath: 'fonts/FROGBLOCK-V2.1.woff',
-		cssFontFamily: 'Font-Frogblock',
-		author: 'Polyducks',
-		authorUrl: 'https://polyducks.co.uk/',
-		sourceUrl: 'https://polyducks.itch.io/frogblock',
-	},
-	ursafont: {
-		assetPath: 'fonts/UrsaFont.woff',
-		cssFontFamily: 'Font-Ursa',
-		author: 'UrsaFrank',
-		authorUrl: 'https://www.stormrooster.com/',
-		sourceUrl: 'https://ursafrank.itch.io/ursafont',
-	},
-	atascii: {
-		assetPath: 'fonts/atascii.woff',
-		cssFontFamily: 'Font-Atascii',
-		author: 'Damian Vila',
-		authorUrl: 'https://codeberg.org/Dmian/font-atascii',
-		sourceUrl: 'https://damianvila.com/',
-	},
-	bescii: {
-		assetPath: 'fonts/Bescii-Mono.woff',
-		cssFontFamily: 'Font-Bescii-Mono',
-		author: 'Damian Vila',
-		authorUrl: 'https://codeberg.org/Dmian/font-bescii',
-		sourceUrl: 'https://damianvila.com/',
-	},
-	c64ProMono: {
-		assetPath: 'fonts/C64_Pro_Mono-STYLE.woff',
-		cssFontFamily: 'Font-C64-Pro-Mono',
-		author: 'Style',
-		authorUrl: 'https://style64.org/',
-		sourceUrl: 'https://style64.org/c64-truetype',
-	},
-	unscii8: {
-		assetPath: 'fonts/unscii-8.woff',
-		cssFontFamily: 'Font-Unscii-8',
-		...UNSCII_META,
-	},
-	unscii8Alt: {
-		assetPath: 'fonts/unscii-8-alt.woff',
-		cssFontFamily: 'Font-Unscii-8-Alt',
-		...UNSCII_META,
-	},
-	unscii8Mcr: {
-		assetPath: 'fonts/unscii-8-mcr.woff',
-		cssFontFamily: 'Font-Unscii-8-Mcr',
-		...UNSCII_META,
-	},
-	unscii8Thin: {
-		assetPath: 'fonts/unscii-8-thin.woff',
-		cssFontFamily: 'Font-Unscii-8-Thin',
-		...UNSCII_META,
-	},
-	unscii8Fantasy: {
-		assetPath: 'fonts/unscii-8-fantasy.woff',
-		cssFontFamily: 'Font-Unscii-8-Fantasy',
-		...UNSCII_META,
-	},
-	cpc464: {
-		assetPath: 'fonts/cpc464.woff',
-		cssFontFamily: 'Font-CPC464',
-		author: 'Damian Vila',
-		authorUrl: 'https://codeberg.org/Dmian/font-cpc464',
-		sourceUrl: 'https://damianvila.com/',
-	},
-	rook: {
-		assetPath: 'fonts/Rook.woff',
-		cssFontFamily: 'Font-Rook',
-		author: 'Funky Tiger Highsaturn',
-		authorUrl: 'https://autojunkio.itch.io/',
-		sourceUrl: 'https://outer-spec.itch.io/rook',
-	},
-	dungeonmode: {
-		assetPath: 'fonts/dungeonmode.woff',
-		cssFontFamily: 'Font-Dungeonmode',
-		author: 'datagoblin',
-		authorUrl: 'https://datagoblin.itch.io/',
-		sourceUrl: 'https://datagoblin.itch.io/dungeonmode',
-	},
-	publicPixel: {
-		assetPath: 'fonts/PublicPixel.woff',
-		cssFontFamily: 'Font-PublicPixel',
-		author: 'GGBotNet',
-		authorUrl: 'https://ggbot.itch.io/',
-		sourceUrl: 'https://ggbot.itch.io/public-pixel-font',
-	},
-	myceliumOG: {
-		assetPath: 'fonts/MyceliumOG.woff',
-		cssFontFamily: 'Font-MyceliumOG',
-		author: 'littlebitspace',
-		authorUrl: 'https://littlebitspace.com/',
-		sourceUrl: 'https://littlebitspace.com/resources/',
-	},
-	t64: {
-		assetPath: 'fonts/T64.woff',
-		cssFontFamily: 'Font-T64',
-		author: 'littlebitspace',
-		authorUrl: 'https://littlebitspace.com/',
-		sourceUrl: 'https://littlebitspace.com/resources/',
-	},
-	kitchenSink: {
-		assetPath: 'fonts/KitchenSink.woff',
-		cssFontFamily: 'Font-Kitchen-Sink',
-		author: 'Polyducks',
-		authorUrl: 'https://polyducks.co.uk/',
-		sourceUrl: 'https://polyducks.itch.io/kitchen-sink-textmode-font',
-	},
-};
-
-const AVAILABLE_FONTS: readonly BundledFontEntry[] = Object.entries(GLYPH_SOURCE_META).map(([id, meta]) => ({
-	id: id as BundledFontId,
-	displayName: idToDisplayName(id as BundledFontId),
-	...meta,
-}));
+export type { BundledFontEntry } from './font-metadata';
 
 export interface FontRegistry {
 	getAvailableFonts(): readonly BundledFontEntry[];
@@ -165,7 +11,7 @@ export interface FontRegistry {
 
 export function createFontRegistry(fontAssetPaths: readonly string[]): FontRegistry {
 	const availableAssetPathSet = new Set(fontAssetPaths);
-	const availableFonts = AVAILABLE_FONTS.filter((font) => availableAssetPathSet.has(font.assetPath));
+	const availableFonts = BUNDLED_FONTS.filter((font) => availableAssetPathSet.has(font.assetPath));
 	const fallbackFont = availableFonts.find((font) => font.id === DEFAULT_FONT_ID) ?? availableFonts[0] ?? null;
 
 	function getFontEntry(fontId: BundledFontId): BundledFontEntry | null {
@@ -182,31 +28,6 @@ export function createFontRegistry(fontAssetPaths: readonly string[]): FontRegis
 		getPreferredFontEntry,
 		resolveFontId: (fontId) => getPreferredFontEntry(fontId)?.id ?? null,
 	};
-}
-
-function idToDisplayName(id: BundledFontId): string {
-	const displayNames: Record<BundledFontId, string> = {
-		chunky: 'CHUNKY',
-		cultistScript: 'Cultist Script',
-		frogblock: 'FROGBLOCK',
-		ursafont: 'UrsaFont',
-		atascii: 'ATASCII',
-		bescii: 'BESCII',
-		c64ProMono: 'C64 Pro Mono',
-		unscii8: 'UNSCII 8',
-		unscii8Alt: 'UNSCII 8 Alt',
-		unscii8Mcr: 'UNSCII 8 MCR',
-		unscii8Thin: 'UNSCII 8 Thin',
-		unscii8Fantasy: 'UNSCII 8 Fantasy',
-		cpc464: 'CPC464',
-		rook: 'Rook',
-		dungeonmode: 'DUNGEON.mode',
-		publicPixel: 'Public Pixel',
-		myceliumOG: 'Mycelium OG',
-		t64: 'T64',
-		kitchenSink: 'Kitchen Sink',
-	};
-	return displayNames[id];
 }
 
 export { isBundledFontId } from '../overlay/overlay-settings';

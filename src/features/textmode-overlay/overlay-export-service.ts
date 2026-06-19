@@ -1,3 +1,4 @@
+import { OVERLAY_EXPORT_FORMAT_DEFINITIONS } from '../../domain/overlay/export-formats';
 import type { OverlayExportFormat } from '../../domain/overlay/overlay-settings';
 import type { ExportableTextmodeInstance } from './overlay-renderer';
 
@@ -8,27 +9,17 @@ export async function exportTextmodeOverlay(
 	format: OverlayExportFormat
 ): Promise<void> {
 	const api = getExportAPI(instance);
-	switch (format) {
-		case 'txt':
-			api.saveStrings({
-				filename: 'textmode-overlay.txt',
-				preserveTrailingSpaces: false,
-				emptyCharacter: ' ',
-			});
+	const definition = OVERLAY_EXPORT_FORMAT_DEFINITIONS[format];
+
+	switch (definition.exportType) {
+		case 'strings':
+			api.saveStrings(definition.options);
 			break;
 		case 'svg':
-			api.saveSVG({
-				filename: 'textmode-overlay.svg',
-				includeBackgroundRectangles: true,
-				drawMode: 'fill',
-				strokeWidth: 1,
-			});
+			api.saveSVG(definition.options);
 			break;
-		case 'png':
-			await api.saveCanvas({ filename: 'textmode-overlay.png', format: 'png', scale: 1 });
-			break;
-		case 'jpg':
-			await api.saveCanvas({ filename: 'textmode-overlay.jpg', format: 'jpg', scale: 1 });
+		case 'canvas':
+			await api.saveCanvas(definition.options);
 			break;
 	}
 }

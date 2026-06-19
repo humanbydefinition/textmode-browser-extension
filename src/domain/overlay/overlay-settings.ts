@@ -1,35 +1,10 @@
+import { BUNDLED_FONT_IDS, DEFAULT_FONT_ID, type BundledFontId } from '../fonts/font-metadata';
+
 export type ElementKind = 'canvas' | 'video';
 export type OverlayStatus = 'active' | 'paused' | 'error';
 export type SourceColorMode = 'sampled' | 'fixed';
-export type OverlayExportFormat = 'txt' | 'svg' | 'png' | 'jpg';
 
 export const SOURCE_COLOR_MODES = ['sampled', 'fixed'] as const;
-export const OVERLAY_EXPORT_FORMATS = ['txt', 'svg', 'png', 'jpg'] as const;
-
-export const BUNDLED_FONT_IDS = [
-	'chunky',
-	'cultistScript',
-	'frogblock',
-	'ursafont',
-	'atascii',
-	'bescii',
-	'c64ProMono',
-	'unscii8',
-	'unscii8Alt',
-	'unscii8Mcr',
-	'unscii8Thin',
-	'unscii8Fantasy',
-	'cpc464',
-	'rook',
-	'dungeonmode',
-	'publicPixel',
-	'myceliumOG',
-	't64',
-	'kitchenSink',
-] as const;
-
-export type BundledFontId = (typeof BUNDLED_FONT_IDS)[number];
-export const DEFAULT_FONT_ID: BundledFontId = 'bescii';
 
 export const OVERLAY_SETTING_LIMITS = {
 	opacity: { min: 0, max: 1, step: 0.05 },
@@ -133,3 +108,8 @@ function clamp(value: number, min: number, max: number): number {
 function isOverlayColor(value: string): boolean {
 	return /^#[0-9a-f]{6}(?:[0-9a-f]{2})?$/i.test(value);
 }
+
+export { BUNDLED_FONT_IDS, DEFAULT_FONT_ID };
+export { OVERLAY_EXPORT_FORMATS, isOverlayExportFormat } from './export-formats';
+export type { BundledFontId };
+export type { OverlayExportFormat } from './export-formats';

@@ -12,7 +12,7 @@ jobs:
         name: Check
         runs-on: ubuntu-latest
         env:
-            FIREFOX_EXTENSION_ID: mozilla-extension-id-placeholder
+            FIREFOX_EXTENSION_ID: mozilla-extension-id@placeholder.com
 
         steps:
             - name: Checkout

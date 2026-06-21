@@ -1141,12 +1141,57 @@ textarea,
 	overflow-y: auto;
 }
 
+.tm-font-combobox__file-input {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	opacity: 0;
+	pointer-events: none;
+}
+
+.tm-font-combobox__upload-row {
+	margin-top: 8px;
+	padding-top: 8px;
+	border-top: 1px solid var(--tm-neutral-26);
+}
+
+.tm-font-combobox__upload-button {
+	width: 100%;
+	justify-content: center;
+	font-size: 10px;
+}
+
+.tm-font-combobox__upload-button svg {
+	width: 13px;
+	height: 13px;
+}
+
 .tm-font-combobox__empty {
 	margin: 0;
 	padding: 16px 8px;
 	color: var(--tm-neutral-73);
 	font-size: 11px;
 	text-align: center;
+}
+
+.tm-font-combobox__section-header {
+	margin: 8px 0 3px;
+	padding: 0 4px;
+	color: var(--tm-neutral-a3);
+	font-size: 10px;
+	font-weight: 700;
+	text-transform: lowercase;
+}
+
+.tm-font-combobox__section-header:first-child {
+	margin-top: 0;
+}
+
+.tm-font-combobox__option-row {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) 26px;
+	gap: 2px;
+	align-items: stretch;
 }
 
 .tm-font-combobox__option {
@@ -1183,6 +1228,10 @@ textarea,
 	border-radius: 4px;
 }
 
+.tm-font-combobox__option--custom {
+	padding-right: 6px;
+}
+
 .tm-font-combobox__option-main {
 	display: flex;
 	align-items: center;
@@ -1196,10 +1245,48 @@ textarea,
 	text-overflow: ellipsis;
 }
 
+.tm-font-combobox__custom-dot {
+	flex: 0 0 auto;
+	width: 6px;
+	height: 6px;
+	border-radius: 999px;
+	background: var(--tm-accent-blue);
+}
+
 .tm-font-combobox__option-meta {
 	display: inline;
 	color: var(--tm-neutral-73);
 	font-size: 10px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.tm-font-combobox__option-remove {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 26px;
+	border: none;
+	border-radius: 4px;
+	background: transparent;
+	color: var(--tm-neutral-73);
+	cursor: pointer;
+}
+
+.tm-font-combobox__option-remove:hover {
+	background: color-mix(in srgb, var(--tm-danger) 16%, transparent);
+	color: #ffd0d0;
+}
+
+.tm-font-combobox__option-remove:focus-visible {
+	outline: 2px solid var(--tm-neutral-fa);
+	outline-offset: -2px;
+}
+
+.tm-font-combobox__option-remove svg {
+	width: 13px;
+	height: 13px;
 }
 
 .tm-font-combobox__link {

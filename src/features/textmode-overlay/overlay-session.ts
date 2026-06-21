@@ -1,4 +1,4 @@
-import type { BundledFontId, OverlayDescriptor, OverlaySettings } from '../../domain/overlay/overlay-settings';
+import type { FontId, OverlayDescriptor, OverlaySettings } from '../../domain/overlay/overlay-settings';
 import type { SelectableElement } from '../media-picker/element-picker';
 import type { ExportableTextmodeInstance } from './overlay-renderer';
 
@@ -10,7 +10,7 @@ export interface OverlayController {
 	status: OverlayDescriptor['status'];
 	latestError?: string;
 	previousInlineOpacity: string;
-	loadedFontId?: BundledFontId;
+	loadedFontId?: FontId;
 }
 
 export function createOverlayController(

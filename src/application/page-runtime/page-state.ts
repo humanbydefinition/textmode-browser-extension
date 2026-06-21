@@ -1,11 +1,13 @@
+import type { CustomFontSummary } from '../../domain/fonts/custom-font-entry';
 import type { OverlayDescriptor } from '../../domain/overlay/overlay-settings';
 import { sendMessageToRuntime } from '../../shared/browser/browser-api';
 import type { ContentToPopupMessage } from '../../shared/messaging/messages';
 
-export function broadcastOverlayList(overlays: OverlayDescriptor[]): void {
+export function broadcastOverlayList(overlays: OverlayDescriptor[], customFonts?: readonly CustomFontSummary[]): void {
 	broadcastToPopup({
 		type: 'OVERLAY_LIST_CHANGED',
 		overlays,
+		customFonts: customFonts ? [...customFonts] : undefined,
 	});
 }
 

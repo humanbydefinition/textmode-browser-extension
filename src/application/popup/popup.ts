@@ -2,6 +2,7 @@ import '../../widgets/overlay-panel/popup.css';
 import { ensureContentRuntime } from '../background/runtime-injection';
 import { addRuntimeMessageListener, getActiveTab, sendMessageToTab } from '../../shared/browser/browser-api';
 import type { ContentToPopupMessage, PopupToContentMessage, RuntimeAck } from '../../shared/messaging/messages';
+import type { CustomFontSummary } from '../../domain/fonts/custom-font-entry';
 import type { OverlayDescriptor } from '../../domain/overlay/overlay-settings';
 import { OverlayPanelView } from '../../widgets/overlay-panel/overlay-panel-view';
 
@@ -12,9 +13,11 @@ portalRoot.dataset.textmodeOverlayPortalRoot = 'true';
 document.body.append(portalRoot);
 
 let overlays: OverlayDescriptor[] = [];
+let customFonts: CustomFontSummary[] = [];
 
 const view = new OverlayPanelView({
 	portalContainer: portalRoot,
+	customFonts,
 	onStartPicking: () => void execute({ type: 'START_PICKING' }),
 	onUpdateOverlay: (id, settings) => void execute({ type: 'UPDATE_OVERLAY', id, settings }),
 	onExportOverlay: (id, format) => void execute({ type: 'EXPORT_OVERLAY', id, format }),
@@ -25,6 +28,7 @@ root.append(view.element);
 addRuntimeMessageListener((message: ContentToPopupMessage) => {
 	if (message.type === 'OVERLAY_LIST_CHANGED') {
 		overlays = message.overlays;
+		customFonts = message.customFonts ?? [];
 		render();
 	}
 });
@@ -33,7 +37,7 @@ render();
 void execute({ type: 'LIST_OVERLAYS' });
 
 function render(): void {
-	view.update(overlays);
+	view.update(overlays, customFonts);
 }
 
 async function execute(message: PopupToContentMessage): Promise<void> {

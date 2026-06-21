@@ -30,4 +30,4 @@ export function createFontRegistry(fontAssetPaths: readonly string[]): FontRegis
 	};
 }
 
-export { isBundledFontId } from '../overlay/overlay-settings';
+export { isBundledFontId, isCustomFontId, isFontId, type CustomFontId, type FontId } from './font-id';

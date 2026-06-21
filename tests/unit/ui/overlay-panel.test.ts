@@ -1,5 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { DEFAULT_OVERLAY_SETTINGS, type OverlayDescriptor } from '../../../src/domain/overlay/overlay-settings';
+import {
+	DEFAULT_FONT_ID,
+	DEFAULT_OVERLAY_SETTINGS,
+	type OverlayDescriptor,
+} from '../../../src/domain/overlay/overlay-settings';
 import { getAdjacentGlyphRampPreset } from '../../../src/domain/overlay/glyph-ramp-registry';
 import { OverlayPanelView } from '../../../src/widgets/overlay-panel/overlay-panel-view';
 
@@ -63,7 +67,7 @@ describe('OverlayPanelView', () => {
 	it('cycles glyph ramp presets from the advanced controls', () => {
 		const onUpdateOverlay = vi.fn();
 		const overlay = createOverlay();
-		const expectedPreset = getAdjacentGlyphRampPreset(overlay.settings.fontId, overlay.settings.glyphRamp, 1);
+		const expectedPreset = getAdjacentGlyphRampPreset(DEFAULT_FONT_ID, overlay.settings.glyphRamp, 1);
 		const view = createView({ onUpdateOverlay });
 		view.update([overlay]);
 		host.append(view.element);

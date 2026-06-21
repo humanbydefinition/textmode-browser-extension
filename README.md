@@ -86,6 +86,13 @@ Load the extension in Chrome:
 5. Adjust the overlay from the in-page panel.
 6. Export the result when you want a static artifact.
 
+### Uploading Fonts
+
+Open the font picker from the in-page panel and choose **upload font...** to add a local TrueType `.ttf` or
+TrueType-outline `.otf` font. Uploaded fonts are session-only: they stay available while the content runtime is
+alive, but they are not persisted after page reloads or navigation. WOFF, WOFF2, CFF-based OTF files, and files
+larger than 10 MB are rejected.
+
 Some media cannot be sampled. Cross-origin, tainted, DRM-protected, or otherwise restricted media may fail
 when the browser blocks WebGL or canvas pixel access. The extension should report those failures without
 breaking the page.

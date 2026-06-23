@@ -64,7 +64,10 @@ describe('FontComboboxView', () => {
 
 		const options = document.querySelectorAll('.tm-font-combobox__option');
 		expect(options.length).toBe(TEST_FONTS.length);
-		expect(document.querySelector('.tm-font-combobox__list')?.closest('[data-slot="scroll-area"]')).toBeNull();
+		expect(document.querySelector('.tm-font-combobox__list')?.closest('[data-slot="scroll-area"]')).not.toBeNull();
+		expect(document.querySelector('.tm-font-combobox__viewport')?.getAttribute('data-slot')).toBe(
+			'scroll-area-viewport'
+		);
 	});
 
 	it('filters fonts by search query', () => {

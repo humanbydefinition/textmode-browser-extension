@@ -3,6 +3,7 @@ import type { CustomFontId, FontId } from '../../../domain/overlay/overlay-setti
 import { classNames, h, removeChildren } from '../dom';
 import { icon } from '../icons';
 import { PopoverView } from '../components/popover-view';
+import { ScrollAreaView } from '../components/scroll-area-view';
 
 export type FontEntry =
 	| (BundledFontEntry & { kind: 'bundled' })
@@ -27,7 +28,8 @@ export class FontComboboxView {
 	public readonly element: HTMLButtonElement;
 	private readonly valueLabel: HTMLSpanElement;
 	private readonly searchInput: HTMLInputElement;
-	private readonly list: HTMLDivElement;
+	private readonly list: HTMLElement;
+	private readonly scrollArea: ScrollAreaView;
 	private readonly popover: PopoverView;
 	private fileInput?: HTMLInputElement;
 	private fonts: readonly FontEntry[];
@@ -51,7 +53,7 @@ export class FontComboboxView {
 			className: 'tm-font-combobox__search tm-input',
 			attributes: {
 				type: 'text',
-				placeholder: 'Search fonts...',
+				placeholder: 'search fonts...',
 				autocomplete: 'off',
 				spellcheck: 'false',
 			},
@@ -66,7 +68,12 @@ export class FontComboboxView {
 				this.popover.setOpen(false);
 			}
 		});
-		this.list = h('div', { className: 'tm-font-combobox__list' });
+		this.scrollArea = new ScrollAreaView({
+			rootClassName: 'tm-font-combobox__scroll-area',
+			viewportClassName: 'tm-font-combobox__viewport',
+			contentClassName: 'tm-font-combobox__list',
+		});
+		this.list = this.scrollArea.content;
 		const uploadRow = options.allowCustomFontUpload ? this.createUploadRow() : null;
 		const content = h(
 			'div',
@@ -86,7 +93,7 @@ export class FontComboboxView {
 				})
 			),
 			this.searchInput,
-			this.list,
+			this.scrollArea.element,
 			uploadRow
 		);
 		this.popover = new PopoverView({
@@ -118,6 +125,7 @@ export class FontComboboxView {
 
 	public dispose(): void {
 		this.popover.dispose();
+		this.scrollArea.dispose();
 	}
 
 	private render(fallbackLabel?: string): void {
@@ -137,6 +145,7 @@ export class FontComboboxView {
 
 		if (fonts.length === 0) {
 			this.list.append(h('p', { className: 'tm-font-combobox__empty', textContent: 'No fonts found.' }));
+			this.scrollArea.update();
 			return;
 		}
 
@@ -144,6 +153,7 @@ export class FontComboboxView {
 		const bundledFonts = fonts.filter((font) => font.kind === 'bundled');
 		this.renderSection('Your fonts', customFonts);
 		this.renderSection('Library', bundledFonts);
+		this.scrollArea.update();
 	}
 
 	private renderSection(label: string, fonts: readonly FontEntry[]): void {
@@ -253,7 +263,7 @@ export class FontComboboxView {
 		const uploadButton = h(
 			'button',
 			{
-				className: 'tm-button tm-button--ghost tm-font-combobox__upload-button',
+				className: 'tm-button tm-button--outline tm-button--sm tm-font-combobox__upload-button',
 				attributes: { type: 'button' },
 			},
 			icon('upload'),

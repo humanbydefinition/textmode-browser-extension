@@ -393,7 +393,6 @@ select {
 .tm-overlay-card {
 	display: grid;
 	grid-template-rows: auto minmax(0, 1fr) auto;
-	gap: 12px;
 	height: 100%;
 	min-height: 0;
 	min-width: 0;
@@ -409,6 +408,7 @@ select {
 	align-items: flex-start;
 	justify-content: space-between;
 	gap: 10px;
+	margin-bottom: 12px;
 	min-width: 0;
 }
 
@@ -479,10 +479,6 @@ select {
 
 .tm-popover-layer [data-slot='popover-content'] {
 	pointer-events: auto;
-}
-
-.tm-control-group--advanced {
-	padding-top: 9px;
 }
 
 .tm-settings-tabs {
@@ -1240,12 +1236,16 @@ textarea,
 	font-size: 12px;
 }
 
-.tm-font-combobox__list {
+.tm-font-combobox__scroll-area {
+	width: 100%;
+}
+
+.tm-font-combobox__viewport {
 	max-height: 192px;
-	overflow-y: auto;
-	overscroll-behavior: contain;
-	padding-right: 6px;
-	scrollbar-gutter: stable;
+}
+
+.tm-font-combobox__list {
+	min-width: 0;
 }
 
 .tm-font-combobox__file-input {
@@ -1265,12 +1265,26 @@ textarea,
 .tm-font-combobox__upload-button {
 	width: 100%;
 	justify-content: center;
+	min-height: 30px;
+	gap: 6px;
+	border-color: var(--tm-neutral-26);
+	background: var(--tm-neutral-0b);
+	color: var(--tm-neutral-a3);
 	font-size: 10px;
+	font-weight: 700;
+	text-transform: lowercase;
+}
+
+.tm-font-combobox__upload-button:hover:not(:disabled) {
+	border-color: var(--tm-neutral-40);
+	background: var(--tm-neutral-11);
+	color: var(--tm-neutral-f5);
 }
 
 .tm-font-combobox__upload-button svg {
-	width: 13px;
-	height: 13px;
+	width: 12px;
+	height: 12px;
+	opacity: 0.82;
 }
 
 .tm-font-combobox__empty {

@@ -106,7 +106,7 @@ export class OverlaySettingsFormView {
 		});
 		const advancedControls = h(
 			'div',
-			{ className: 'tm-control-group tm-control-group--advanced' },
+			{ className: 'tm-control-group' },
 			createToggleField('invert', this.invertToggle),
 			this.charColorModeField.element,
 			this.cellColorModeField.element,

@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { h } from '../../../src/widgets/overlay-panel/dom';
 import { PopoverView } from '../../../src/widgets/overlay-panel/components/popover-view';
+import { ScrollAreaView } from '../../../src/widgets/overlay-panel/components/scroll-area-view';
 import { SliderView } from '../../../src/widgets/overlay-panel/components/slider-view';
 import { TabsView } from '../../../src/widgets/overlay-panel/components/tabs-view';
 import { ToggleGroupView } from '../../../src/widgets/overlay-panel/components/toggle-group-view';
@@ -14,6 +15,8 @@ describe('vanilla UI primitives', () => {
 		expect(triggers[0]?.dataset.state).toBe('active');
 		expect(tabs.exportContent.hidden).toBe(false);
 		expect(tabs.advancedContent.hidden).toBe(true);
+		expect(tabs.exportContent.closest('[data-slot="scroll-area"]')).not.toBeNull();
+		expect(tabs.element.querySelector('[data-slot="tabs-list"]')?.closest('[data-slot="scroll-area"]')).toBeNull();
 
 		triggers[1]?.click();
 
@@ -22,7 +25,30 @@ describe('vanilla UI primitives', () => {
 		expect(tabs.exportContent.hidden).toBe(true);
 		expect(tabs.advancedContent.hidden).toBe(false);
 
+		tabs.dispose();
 		tabs.element.remove();
+	});
+
+	it('hides the scroll bar gutter until content overflows', () => {
+		const scrollArea = new ScrollAreaView();
+		document.body.append(scrollArea.element);
+
+		const scrollbar = scrollArea.element.querySelector<HTMLElement>('[data-slot="scroll-area-scrollbar"]');
+		expect(scrollbar).not.toBeNull();
+		setScrollMetrics(scrollArea.viewport, { clientHeight: 120, scrollHeight: 120 });
+		setClientHeight(scrollbar!, 120);
+
+		scrollArea.update();
+
+		expect(scrollbar?.dataset.state).toBe('hidden');
+
+		setScrollMetrics(scrollArea.viewport, { clientHeight: 120, scrollHeight: 240 });
+		scrollArea.update();
+
+		expect(scrollbar?.dataset.state).toBe('visible');
+
+		scrollArea.dispose();
+		scrollArea.element.remove();
 	});
 
 	it('updates single toggle group selection', () => {
@@ -78,3 +104,12 @@ describe('vanilla UI primitives', () => {
 		portal.remove();
 	});
 });
+
+function setScrollMetrics(element: HTMLElement, metrics: { clientHeight: number; scrollHeight: number }): void {
+	Object.defineProperty(element, 'clientHeight', { configurable: true, value: metrics.clientHeight });
+	Object.defineProperty(element, 'scrollHeight', { configurable: true, value: metrics.scrollHeight });
+}
+
+function setClientHeight(element: HTMLElement, clientHeight: number): void {
+	Object.defineProperty(element, 'clientHeight', { configurable: true, value: clientHeight });
+}

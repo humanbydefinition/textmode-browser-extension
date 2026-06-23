@@ -28,6 +28,33 @@ describe('isRuntimeMessage', () => {
 		);
 	});
 
+	it('accepts overlay broadcasts with custom font summaries', () => {
+		expect(
+			isRuntimeMessage({
+				type: 'OVERLAY_LIST_CHANGED',
+				overlays: [],
+				customFonts: [{ id: 'custom:abc', displayName: 'Pixel Grid' }],
+			})
+		).toBe(true);
+	});
+
+	it('rejects malformed custom font summaries', () => {
+		expect(
+			isRuntimeMessage({
+				type: 'OVERLAY_LIST_CHANGED',
+				overlays: [],
+				customFonts: [{ id: 'custom:', displayName: 'Pixel Grid' }],
+			})
+		).toBe(false);
+		expect(
+			isRuntimeMessage({
+				type: 'OVERLAY_LIST_CHANGED',
+				overlays: [],
+				customFonts: [{ id: 'custom:abc', displayName: '' }],
+			})
+		).toBe(false);
+	});
+
 	it('rejects malformed overlay mutation messages', () => {
 		expect(isRuntimeMessage({ type: 'REMOVE_OVERLAY' })).toBe(false);
 		expect(isRuntimeMessage({ type: 'REMOVE_OVERLAY', id: 1 })).toBe(false);

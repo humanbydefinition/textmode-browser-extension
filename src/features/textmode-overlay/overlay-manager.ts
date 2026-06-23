@@ -1,7 +1,9 @@
 import { getMediaSecurityHint, toUserMessage } from '../../shared/errors/errors';
 import {
 	DEFAULT_OVERLAY_SETTINGS,
+	DEFAULT_FONT_ID,
 	mergeOverlaySettings,
+	type FontId,
 	type OverlayDescriptor,
 	type OverlayExportFormat,
 	type OverlaySettings,
@@ -125,6 +127,28 @@ export class OverlayManager {
 		return [];
 	}
 
+	public revertOverlaysUsingFont(fontId: FontId): OverlayDescriptor[] {
+		let changed = false;
+		for (const controller of this.overlays.values()) {
+			if (controller.settings.fontId !== fontId) continue;
+			controller.settings = this.normalizeSettings(
+				mergeOverlaySettings(controller.settings, { fontId: DEFAULT_FONT_ID })
+			);
+			try {
+				applyControllerSettings(controller);
+				controller.latestError = undefined;
+				controller.status = controller.settings.enabled ? 'active' : 'paused';
+			} catch (error) {
+				this.markError(controller, error);
+			}
+			changed = true;
+		}
+		if (changed) {
+			this.onChange();
+		}
+		return this.list();
+	}
+
 	private getController(id: string): OverlayController {
 		const controller = this.overlays.get(id);
 		if (!controller) {
@@ -135,7 +159,14 @@ export class OverlayManager {
 
 	private normalizeSettings(settings: OverlaySettings): OverlaySettings {
 		const resolvedFontId = resolveFontId(settings.fontId);
-		if (!resolvedFontId || resolvedFontId === settings.fontId) {
+		if (!resolvedFontId) {
+			return {
+				...settings,
+				fontId: DEFAULT_FONT_ID,
+			};
+		}
+
+		if (resolvedFontId === settings.fontId) {
 			return settings;
 		}
 

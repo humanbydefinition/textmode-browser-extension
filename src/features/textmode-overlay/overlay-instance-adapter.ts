@@ -1,11 +1,11 @@
-import type { BundledFontId } from '../../domain/overlay/overlay-settings';
+import type { FontId } from '../../domain/overlay/overlay-settings';
 import { getFontAssetUrl } from '../../shared/fonts/runtime-font-registry';
 import type { SelectableElement } from '../media-picker/element-picker';
 import type { OverlayController } from './overlay-session';
 import type { OverlayRendererPort } from './overlay-renderer';
 
 export interface OverlayInstanceAdapterOptions {
-	resolveFontAssetUrl?: (fontId: BundledFontId) => string | null;
+	resolveFontAssetUrl?: (fontId: FontId) => string | null;
 }
 
 export function createOverlayInstance(

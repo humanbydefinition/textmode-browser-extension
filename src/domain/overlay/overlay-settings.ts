@@ -1,4 +1,5 @@
-import { BUNDLED_FONT_IDS, DEFAULT_FONT_ID, type BundledFontId } from '../fonts/font-metadata';
+import { BUNDLED_FONT_IDS, DEFAULT_FONT_ID } from '../fonts/font-metadata';
+import { isFontId, type FontId } from '../fonts/font-id';
 
 export type ElementKind = 'canvas' | 'video';
 export type OverlayStatus = 'active' | 'paused' | 'error';
@@ -15,7 +16,7 @@ export interface OverlaySettings {
 	enabled: boolean;
 	opacity: number;
 	fontSize: number;
-	fontId: BundledFontId;
+	fontId: FontId;
 	glyphRamp: string;
 	invert: boolean;
 	charColorMode: SourceColorMode;
@@ -77,15 +78,11 @@ export function mergeOverlaySettings(base: OverlaySettings, patch: Partial<Overl
 		next.cellColor = DEFAULT_OVERLAY_SETTINGS.cellColor;
 	}
 
-	if (!isBundledFontId(next.fontId)) {
+	if (!isFontId(next.fontId)) {
 		next.fontId = DEFAULT_FONT_ID;
 	}
 
 	return next;
-}
-
-export function isBundledFontId(value: unknown): value is BundledFontId {
-	return typeof value === 'string' && (BUNDLED_FONT_IDS as readonly string[]).includes(value);
 }
 
 export function getElementBounds(element: Element): ElementBounds {
@@ -110,6 +107,7 @@ function isOverlayColor(value: string): boolean {
 }
 
 export { BUNDLED_FONT_IDS, DEFAULT_FONT_ID };
+export { isBundledFontId, isCustomFontId, isFontId } from '../fonts/font-id';
 export { OVERLAY_EXPORT_FORMATS, isOverlayExportFormat } from './export-formats';
-export type { BundledFontId };
+export type { BundledFontId, CustomFontId, FontId } from '../fonts/font-id';
 export type { OverlayExportFormat } from './export-formats';

@@ -1,8 +1,16 @@
-import { getAvailableFonts, getPreferredFontEntry, resolveFontId } from '../../shared/fonts/runtime-font-registry';
-import type { OverlayExportFormat, OverlaySettings } from '../../domain/overlay/overlay-settings';
+import {
+	getAvailableFonts,
+	getCustomFonts,
+	getPreferredFontEntry,
+	resolveFontId,
+} from '../../shared/fonts/runtime-font-registry';
+import type { CustomFontSummary } from '../../domain/fonts/custom-font-entry';
+import type { CustomFontId, OverlayExportFormat, OverlaySettings } from '../../domain/overlay/overlay-settings';
+import { DEFAULT_FONT_ID, isBundledFontId } from '../../domain/overlay/overlay-settings';
+import { toUserMessage } from '../../shared/errors/errors';
 import { h } from './dom';
 import { TabsView } from './components/tabs-view';
-import { FontComboboxView } from './font-combobox/font-combobox-view';
+import { FontComboboxView, type FontEntry } from './font-combobox/font-combobox-view';
 import { ColorModeFieldView } from './settings/color-mode-field-view';
 import { createExportGrid } from './settings/export-grid-view';
 import { createSettingField, createToggleField, createToggleInput } from './settings/form-controls';
@@ -13,8 +21,13 @@ import { formatPercent, formatPixels, overlaySettingLimits } from './overlay-ui-
 interface OverlaySettingsFormViewOptions {
 	settings: OverlaySettings;
 	portalContainer: HTMLElement;
+	customFonts?: readonly CustomFontSummary[];
+	allowCustomFontUpload?: boolean;
 	onChange: (settings: Partial<OverlaySettings>) => void;
 	onExport: (format: OverlayExportFormat) => void;
+	onUploadFont?: (file: File) => Promise<{ id: CustomFontId; displayName: string }>;
+	onRemoveCustomFont?: (id: CustomFontId) => Promise<void> | void;
+	onError?: (message: string) => void;
 }
 
 export class OverlaySettingsFormView {
@@ -27,9 +40,13 @@ export class OverlaySettingsFormView {
 	private readonly cellColorModeField: ColorModeFieldView;
 	private readonly glyphRampField: GlyphRampFieldView;
 	private readonly fontCombobox: FontComboboxView;
-	private readonly availableFonts = getAvailableFonts();
+	private readonly tabs: TabsView;
+	private availableFonts: readonly FontEntry[];
+	private customFontSummaries: readonly CustomFontSummary[];
 
 	public constructor(private readonly options: OverlaySettingsFormViewOptions) {
+		this.customFontSummaries = options.customFonts ?? [];
+		this.availableFonts = this.refreshAvailableFonts();
 		this.overlayToggle = createToggleInput((enabled) => this.options.onChange({ enabled }));
 		this.opacityField = new RangeFieldView({
 			label: 'opacity',
@@ -53,8 +70,8 @@ export class OverlaySettingsFormView {
 			this.fontSizeField.element
 		);
 
-		const tabs = new TabsView();
-		tabs.exportContent.append(createExportGrid(options.onExport));
+		this.tabs = new TabsView();
+		this.tabs.exportContent.append(createExportGrid(options.onExport));
 
 		this.invertToggle = createToggleInput((invert) => this.options.onChange({ invert }));
 		this.charColorModeField = new ColorModeFieldView({
@@ -74,7 +91,7 @@ export class OverlaySettingsFormView {
 			onColorChange: (cellColor) => this.options.onChange({ cellColor }),
 		});
 		this.glyphRampField = new GlyphRampFieldView({
-			fontId: options.settings.fontId,
+			fontId: isBundledFontId(options.settings.fontId) ? options.settings.fontId : DEFAULT_FONT_ID,
 			value: options.settings.glyphRamp,
 			onChange: (glyphRamp) => this.options.onChange({ glyphRamp }),
 		});
@@ -82,27 +99,38 @@ export class OverlaySettingsFormView {
 			fonts: this.availableFonts,
 			value: options.settings.fontId,
 			portalContainer: options.portalContainer,
+			allowCustomFontUpload: options.allowCustomFontUpload ?? false,
 			onChange: (fontId) => this.options.onChange({ fontId }),
+			onUploadFont: options.onUploadFont ? (file) => void this.uploadFont(file) : undefined,
+			onRemoveCustomFont: options.onRemoveCustomFont ? (id) => void this.removeCustomFont(id) : undefined,
 		});
 		const advancedControls = h(
 			'div',
-			{ className: 'tm-control-group tm-control-group--advanced' },
+			{ className: 'tm-control-group' },
 			createToggleField('invert', this.invertToggle),
 			this.charColorModeField.element,
 			this.cellColorModeField.element,
 			this.glyphRampField.element,
 			createSettingField('font', this.fontCombobox.element)
 		);
-		tabs.advancedContent.append(advancedControls);
+		this.tabs.advancedContent.append(advancedControls);
 
-		this.element = h('div', { className: 'tm-settings-form' }, quickControls, tabs.element);
+		this.element = h('div', { className: 'tm-settings-form' }, quickControls, this.tabs.element);
 		this.update(options.settings);
 	}
 
-	public update(settings: OverlaySettings): void {
+	public update(
+		settings: OverlaySettings,
+		customFonts: readonly CustomFontSummary[] = this.customFontSummaries
+	): void {
+		this.customFontSummaries = customFonts;
+		this.availableFonts = this.refreshAvailableFonts();
+		this.fontCombobox.setFonts(this.availableFonts);
 		const resolvedFontId = resolveFontId(settings.fontId);
 		const selectedFont = getPreferredFontEntry(settings.fontId);
-		const glyphRampFontId = resolvedFontId ?? settings.fontId;
+		const customFont = this.availableFonts.find((font) => font.id === settings.fontId);
+		const activeFontId = resolvedFontId ?? settings.fontId;
+		const glyphRampFontId = isBundledFontId(activeFontId) ? activeFontId : DEFAULT_FONT_ID;
 
 		this.overlayToggle.checked = settings.enabled;
 		this.opacityField.update(settings.opacity);
@@ -111,7 +139,7 @@ export class OverlaySettingsFormView {
 		this.charColorModeField.update(settings.charColorMode, settings.charColor);
 		this.cellColorModeField.update(settings.cellColorMode, settings.cellColor);
 		this.glyphRampField.update(glyphRampFontId, settings.glyphRamp);
-		this.fontCombobox.update(resolvedFontId ?? settings.fontId, selectedFont?.displayName ?? 'System default');
+		this.fontCombobox.update(activeFontId, customFont?.displayName ?? selectedFont?.displayName ?? 'Custom font');
 
 		if (resolvedFontId && resolvedFontId !== settings.fontId) {
 			this.options.onChange({ fontId: resolvedFontId });
@@ -122,5 +150,58 @@ export class OverlaySettingsFormView {
 		this.charColorModeField.dispose();
 		this.cellColorModeField.dispose();
 		this.fontCombobox.dispose();
+		this.tabs.dispose();
+	}
+
+	private refreshAvailableFonts(): readonly FontEntry[] {
+		const customFontsById = new Map<CustomFontId, FontEntry>();
+		for (const font of getCustomFonts()) {
+			customFontsById.set(font.id, {
+				kind: 'custom',
+				id: font.id,
+				displayName: font.displayName,
+				fileName: font.fileName,
+			});
+		}
+		for (const font of this.customFontSummaries) {
+			if (!customFontsById.has(font.id)) {
+				customFontsById.set(font.id, {
+					kind: 'custom',
+					id: font.id,
+					displayName: font.displayName,
+				});
+			}
+		}
+		return [
+			...customFontsById.values(),
+			...getAvailableFonts().map((font): FontEntry => ({ ...font, kind: 'bundled' })),
+		];
+	}
+
+	private async uploadFont(file: File): Promise<void> {
+		if (!this.options.onUploadFont) return;
+		try {
+			const entry = await this.options.onUploadFont(file);
+			this.availableFonts = this.refreshAvailableFonts();
+			this.fontCombobox.setFonts(this.availableFonts);
+			this.fontCombobox.update(entry.id, entry.displayName);
+			this.options.onChange({ fontId: entry.id });
+		} catch (error) {
+			this.options.onError?.(toUserMessage(error));
+		}
+	}
+
+	private async removeCustomFont(id: CustomFontId): Promise<void> {
+		if (!this.options.onRemoveCustomFont) return;
+		try {
+			await this.options.onRemoveCustomFont(id);
+			this.availableFonts = this.refreshAvailableFonts();
+			this.fontCombobox.setFonts(this.availableFonts);
+			if (this.availableFonts.every((font) => font.id !== id)) {
+				this.fontCombobox.update(DEFAULT_FONT_ID, 'BESCII');
+			}
+		} catch (error) {
+			this.options.onError?.(toUserMessage(error));
+		}
 	}
 }

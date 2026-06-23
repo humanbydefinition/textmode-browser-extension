@@ -67,6 +67,7 @@ Useful commands:
 | -------------------------- | ----------------------------------------------------- |
 | `npm run dev`              | Start WXT development mode.                           |
 | `npm run build:chrome`     | Build `.output/chrome-mv3`.                           |
+| `npm run build:opera`      | Build `.output/chrome-mv3-opera`.                     |
 | `npm run build:edge`       | Build `.output/edge-mv3`.                             |
 | `npm run build:firefox`    | Build `.output/firefox-mv3`.                          |
 | `npm run build:safari`     | Build `.output/safari-mv2`.                           |

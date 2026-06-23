@@ -36,13 +36,13 @@
 
 ## Browser Support
 
-| Browser                                               | Build                   | Output                | Store                                                                                                          |
-| ----------------------------------------------------- | ----------------------- | --------------------- | -------------------------------------------------------------------------------------------------------------- |
-| [Chrome](https://www.google.com/chrome/)              | `npm run build:chrome`  | `.output/chrome-mv3`  | [Chrome Web Store](https://chromewebstore.google.com/detail/textmode-overlay/nmepplnokndndgeldlhbffhkipimmaia) |
-| [Opera](https://www.opera.com/download)               | `npm run build:chrome`  | `.output/chrome-mv3`  | [Opera Add-ons](https://addons.opera.com/en/extensions/details/textmode-overlay/)                              |
-| [Edge](https://www.microsoft.com/en-us/edge)          | `npm run build:edge`    | `.output/edge-mv3`    | Reviewing                                                                                                      |
-| [Firefox](https://www.mozilla.org/en-US/firefox/new/) | `npm run build:firefox` | `.output/firefox-mv3` | [Reviewing](https://addons.mozilla.org/en-US/firefox/addon/textmode-overlay/)                                  |
-| [Safari](https://www.apple.com/safari/)               | `npm run build:safari`  | `.output/safari-mv2`  | —                                                                                                              |
+| Browser                                               | Build                   | Output                     | Store                                                                                                          |
+| ----------------------------------------------------- | ----------------------- | -------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| [Chrome](https://www.google.com/chrome/)              | `npm run build:chrome`  | `.output/chrome-mv3`       | [Chrome Web Store](https://chromewebstore.google.com/detail/textmode-overlay/nmepplnokndndgeldlhbffhkipimmaia) |
+| [Opera](https://www.opera.com/download)               | `npm run build:opera`   | `.output/chrome-mv3-opera` | [Opera Add-ons](https://addons.opera.com/en/extensions/details/textmode-overlay/)                              |
+| [Edge](https://www.microsoft.com/en-us/edge)          | `npm run build:edge`    | `.output/edge-mv3`         | Reviewing                                                                                                      |
+| [Firefox](https://www.mozilla.org/en-US/firefox/new/) | `npm run build:firefox` | `.output/firefox-mv3`      | [Reviewing](https://addons.mozilla.org/en-US/firefox/addon/textmode-overlay/)                                  |
+| [Safari](https://www.apple.com/safari/)               | `npm run build:safari`  | `.output/safari-mv2`       | —                                                                                                              |
 
 ## Quick Start
 
@@ -85,6 +85,13 @@ Load the extension in Chrome:
 4. Click the target media element on the page.
 5. Adjust the overlay from the in-page panel.
 6. Export the result when you want a static artifact.
+
+### Uploading Fonts
+
+Open the font picker from the in-page panel and choose **upload font...** to add a local TrueType `.ttf` or
+TrueType-outline `.otf` font. Uploaded fonts are session-only: they stay available while the content runtime is
+alive, but they are not persisted after page reloads or navigation. WOFF, WOFF2, CFF-based OTF files, and files
+larger than 10 MB are rejected.
 
 Some media cannot be sampled. Cross-origin, tainted, DRM-protected, or otherwise restricted media may fail
 when the browser blocks WebGL or canvas pixel access. The extension should report those failures without

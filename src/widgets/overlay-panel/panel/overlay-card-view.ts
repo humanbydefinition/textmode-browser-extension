@@ -1,12 +1,19 @@
+import type { CustomFontSummary } from '../../../domain/fonts/custom-font-entry';
 import type { OverlayDescriptor, OverlayExportFormat, OverlaySettings } from '../../../domain/overlay/overlay-settings';
+import type { CustomFontId } from '../../../domain/overlay/overlay-settings';
 import { h } from '../dom';
 import { OverlaySettingsFormView } from '../overlay-settings-form-view';
 
 export interface OverlayCardViewOptions {
 	overlay: OverlayDescriptor;
 	portalContainer: HTMLElement;
+	customFonts?: readonly CustomFontSummary[];
+	allowCustomFontUpload?: boolean;
 	onUpdateOverlay: (id: string, settings: Partial<OverlaySettings>) => void;
 	onExportOverlay: (id: string, format: OverlayExportFormat) => void;
+	onUploadFont?: (file: File) => Promise<{ id: CustomFontId; displayName: string }>;
+	onRemoveCustomFont?: (id: CustomFontId) => Promise<void> | void;
+	onError?: (message: string) => void;
 }
 
 export class OverlayCardView {
@@ -26,8 +33,13 @@ export class OverlayCardView {
 		this.settingsForm = new OverlaySettingsFormView({
 			settings: options.overlay.settings,
 			portalContainer: options.portalContainer,
+			customFonts: options.customFonts,
+			allowCustomFontUpload: options.allowCustomFontUpload,
 			onChange: (settings) => options.onUpdateOverlay(this.id, settings),
 			onExport: (format) => options.onExportOverlay(this.id, format),
+			onUploadFont: options.onUploadFont,
+			onRemoveCustomFont: options.onRemoveCustomFont,
+			onError: options.onError,
 		});
 		this.error = h('p', { className: 'tm-error', attributes: { role: 'alert' } });
 		this.element = h(
@@ -45,7 +57,7 @@ export class OverlayCardView {
 		this.update(options.overlay);
 	}
 
-	public update(overlay: OverlayDescriptor): void {
+	public update(overlay: OverlayDescriptor, customFonts?: readonly CustomFontSummary[]): void {
 		this.id = overlay.id;
 		const title = overlay.elementKind === 'video' ? 'video selected' : 'canvas selected';
 		const elementName = getElementName(overlay.elementLabel);
@@ -53,7 +65,7 @@ export class OverlayCardView {
 		this.elementName.textContent = elementName;
 		this.elementName.title = elementName;
 		this.dimensions.textContent = `${overlay.bounds.width}x${overlay.bounds.height}`;
-		this.settingsForm.update(overlay.settings);
+		this.settingsForm.update(overlay.settings, customFonts);
 
 		if (overlay.latestError) {
 			this.error.textContent = overlay.latestError;

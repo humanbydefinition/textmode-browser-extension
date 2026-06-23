@@ -55,6 +55,18 @@ describe('mergeOverlaySettings', () => {
 		expect(settings.fontId).toBe(DEFAULT_FONT_ID);
 	});
 
+	it('preserves custom font ids and repairs malformed custom ids', () => {
+		const customSettings = mergeOverlaySettings(DEFAULT_OVERLAY_SETTINGS, {
+			fontId: 'custom:abc',
+		});
+		const malformedSettings = mergeOverlaySettings(DEFAULT_OVERLAY_SETTINGS, {
+			fontId: 'custom:',
+		});
+
+		expect(customSettings.fontId).toBe('custom:abc');
+		expect(malformedSettings.fontId).toBe(DEFAULT_FONT_ID);
+	});
+
 	describe('isBundledFontId', () => {
 		it('returns true for known font ids', () => {
 			expect(isBundledFontId('chunky')).toBe(true);

@@ -3,7 +3,7 @@ import { isPopupToContentMessage, isRuntimeMessage, type RuntimeAck } from '../.
 import { addRuntimeMessageListener } from '../../shared/browser/browser-api';
 import type { OverlaySettings } from '../../domain/overlay/overlay-settings';
 import { DEFAULT_FONT_ID } from '../../domain/fonts/font-metadata';
-import { getFontAssetUrl } from '../../shared/fonts/runtime-font-registry';
+import * as runtimeFontRegistry from '../../shared/fonts/runtime-font-registry';
 import { ElementPicker, type SelectableElement } from '../../features/media-picker/element-picker';
 import { OverlayManager } from '../../features/textmode-overlay/overlay-manager';
 import { broadcastError, broadcastOverlayList, broadcastPickingCancelled, broadcastPickingStarted } from './page-state';
@@ -19,7 +19,7 @@ declare global {
 export class PageRuntime {
 	private picker?: ElementPicker;
 	private controlPanel?: ControlPanel;
-	private readonly headerFontUrl = getFontAssetUrl(DEFAULT_FONT_ID);
+	private readonly headerFontUrl = runtimeFontRegistry.getFontAssetUrl(DEFAULT_FONT_ID);
 	private readonly manager: OverlayManager;
 	private readonly actions: RuntimeActionHandler;
 
@@ -72,6 +72,7 @@ export class PageRuntime {
 			const { ControlPanel } = await import('../../widgets/overlay-panel/control-panel');
 			this.controlPanel = new ControlPanel({
 				headerFontUrl: this.headerFontUrl,
+				allowCustomFontUpload: true,
 				onStartPicking: () => this.startPicking(),
 				onUpdateOverlay: (id, settings) => {
 					this.manager.updateOverlay(id, settings);
@@ -84,6 +85,17 @@ export class PageRuntime {
 				},
 				onRemoveOverlay: (id) => {
 					this.manager.removeOverlay(id);
+				},
+				onUploadFont: (file) => runtimeFontRegistry.addCustomFont(file),
+				onRemoveCustomFont: async (id) => {
+					this.manager.revertOverlaysUsingFont(id);
+					await new Promise<void>((resolve) => queueMicrotask(resolve));
+					runtimeFontRegistry.removeCustomFont(id);
+					this.sync();
+				},
+				onError: (message) => {
+					broadcastError(message);
+					this.sync();
 				},
 				onClose: () => this.destroyControlPanel(),
 			});
@@ -127,7 +139,8 @@ export class PageRuntime {
 
 	private sync(): void {
 		const overlays = this.manager.list();
-		broadcastOverlayList(overlays);
+		const customFonts = runtimeFontRegistry.toCustomFontSummaries();
+		broadcastOverlayList(overlays, customFonts);
 		this.controlPanel?.updateState(overlays);
 	}
 }

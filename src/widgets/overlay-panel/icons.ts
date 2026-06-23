@@ -12,6 +12,7 @@ export type IconName =
 	| 'mouse-pointer'
 	| 'pipette'
 	| 'trash'
+	| 'upload'
 	| 'x';
 
 const iconPaths: Record<IconName, string[]> = {
@@ -56,6 +57,7 @@ const iconPaths: Record<IconName, string[]> = {
 		'M10 11v6',
 		'M14 11v6',
 	],
+	upload: ['M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4', 'M17 8l-5-5-5 5', 'M12 3v12'],
 	x: ['M18 6 6 18', 'M6 6l12 12'],
 };
 

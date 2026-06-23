@@ -1,5 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { DEFAULT_OVERLAY_SETTINGS, type OverlayDescriptor } from '../../../src/domain/overlay/overlay-settings';
+import {
+	DEFAULT_FONT_ID,
+	DEFAULT_OVERLAY_SETTINGS,
+	type OverlayDescriptor,
+} from '../../../src/domain/overlay/overlay-settings';
 import { getAdjacentGlyphRampPreset } from '../../../src/domain/overlay/glyph-ramp-registry';
 import { OverlayPanelView } from '../../../src/widgets/overlay-panel/overlay-panel-view';
 
@@ -31,6 +35,33 @@ describe('OverlayPanelView', () => {
 		expect(onStartPicking).toHaveBeenCalledTimes(1);
 	});
 
+	it('renders the store rating link when a rating URL is available', () => {
+		const rateExtensionUrl = 'https://example.com/rate';
+		const view = createView({ rateExtensionUrl });
+		view.update([]);
+		host.append(view.element);
+
+		const rateLink = host.querySelector<HTMLAnchorElement>('.tm-rate-link');
+		expect(rateLink?.textContent).toBe('rate extension');
+		expect(rateLink?.getAttribute('href')).toBe(rateExtensionUrl);
+		expect(rateLink?.target).toBe('_blank');
+		expect(rateLink?.getAttribute('rel')).toBe('noreferrer');
+
+		const textmodeLink = host.querySelector<HTMLAnchorElement>('.tm-built-with a');
+		expect(textmodeLink?.getAttribute('href')).toBe('https://code.textmode.art');
+		expect(textmodeLink?.target).toBe('_blank');
+		expect(textmodeLink?.getAttribute('rel')).toBe('noreferrer');
+	});
+
+	it('omits the store rating link when no rating URL is available', () => {
+		const view = createView({ rateExtensionUrl: null });
+		view.update([]);
+		host.append(view.element);
+
+		expect(host.querySelector('.tm-rate-link')).toBeNull();
+		expect(host.querySelector('.tm-built-with')).not.toBeNull();
+	});
+
 	it('wires overlay actions to the active overlay', () => {
 		const onUpdateOverlay = vi.fn();
 		const onExportOverlay = vi.fn();
@@ -60,10 +91,28 @@ describe('OverlayPanelView', () => {
 		expect(onRemoveOverlay).toHaveBeenCalledWith('overlay-1');
 	});
 
+	it('keeps the selected media card chrome outside the tab scroll area', () => {
+		const overlay = createOverlay();
+		const view = createView();
+		view.update([overlay]);
+		host.append(view.element);
+
+		const card = host.querySelector<HTMLElement>('.tm-overlay-card');
+		expect(card).not.toBeNull();
+		expect(card?.parentElement).toBe(host.querySelector('.tm-overlay-list'));
+		expect(host.querySelector('[data-slot="scroll-area"] .tm-overlay-card')).toBeNull();
+		expect(card?.querySelector('.tm-overlay-card__header')?.closest('[data-slot="scroll-area"]')).toBeNull();
+		expect(
+			card?.querySelector('.tm-settings-form > .tm-control-group')?.closest('[data-slot="scroll-area"]')
+		).toBeNull();
+		expect(card?.querySelector('[data-slot="tabs-list"]')?.closest('[data-slot="scroll-area"]')).toBeNull();
+		expect(card?.querySelector('.tm-tabs-content')?.closest('[data-slot="scroll-area"]')).not.toBeNull();
+	});
+
 	it('cycles glyph ramp presets from the advanced controls', () => {
 		const onUpdateOverlay = vi.fn();
 		const overlay = createOverlay();
-		const expectedPreset = getAdjacentGlyphRampPreset(overlay.settings.fontId, overlay.settings.glyphRamp, 1);
+		const expectedPreset = getAdjacentGlyphRampPreset(DEFAULT_FONT_ID, overlay.settings.glyphRamp, 1);
 		const view = createView({ onUpdateOverlay });
 		view.update([overlay]);
 		host.append(view.element);

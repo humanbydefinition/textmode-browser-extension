@@ -1,9 +1,11 @@
 import { h } from '../dom';
+import { ScrollAreaView } from './scroll-area-view';
 
 export class TabsView {
 	public readonly element: HTMLDivElement;
 	public readonly exportContent: HTMLDivElement;
 	public readonly advancedContent: HTMLDivElement;
+	private readonly scrollArea: ScrollAreaView;
 	private readonly exportTrigger: HTMLButtonElement;
 	private readonly advancedTrigger: HTMLButtonElement;
 	private value: 'export' | 'advanced' = 'export';
@@ -36,12 +38,17 @@ export class TabsView {
 			className: 'tm-tabs-content',
 			attributes: { role: 'tabpanel', 'data-slot': 'tabs-content' },
 		});
+		this.scrollArea = new ScrollAreaView({
+			rootClassName: 'tm-tabs-scroll-area',
+			viewportClassName: 'tm-tabs-scroll-area__viewport',
+			contentClassName: 'tm-tabs-scroll-area__content',
+		});
+		this.scrollArea.content.append(this.exportContent, this.advancedContent);
 		this.element = h(
 			'div',
 			{ className: 'tm-settings-tabs', attributes: { 'data-slot': 'tabs' } },
 			list,
-			this.exportContent,
-			this.advancedContent
+			this.scrollArea.element
 		);
 
 		this.exportTrigger.addEventListener('click', () => this.setValue('export'));
@@ -54,9 +61,14 @@ export class TabsView {
 		this.render();
 	}
 
+	public dispose(): void {
+		this.scrollArea.dispose();
+	}
+
 	private render(): void {
 		updateTab(this.exportTrigger, this.exportContent, this.value === 'export');
 		updateTab(this.advancedTrigger, this.advancedContent, this.value === 'advanced');
+		this.scrollArea.update();
 	}
 }
 

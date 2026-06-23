@@ -64,6 +64,24 @@ describe('OverlayPanelView', () => {
 		expect(onRemoveOverlay).toHaveBeenCalledWith('overlay-1');
 	});
 
+	it('keeps the selected media card chrome outside the tab scroll area', () => {
+		const overlay = createOverlay();
+		const view = createView();
+		view.update([overlay]);
+		host.append(view.element);
+
+		const card = host.querySelector<HTMLElement>('.tm-overlay-card');
+		expect(card).not.toBeNull();
+		expect(card?.parentElement).toBe(host.querySelector('.tm-overlay-list'));
+		expect(host.querySelector('[data-slot="scroll-area"] .tm-overlay-card')).toBeNull();
+		expect(card?.querySelector('.tm-overlay-card__header')?.closest('[data-slot="scroll-area"]')).toBeNull();
+		expect(
+			card?.querySelector('.tm-settings-form > .tm-control-group')?.closest('[data-slot="scroll-area"]')
+		).toBeNull();
+		expect(card?.querySelector('[data-slot="tabs-list"]')?.closest('[data-slot="scroll-area"]')).toBeNull();
+		expect(card?.querySelector('.tm-tabs-content')?.closest('[data-slot="scroll-area"]')).not.toBeNull();
+	});
+
 	it('cycles glyph ramp presets from the advanced controls', () => {
 		const onUpdateOverlay = vi.fn();
 		const overlay = createOverlay();

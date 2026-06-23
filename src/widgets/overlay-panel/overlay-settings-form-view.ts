@@ -40,6 +40,7 @@ export class OverlaySettingsFormView {
 	private readonly cellColorModeField: ColorModeFieldView;
 	private readonly glyphRampField: GlyphRampFieldView;
 	private readonly fontCombobox: FontComboboxView;
+	private readonly tabs: TabsView;
 	private availableFonts: readonly FontEntry[];
 	private customFontSummaries: readonly CustomFontSummary[];
 
@@ -69,8 +70,8 @@ export class OverlaySettingsFormView {
 			this.fontSizeField.element
 		);
 
-		const tabs = new TabsView();
-		tabs.exportContent.append(createExportGrid(options.onExport));
+		this.tabs = new TabsView();
+		this.tabs.exportContent.append(createExportGrid(options.onExport));
 
 		this.invertToggle = createToggleInput((invert) => this.options.onChange({ invert }));
 		this.charColorModeField = new ColorModeFieldView({
@@ -112,9 +113,9 @@ export class OverlaySettingsFormView {
 			this.glyphRampField.element,
 			createSettingField('font', this.fontCombobox.element)
 		);
-		tabs.advancedContent.append(advancedControls);
+		this.tabs.advancedContent.append(advancedControls);
 
-		this.element = h('div', { className: 'tm-settings-form' }, quickControls, tabs.element);
+		this.element = h('div', { className: 'tm-settings-form' }, quickControls, this.tabs.element);
 		this.update(options.settings);
 	}
 
@@ -149,6 +150,7 @@ export class OverlaySettingsFormView {
 		this.charColorModeField.dispose();
 		this.cellColorModeField.dispose();
 		this.fontCombobox.dispose();
+		this.tabs.dispose();
 	}
 
 	private refreshAvailableFonts(): readonly FontEntry[] {

@@ -95,12 +95,6 @@ export class FontComboboxView {
 			portalContainer: options.portalContainer,
 			align: 'start',
 			sideOffset: 8,
-			onOpen: () => {
-				requestAnimationFrame(() => {
-					this.searchInput.focus();
-					this.searchInput.select();
-				});
-			},
 			onOpenChange: (open) => {
 				if (!open) {
 					this.query = '';

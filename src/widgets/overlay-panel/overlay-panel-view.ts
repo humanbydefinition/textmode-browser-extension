@@ -5,6 +5,7 @@ import { h, removeChildren } from './dom';
 import { icon } from './icons';
 import { OverlayCardView } from './panel/overlay-card-view';
 import { createButton } from './settings/form-controls';
+import { rateExtensionUrl as defaultRateExtensionUrl } from '../../shared/config/store-links';
 
 export interface OverlayPanelViewOptions {
 	portalContainer: HTMLElement;
@@ -18,6 +19,7 @@ export interface OverlayPanelViewOptions {
 	onRemoveCustomFont?: (id: CustomFontId) => Promise<void> | void;
 	onError?: (message: string) => void;
 	onClose?: () => void;
+	rateExtensionUrl?: string | null;
 }
 
 export class OverlayPanelView {
@@ -89,10 +91,20 @@ export class OverlayPanelView {
 				options.onRemoveOverlay(this.overlayId);
 			}
 		});
-		const footer = h(
-			'footer',
-			{ className: 'tm-panel__footer' },
-			this.removeButton,
+		const ratingUrl = options.rateExtensionUrl === undefined ? defaultRateExtensionUrl : options.rateExtensionUrl;
+		const rateLink = ratingUrl
+			? h('a', {
+					className: 'tm-rate-link',
+					attributes: { href: ratingUrl, target: '_blank', rel: 'noreferrer' },
+					textContent: 'rate extension',
+				})
+			: null;
+		const footerMeta = h(
+			'div',
+			{
+				className: rateLink ? 'tm-panel__footer-meta' : 'tm-panel__footer-meta tm-panel__footer-meta--single',
+			},
+			rateLink,
 			h(
 				'p',
 				{ className: 'tm-built-with' },
@@ -103,6 +115,7 @@ export class OverlayPanelView {
 				})
 			)
 		);
+		const footer = h('footer', { className: 'tm-panel__footer' }, this.removeButton, footerMeta);
 
 		this.element = h(
 			'main',

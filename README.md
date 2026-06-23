@@ -36,13 +36,13 @@
 
 ## Browser Support
 
-| Browser                                               | Build                   | Output                | Store                                                                                                          |
-| ----------------------------------------------------- | ----------------------- | --------------------- | -------------------------------------------------------------------------------------------------------------- |
-| [Chrome](https://www.google.com/chrome/)              | `npm run build:chrome`  | `.output/chrome-mv3`  | [Chrome Web Store](https://chromewebstore.google.com/detail/textmode-overlay/nmepplnokndndgeldlhbffhkipimmaia) |
-| [Opera](https://www.opera.com/download)               | `npm run build:chrome`  | `.output/chrome-mv3`  | [Opera Add-ons](https://addons.opera.com/en/extensions/details/textmode-overlay/)                              |
-| [Edge](https://www.microsoft.com/en-us/edge)          | `npm run build:edge`    | `.output/edge-mv3`    | Reviewing                                                                                                      |
-| [Firefox](https://www.mozilla.org/en-US/firefox/new/) | `npm run build:firefox` | `.output/firefox-mv3` | [Reviewing](https://addons.mozilla.org/en-US/firefox/addon/textmode-overlay/)                                  |
-| [Safari](https://www.apple.com/safari/)               | `npm run build:safari`  | `.output/safari-mv2`  | —                                                                                                              |
+| Browser                                               | Build                   | Output                     | Store                                                                                                          |
+| ----------------------------------------------------- | ----------------------- | -------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| [Chrome](https://www.google.com/chrome/)              | `npm run build:chrome`  | `.output/chrome-mv3`       | [Chrome Web Store](https://chromewebstore.google.com/detail/textmode-overlay/nmepplnokndndgeldlhbffhkipimmaia) |
+| [Opera](https://www.opera.com/download)               | `npm run build:opera`   | `.output/chrome-mv3-opera` | [Opera Add-ons](https://addons.opera.com/en/extensions/details/textmode-overlay/)                              |
+| [Edge](https://www.microsoft.com/en-us/edge)          | `npm run build:edge`    | `.output/edge-mv3`         | Reviewing                                                                                                      |
+| [Firefox](https://www.mozilla.org/en-US/firefox/new/) | `npm run build:firefox` | `.output/firefox-mv3`      | [Reviewing](https://addons.mozilla.org/en-US/firefox/addon/textmode-overlay/)                                  |
+| [Safari](https://www.apple.com/safari/)               | `npm run build:safari`  | `.output/safari-mv2`       | —                                                                                                              |
 
 ## Quick Start
 

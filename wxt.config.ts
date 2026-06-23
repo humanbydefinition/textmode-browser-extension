@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import { defineConfig } from 'wxt';
 import { createExtensionManifest } from './src/shared/config/extension-manifest';
+import { resolveExtensionStoreTarget } from './src/shared/config/store-links';
 import { listProjectFontAssetPaths } from './scripts/font-assets';
 
 const availableFontAssetPaths = listProjectFontAssetPaths();
@@ -12,9 +13,10 @@ export default defineConfig({
 	imports: false,
 	manifest: ({ browser, mode }) =>
 		createExtensionManifest({ browser, mode, fontResources: availableFontAssetPaths, firefoxExtensionId }),
-	vite: () => ({
+	vite: ({ browser, mode }) => ({
 		define: {
 			__TEXTMODE_AVAILABLE_FONT_ASSET_PATHS__: JSON.stringify(availableFontAssetPaths),
+			__TEXTMODE_EXTENSION_STORE_TARGET__: JSON.stringify(resolveExtensionStoreTarget(browser, mode)),
 		},
 	}),
 });

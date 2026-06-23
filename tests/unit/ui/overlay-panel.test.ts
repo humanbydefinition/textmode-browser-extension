@@ -35,6 +35,33 @@ describe('OverlayPanelView', () => {
 		expect(onStartPicking).toHaveBeenCalledTimes(1);
 	});
 
+	it('renders the store rating link when a rating URL is available', () => {
+		const rateExtensionUrl = 'https://example.com/rate';
+		const view = createView({ rateExtensionUrl });
+		view.update([]);
+		host.append(view.element);
+
+		const rateLink = host.querySelector<HTMLAnchorElement>('.tm-rate-link');
+		expect(rateLink?.textContent).toBe('rate extension');
+		expect(rateLink?.getAttribute('href')).toBe(rateExtensionUrl);
+		expect(rateLink?.target).toBe('_blank');
+		expect(rateLink?.getAttribute('rel')).toBe('noreferrer');
+
+		const textmodeLink = host.querySelector<HTMLAnchorElement>('.tm-built-with a');
+		expect(textmodeLink?.getAttribute('href')).toBe('https://code.textmode.art');
+		expect(textmodeLink?.target).toBe('_blank');
+		expect(textmodeLink?.getAttribute('rel')).toBe('noreferrer');
+	});
+
+	it('omits the store rating link when no rating URL is available', () => {
+		const view = createView({ rateExtensionUrl: null });
+		view.update([]);
+		host.append(view.element);
+
+		expect(host.querySelector('.tm-rate-link')).toBeNull();
+		expect(host.querySelector('.tm-built-with')).not.toBeNull();
+	});
+
 	it('wires overlay actions to the active overlay', () => {
 		const onUpdateOverlay = vi.fn();
 		const onExportOverlay = vi.fn();

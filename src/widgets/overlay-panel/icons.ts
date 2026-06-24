@@ -7,10 +7,14 @@ export type IconName =
 	| 'file-code'
 	| 'file-text'
 	| 'github'
+	| 'grip-vertical'
 	| 'heart-handshake'
 	| 'image-down'
 	| 'mouse-pointer'
 	| 'pipette'
+	| 'plus'
+	| 'copy'
+	| 'rotate-ccw'
 	| 'trash'
 	| 'upload'
 	| 'x';
@@ -37,6 +41,7 @@ const iconPaths: Record<IconName, string[]> = {
 	github: [
 		'M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22',
 	],
+	'grip-vertical': ['M9 5h.01', 'M9 12h.01', 'M9 19h.01', 'M15 5h.01', 'M15 12h.01', 'M15 19h.01'],
 	'heart-handshake': [
 		'M19.5 12.5 12 20l-7.5-7.5a5 5 0 0 1 7.1-7.1l.4.4.4-.4a5 5 0 1 1 7.1 7.1Z',
 		'M9 12h6',
@@ -50,6 +55,9 @@ const iconPaths: Record<IconName, string[]> = {
 	],
 	'mouse-pointer': ['M3 3l7.07 16.97 2.51-7.39 7.39-2.51L3 3z', 'm13 13 6 6'],
 	pipette: ['m2 22 1-1h3l9-9', 'M3 21v-3l9-9', 'm15 6 3-3 3 3-3 3z', 'm12 9 3 3', 'm14 4 6 6'],
+	plus: ['M12 5v14', 'M5 12h14'],
+	copy: ['M8 8h10v10H8z', 'M6 16H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1'],
+	'rotate-ccw': ['M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8', 'M3 3v5h5'],
 	trash: [
 		'M3 6h18',
 		'M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2',

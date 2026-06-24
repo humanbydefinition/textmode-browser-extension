@@ -3,6 +3,7 @@ import { getFontAssetUrl } from '../../shared/fonts/runtime-font-registry';
 import type { SelectableElement } from '../media-picker/element-picker';
 import type { OverlayController } from './overlay-session';
 import type { OverlayRendererPort } from './overlay-renderer';
+import { applyPostFxFilters, waitForPostFxFilterRegistration } from './post-fx-runtime';
 
 export interface OverlayInstanceAdapterOptions {
 	resolveFontAssetUrl?: (fontId: FontId) => string | null;
@@ -23,8 +24,9 @@ export function createOverlayInstance(
 	instance.canvas.style.opacity = String(controller.settings.opacity);
 	instance.canvas.style.mixBlendMode = 'normal';
 
-	instance.setup(() => {
+	instance.setup(async () => {
 		configureSource(controller);
+		controller.postFxFiltersReady = await waitForPostFxFilterRegistration(instance);
 	});
 
 	instance.draw(() => {
@@ -35,6 +37,9 @@ export function createOverlayInstance(
 		const grid = instance.grid;
 		if (!grid) return;
 		instance.image(instance.overlay, grid.cols, grid.rows);
+		if (controller.postFxFiltersReady) {
+			applyPostFxFilters(instance, controller.settings.postFx);
+		}
 	});
 
 	applyControllerSettings(controller, { resolveFontAssetUrl });

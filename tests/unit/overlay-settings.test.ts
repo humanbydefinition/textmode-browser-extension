@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 import {
 	DEFAULT_FONT_ID,
 	DEFAULT_OVERLAY_SETTINGS,
+	OVERLAY_POST_FX_FILTER_IDS,
+	createOverlayPostFxItem,
 	isBundledFontId,
 	mergeOverlaySettings,
 } from '../../src/domain/overlay/overlay-settings';
@@ -65,6 +67,30 @@ describe('mergeOverlaySettings', () => {
 
 		expect(customSettings.fontId).toBe('custom:abc');
 		expect(malformedSettings.fontId).toBe(DEFAULT_FONT_ID);
+	});
+
+	it('defaults to one disabled post-fx item per known filter', () => {
+		expect(DEFAULT_OVERLAY_SETTINGS.postFx.map((item) => item.filter)).toEqual(OVERLAY_POST_FX_FILTER_IDS);
+		expect(DEFAULT_OVERLAY_SETTINGS.postFx.every((item) => !item.enabled)).toBe(true);
+		expect(mergeOverlaySettings(DEFAULT_OVERLAY_SETTINGS, {}).postFx.map((item) => item.filter)).toEqual(
+			OVERLAY_POST_FX_FILTER_IDS
+		);
+	});
+
+	it('normalizes post-fx chains to one item per known filter while preserving order', () => {
+		const first = { ...createOverlayPostFxItem('brightness'), enabled: true, params: { amount: 99 } };
+		const duplicate = { ...createOverlayPostFxItem('brightness'), id: 'postfx-brightness-copy' };
+		const settings = mergeOverlaySettings(DEFAULT_OVERLAY_SETTINGS, {
+			postFx: [first, duplicate, { id: 'bad', filter: 'unknown', enabled: true, params: {} }],
+		} as Record<string, unknown> as Partial<typeof DEFAULT_OVERLAY_SETTINGS>);
+
+		expect(settings.postFx).toHaveLength(OVERLAY_POST_FX_FILTER_IDS.length);
+		expect(settings.postFx[0]).toMatchObject({ id: first.id, filter: 'brightness', enabled: true });
+		expect(settings.postFx[0].params.amount).toBe(3);
+		expect(settings.postFx.filter((item) => item.filter === 'brightness')).toHaveLength(1);
+		expect(settings.postFx.slice(1).map((item) => item.filter)).toEqual(
+			OVERLAY_POST_FX_FILTER_IDS.filter((filter) => filter !== 'brightness')
+		);
 	});
 
 	describe('isBundledFontId', () => {

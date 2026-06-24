@@ -1,5 +1,6 @@
 import { BUNDLED_FONT_IDS, DEFAULT_FONT_ID } from '../fonts/font-metadata';
 import { isFontId, type FontId } from '../fonts/font-id';
+import { createDefaultOverlayPostFxItems, normalizeOverlayPostFxItems, type OverlayPostFxItem } from './post-fx';
 
 export type ElementKind = 'canvas' | 'video';
 export type OverlayStatus = 'active' | 'paused' | 'error';
@@ -23,6 +24,7 @@ export interface OverlaySettings {
 	charColor: string;
 	cellColorMode: SourceColorMode;
 	cellColor: string;
+	postFx: OverlayPostFxItem[];
 }
 
 export interface ElementBounds {
@@ -53,6 +55,7 @@ export const DEFAULT_OVERLAY_SETTINGS: OverlaySettings = {
 	charColor: '#ffffff',
 	cellColorMode: 'fixed',
 	cellColor: '#000000',
+	postFx: createDefaultOverlayPostFxItems(),
 };
 
 export function mergeOverlaySettings(base: OverlaySettings, patch: Partial<OverlaySettings>): OverlaySettings {
@@ -82,6 +85,8 @@ export function mergeOverlaySettings(base: OverlaySettings, patch: Partial<Overl
 		next.fontId = DEFAULT_FONT_ID;
 	}
 
+	next.postFx = normalizeOverlayPostFxItems(next.postFx);
+
 	return next;
 }
 
@@ -109,5 +114,24 @@ function isOverlayColor(value: string): boolean {
 export { BUNDLED_FONT_IDS, DEFAULT_FONT_ID };
 export { isBundledFontId, isCustomFontId, isFontId } from '../fonts/font-id';
 export { OVERLAY_EXPORT_FORMATS, isOverlayExportFormat } from './export-formats';
+export {
+	OVERLAY_POST_FX_DEFINITIONS,
+	OVERLAY_POST_FX_FILTER_IDS,
+	OVERLAY_POST_FX_GROUP_LABELS,
+	createDefaultPostFxParams,
+	createDefaultOverlayPostFxItems,
+	createOverlayPostFxItem,
+	getOverlayPostFxDefinition,
+	isOverlayPostFxFilterId,
+	normalizeOverlayPostFxItems,
+	normalizeOverlayPostFxParams,
+} from './post-fx';
 export type { BundledFontId, CustomFontId, FontId } from '../fonts/font-id';
 export type { OverlayExportFormat } from './export-formats';
+export type {
+	OverlayPostFxDefinition,
+	OverlayPostFxFilterId,
+	OverlayPostFxGroup,
+	OverlayPostFxItem,
+	OverlayPostFxParamDefinition,
+} from './post-fx';

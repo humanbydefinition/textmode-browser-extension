@@ -11,6 +11,7 @@ export interface OverlayController {
 	latestError?: string;
 	previousInlineOpacity: string;
 	loadedFontId?: FontId;
+	postFxFiltersReady?: boolean;
 }
 
 export function createOverlayController(

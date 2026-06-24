@@ -17,6 +17,7 @@ import { createSettingField, createToggleField, createToggleInput } from './sett
 import { GlyphRampFieldView } from './settings/glyph-ramp-field-view';
 import { RangeFieldView } from './settings/range-field-view';
 import { formatPercent, formatPixels, overlaySettingLimits } from './overlay-ui-model';
+import { PostFxPanelView } from './post-fx-panel-view';
 
 interface OverlaySettingsFormViewOptions {
 	settings: OverlaySettings;
@@ -40,6 +41,7 @@ export class OverlaySettingsFormView {
 	private readonly cellColorModeField: ColorModeFieldView;
 	private readonly glyphRampField: GlyphRampFieldView;
 	private readonly fontCombobox: FontComboboxView;
+	private readonly postFxPanel: PostFxPanelView;
 	private readonly tabs: TabsView;
 	private availableFonts: readonly FontEntry[];
 	private customFontSummaries: readonly CustomFontSummary[];
@@ -114,6 +116,11 @@ export class OverlaySettingsFormView {
 			createSettingField('font', this.fontCombobox.element)
 		);
 		this.tabs.advancedContent.append(advancedControls);
+		this.postFxPanel = new PostFxPanelView({
+			settings: options.settings,
+			onChange: (settings) => this.options.onChange(settings),
+		});
+		this.tabs.postFxContent.append(this.postFxPanel.element);
 
 		this.element = h('div', { className: 'tm-settings-form' }, quickControls, this.tabs.element);
 		this.update(options.settings);
@@ -140,6 +147,7 @@ export class OverlaySettingsFormView {
 		this.cellColorModeField.update(settings.cellColorMode, settings.cellColor);
 		this.glyphRampField.update(glyphRampFontId, settings.glyphRamp);
 		this.fontCombobox.update(activeFontId, customFont?.displayName ?? selectedFont?.displayName ?? 'Custom font');
+		this.postFxPanel.update(settings);
 
 		if (resolvedFontId && resolvedFontId !== settings.fontId) {
 			this.options.onChange({ fontId: resolvedFontId });
@@ -150,6 +158,7 @@ export class OverlaySettingsFormView {
 		this.charColorModeField.dispose();
 		this.cellColorModeField.dispose();
 		this.fontCombobox.dispose();
+		this.postFxPanel.dispose();
 		this.tabs.dispose();
 	}
 

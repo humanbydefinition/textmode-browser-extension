@@ -51,6 +51,7 @@
 	},
 	"dependencies": {
 		"textmode.export.js": "^1.5.1",
+		"textmode.filters.js": "^1.2.1",
 		"textmode.js": "0.17.0-beta.1"
 	},
 	"overrides": {

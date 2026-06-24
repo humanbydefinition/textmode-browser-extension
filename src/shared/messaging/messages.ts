@@ -1,8 +1,10 @@
 import {
 	SOURCE_COLOR_MODES,
+	isOverlayPostFxFilterId,
 	isOverlayExportFormat,
 	type OverlayDescriptor,
 	type OverlayExportFormat,
+	type OverlayPostFxItem,
 	type OverlaySettings,
 	type SourceColorMode,
 } from '../../domain/overlay/overlay-settings';
@@ -114,10 +116,24 @@ function isOverlaySettingsPatch(value: unknown): value is Partial<OverlaySetting
 			case 'charColorMode':
 			case 'cellColorMode':
 				return isSourceColorMode(patchValue);
+			case 'postFx':
+				return Array.isArray(patchValue) && patchValue.every(isOverlayPostFxItem);
 			default:
 				return false;
 		}
 	});
+}
+
+function isOverlayPostFxItem(value: unknown): value is OverlayPostFxItem {
+	return (
+		isRecord(value) &&
+		typeof value.id === 'string' &&
+		typeof value.filter === 'string' &&
+		isOverlayPostFxFilterId(value.filter) &&
+		typeof value.enabled === 'boolean' &&
+		isRecord(value.params) &&
+		Object.values(value.params).every((paramValue) => typeof paramValue === 'number')
+	);
 }
 
 function isSourceColorMode(value: unknown): value is SourceColorMode {

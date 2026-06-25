@@ -31,9 +31,9 @@
 ## Features
 
 - **Live Textmode Conversion**: Real-time rendering of customizable textmode/ASCII grids over `<canvas>` and `<video>` elements.
-- **In-Page Control Panel**: Dynamic options for adjustments to characters, fonts, glyph sizes, custom scaling, layout modes, and post-fx filters.
+- **In-Page Control Panel**: Dynamic options for adjustments to characters, fonts, glyph sizes, post-fx filters, and more.
 - **Custom Fonts**: Upload your own TrueType (`.ttf`) or OpenType (`.otf`) fonts directly in the control panel to use custom character sets.
-- **Post-FX Filters**: Stackable, real-time filters (Color grading, CRT Mattias, Scanlines, Vignette, Bloom, Film Grain, and Chromatic Aberration) to stylize the final output.
+- **Post-FX Filters**: Stackable, real-time filters to stylize the final output.
 - **Static Exports**: Export overlays as TXT, SVG, PNG, or JPG when you want a static copy of the canvas.
 
 ## Browser Support

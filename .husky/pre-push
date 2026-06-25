@@ -1,0 +1,6 @@
+branch="$(git rev-parse --abbrev-ref HEAD)"
+
+if [ "$branch" = "dev" ] || [ "$branch" = "beta" ] || [ "$branch" = "main" ]; then
+  echo "Direct pushes to '$branch' are not allowed. Open a pull request to dev, then promote dev -> beta -> main."
+  exit 1
+fi

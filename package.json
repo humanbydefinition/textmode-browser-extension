@@ -49,7 +49,7 @@
 		"e2e": "npm run build:e2e:chrome && playwright test"
 	},
 	"dependencies": {
-		"textmode.export.js": "^1.5.1",
+		"textmode.export.js": "^1.5.2",
 		"textmode.js": "0.17.0-beta.1"
 	},
 	"overrides": {

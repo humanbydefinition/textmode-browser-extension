@@ -97,28 +97,9 @@ Open the font picker from the in-page panel and choose **upload font...** to add
 
 ### Post-FX Filters
 
-The extension includes a powerful, real-time post-processing stack that can be enabled and configured from the in-page control panel:
+Open the in-page control panel, switch to the **post fx** tab, and use that list to shape the final rendered output. Each row can be enabled or disabled, expanded to reveal its controls, and dragged by the grip handle to change the order in which the filters run.
 
-- **Built-in Effects**:
-    - **Invert**: Invert the colors of the final textmode output.
-    - **Grayscale**: Adjust the strength of the grayscale filter.
-    - **Sepia**: Blend the output with sepia tones.
-    - **Threshold**: Convert the output to hard black and white bands.
-- **Color Correction**:
-    - **Brightness**: Multiply final output brightness.
-    - **Contrast**: Scale contrast around the midpoint.
-    - **Saturation**: Tweak color intensity without shifting luminance.
-    - **Hue Rotate**: Rotate the colors around the color wheel.
-    - **Posterize**: Reduce colors into distinct channel bands.
-- **Distortion**:
-    - **Chromatic Aberration**: Separate red, green, and blue channels in a configurable direction.
-    - **Pixelate**: Apply a classic retro mosaic-style pixel-block effect.
-- **Stylization**:
-    - **CRT Mattias**: Simulate retro tube screen curvature and scanning lines.
-    - **Scanlines**: Add horizontal CRT scanlines with configurable intensity, count, and scroll speed.
-    - **Vignette**: Darken the edges of the screen with adjustable softness and roundness.
-    - **Bloom**: Create a soft, glowing halo effect around bright regions.
-    - **Film Grain**: Inject animated film grain for a gritty, cinematic texture.
+The stack is applied from top to bottom, so reordering filters can change the final look even when the same filters stay enabled. When a filter has adjustable properties, expand its row and update the available sliders or numeric controls directly from that panel.
 
 ## Development
 

@@ -6,6 +6,7 @@ const CONTENT_SCRIPT_FILE = '/content-runtime.js';
 export type RuntimeMessageListener = Parameters<typeof browser.runtime.onMessage.addListener>[0];
 export type ActionClickedListener = Parameters<typeof browser.action.onClicked.addListener>[0];
 type ToolbarActionApi = typeof browser.action | typeof browser.browserAction;
+type StorageLocalApi = Pick<typeof browser.storage.local, 'get' | 'set' | 'remove'>;
 type BrowserWithOptionalToolbarApis = typeof browser & {
 	action?: typeof browser.action;
 	browserAction?: typeof browser.browserAction;
@@ -20,6 +21,26 @@ export interface BrowserPort {
 	addRuntimeMessageListener(listener: RuntimeMessageListener): void;
 	addInstalledListener(listener: () => void): void;
 	addActionClickedListener(listener: ActionClickedListener): void;
+	storageLocalGet<TValue>(key: string): Promise<TValue | undefined>;
+	storageLocalSet(record: Record<string, unknown>): Promise<void>;
+	storageLocalRemove(key: string): Promise<void>;
+}
+
+export function createStorageLocalPort(
+	storageArea: StorageLocalApi
+): Pick<BrowserPort, 'storageLocalGet' | 'storageLocalSet' | 'storageLocalRemove'> {
+	return {
+		async storageLocalGet<TValue>(key: string) {
+			const record = (await storageArea.get(key)) as Record<string, TValue | undefined>;
+			return record[key];
+		},
+		async storageLocalSet(record) {
+			await storageArea.set(record);
+		},
+		async storageLocalRemove(key) {
+			await storageArea.remove(key);
+		},
+	};
 }
 
 export const browserPort: BrowserPort = {
@@ -51,6 +72,15 @@ export const browserPort: BrowserPort = {
 	addActionClickedListener(listener) {
 		resolveToolbarActionApi(browser).onClicked.addListener(listener);
 	},
+	storageLocalGet(key) {
+		return createStorageLocalPort(browser.storage.local).storageLocalGet(key);
+	},
+	storageLocalSet(record) {
+		return createStorageLocalPort(browser.storage.local).storageLocalSet(record);
+	},
+	storageLocalRemove(key) {
+		return createStorageLocalPort(browser.storage.local).storageLocalRemove(key);
+	},
 };
 
 export function resolveToolbarActionApi(api: BrowserWithOptionalToolbarApis): ToolbarActionApi {
@@ -69,3 +99,6 @@ export const sendMessageToRuntime = browserPort.sendMessageToRuntime;
 export const addRuntimeMessageListener = browserPort.addRuntimeMessageListener;
 export const addInstalledListener = browserPort.addInstalledListener;
 export const addActionClickedListener = browserPort.addActionClickedListener;
+export const storageLocalGet = browserPort.storageLocalGet;
+export const storageLocalSet = browserPort.storageLocalSet;
+export const storageLocalRemove = browserPort.storageLocalRemove;

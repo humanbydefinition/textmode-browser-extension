@@ -1,7 +1,7 @@
 import { toUserMessage } from '../../shared/errors/errors';
 import { isPopupToContentMessage, isRuntimeMessage, type RuntimeAck } from '../../shared/messaging/messages';
 import { addRuntimeMessageListener } from '../../shared/browser/browser-api';
-import type { OverlaySettings } from '../../domain/overlay/overlay-settings';
+import type { OverlayDescriptor, OverlaySettings } from '../../domain/overlay/overlay-settings';
 import { DEFAULT_FONT_ID } from '../../domain/fonts/font-metadata';
 import * as runtimeFontRegistry from '../../shared/fonts/runtime-font-registry';
 import { ElementPicker, type SelectableElement } from '../../features/media-picker/element-picker';
@@ -9,11 +9,17 @@ import { OverlayManager } from '../../features/textmode-overlay/overlay-manager'
 import { broadcastError, broadcastOverlayList, broadcastPickingCancelled, broadcastPickingStarted } from './page-state';
 import { createRuntimeActionHandler, type RuntimeActionHandler } from './runtime-actions';
 import type { ControlPanel } from '../../widgets/overlay-panel/control-panel';
+import { createSitePresetStore, type SitePresetStore } from './site-preset-store';
 
 declare global {
 	interface Window {
 		__textmodeAsciiOverlayRuntime?: PageRuntime;
 	}
+}
+
+export interface PageRuntimeOptions {
+	pageUrl?: URL;
+	presetStore?: SitePresetStore;
 }
 
 export class PageRuntime {
@@ -22,18 +28,25 @@ export class PageRuntime {
 	private readonly headerFontUrl = runtimeFontRegistry.getFontAssetUrl(DEFAULT_FONT_ID);
 	private readonly manager: OverlayManager;
 	private readonly actions: RuntimeActionHandler;
+	private readonly pageUrl: URL;
+	private readonly presetStore: SitePresetStore;
+	private readonly presetLoadComplete: Promise<void>;
+	private sitePreset: OverlaySettings | null = null;
 
-	public constructor() {
+	public constructor(options: PageRuntimeOptions = {}) {
 		this.manager = new OverlayManager(() => this.sync());
+		this.pageUrl = options.pageUrl ?? new URL(window.location.href);
+		this.presetStore = options.presetStore ?? createSitePresetStore();
+		this.presetLoadComplete = this.loadSitePreset();
 		this.actions = createRuntimeActionHandler({
 			toggleControlPanel: () => this.toggleControlPanel(),
 			startPicking: () => this.startPicking(),
 			listOverlays: () => this.manager.list(),
-			updateOverlay: (id, settings) => this.manager.updateOverlay(id, settings),
+			updateOverlay: (id, settings) => this.updateOverlay(id, settings),
 			exportOverlay: (id, format) => this.manager.exportOverlay(id, format),
 			removeOverlay: (id) => this.manager.removeOverlay(id),
-			pauseAll: () => this.manager.pauseAll(),
-			resumeAll: () => this.manager.resumeAll(),
+			pauseAll: () => this.pauseAll(),
+			resumeAll: () => this.resumeAll(),
 			removeAll: () => this.manager.removeAll(),
 			broadcastError,
 		});
@@ -75,7 +88,7 @@ export class PageRuntime {
 				allowCustomFontUpload: true,
 				onStartPicking: () => this.startPicking(),
 				onUpdateOverlay: (id, settings) => {
-					this.manager.updateOverlay(id, settings);
+					this.updateOverlay(id, settings);
 				},
 				onExportOverlay: (id, format) => {
 					void this.manager.exportOverlay(id, format).catch((error) => {
@@ -116,7 +129,7 @@ export class PageRuntime {
 		this.picker = new ElementPicker({
 			onPick: (element) => {
 				this.picker = undefined;
-				this.createOverlay(element);
+				void this.createOverlay(element);
 			},
 			onCancel: () => {
 				this.picker = undefined;
@@ -127,14 +140,55 @@ export class PageRuntime {
 		broadcastPickingStarted();
 	}
 
-	private createOverlay(element: SelectableElement, settings?: Partial<OverlaySettings>): void {
+	private async createOverlay(element: SelectableElement, settings?: Partial<OverlaySettings>): Promise<void> {
 		try {
-			this.manager.createOverlay(element, settings);
+			await this.presetLoadComplete;
+			const overlay = this.manager.createOverlay(element, settings ?? this.sitePreset ?? {});
+			this.sitePreset = overlay.settings;
 		} catch (error) {
 			const message = toUserMessage(error);
 			broadcastError(message);
 			this.sync();
 		}
+	}
+
+	private updateOverlay(id: string, settings: Partial<OverlaySettings>): OverlayDescriptor[] {
+		const overlays = this.manager.updateOverlay(id, settings);
+		this.saveActiveOverlayPreset(overlays);
+		return overlays;
+	}
+
+	private pauseAll(): OverlayDescriptor[] {
+		const overlays = this.manager.pauseAll();
+		this.saveActiveOverlayPreset(overlays);
+		return overlays;
+	}
+
+	private resumeAll(): OverlayDescriptor[] {
+		const overlays = this.manager.resumeAll();
+		this.saveActiveOverlayPreset(overlays);
+		return overlays;
+	}
+
+	private async loadSitePreset(): Promise<void> {
+		try {
+			this.sitePreset = await this.presetStore.loadForUrl(this.pageUrl);
+		} catch (error) {
+			broadcastError(toUserMessage(error));
+		}
+	}
+
+	private saveActiveOverlayPreset(overlays: readonly OverlayDescriptor[]): void {
+		const settings = overlays[0]?.settings;
+		if (!settings) {
+			return;
+		}
+
+		this.sitePreset = settings;
+		void this.presetStore.saveForUrl(this.pageUrl, settings).catch((error) => {
+			broadcastError(toUserMessage(error));
+			this.sync();
+		});
 	}
 
 	private sync(): void {

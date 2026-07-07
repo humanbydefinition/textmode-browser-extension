@@ -27,8 +27,17 @@ describe('extension store links', () => {
 		);
 	});
 
-	it('omits the rating link for unsupported store targets', () => {
+	it('resolves the Edge Add-ons listing link for Edge builds', () => {
 		const target = resolveExtensionStoreTarget('edge');
+
+		expect(target).toBe('edge');
+		expect(getRateExtensionUrl(target)).toBe(
+			'https://microsoftedge.microsoft.com/addons/detail/textmode-overlay/plmdfppaobnppibihdkfgoaeikehofjf'
+		);
+	});
+
+	it('omits the rating link for unsupported store targets', () => {
+		const target = resolveExtensionStoreTarget('safari');
 
 		expect(target).toBe('unsupported');
 		expect(getRateExtensionUrl(target)).toBeNull();

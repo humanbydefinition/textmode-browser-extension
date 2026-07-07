@@ -1,14 +1,16 @@
-export type ExtensionStoreTarget = 'chrome' | 'opera' | 'firefox' | 'unsupported';
+export type ExtensionStoreTarget = 'chrome' | 'opera' | 'firefox' | 'edge' | 'unsupported';
 
 export const EXTENSION_STORE_REVIEW_URLS: Record<Exclude<ExtensionStoreTarget, 'unsupported'>, string> = {
 	chrome: 'https://chromewebstore.google.com/detail/textmode-overlay/nmepplnokndndgeldlhbffhkipimmaia/reviews',
 	opera: 'https://addons.opera.com/en/extensions/details/textmode-overlay/',
 	firefox: 'https://addons.mozilla.org/en-US/firefox/addon/textmode-overlay/reviews/',
+	edge: 'https://microsoftedge.microsoft.com/addons/detail/textmode-overlay/plmdfppaobnppibihdkfgoaeikehofjf',
 };
 
 export function resolveExtensionStoreTarget(browser: string, mode?: string): ExtensionStoreTarget {
 	if (browser === 'firefox') return 'firefox';
 	if (browser === 'chrome') return mode === 'opera' ? 'opera' : 'chrome';
+	if (browser === 'edge') return 'edge';
 	return 'unsupported';
 }
 

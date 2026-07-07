@@ -28,7 +28,7 @@
 		[
 			"@semantic-release/exec",
 			{
-				"prepareCmd": "npm version ${nextRelease.version} --no-git-tag-version && npm run zip && npm run zip:firefox"
+				"prepareCmd": "npm version ${nextRelease.version} --no-git-tag-version && npm run zip:opera && npm run zip:chrome && npm run zip:edge && npm run zip:firefox"
 			}
 		],
 		[

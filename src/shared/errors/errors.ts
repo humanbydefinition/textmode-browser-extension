@@ -1,3 +1,15 @@
+export type FontUploadErrorCode = 'INVALID_TYPE' | 'INVALID_SIGNATURE' | 'TOO_LARGE';
+
+export class FontUploadError extends Error {
+	public constructor(
+		public readonly code: FontUploadErrorCode,
+		message: string
+	) {
+		super(message);
+		this.name = 'FontUploadError';
+	}
+}
+
 export function toUserMessage(error: unknown): string {
 	if (error instanceof Error && error.message) {
 		return error.message;

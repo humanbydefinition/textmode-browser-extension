@@ -1,16 +1,25 @@
+import type { CustomFontSummary } from '../../domain/fonts/custom-font-entry';
 import type { OverlayDescriptor, OverlayExportFormat, OverlaySettings } from '../../domain/overlay/overlay-settings';
+import type { CustomFontId } from '../../domain/overlay/overlay-settings';
 import { h, removeChildren } from './dom';
 import { icon } from './icons';
 import { OverlayCardView } from './panel/overlay-card-view';
 import { createButton } from './settings/form-controls';
+import { rateExtensionUrl as defaultRateExtensionUrl } from '../../shared/config/store-links';
 
 export interface OverlayPanelViewOptions {
 	portalContainer: HTMLElement;
+	customFonts?: readonly CustomFontSummary[];
+	allowCustomFontUpload?: boolean;
 	onStartPicking: () => void;
 	onUpdateOverlay: (id: string, settings: Partial<OverlaySettings>) => void;
 	onExportOverlay: (id: string, format: OverlayExportFormat) => void;
 	onRemoveOverlay: (id: string) => void;
+	onUploadFont?: (file: File) => Promise<{ id: CustomFontId; displayName: string }>;
+	onRemoveCustomFont?: (id: CustomFontId) => Promise<void> | void;
+	onError?: (message: string) => void;
 	onClose?: () => void;
+	rateExtensionUrl?: string | null;
 }
 
 export class OverlayPanelView {
@@ -46,7 +55,21 @@ export class OverlayPanelView {
 			icon('heart-handshake'),
 			'support'
 		);
-		const actions = h('div', { className: 'tm-panel__actions' }, supportLink);
+		const githubLink = h(
+			'a',
+			{
+				className: 'tm-button tm-button--ghost tm-button--icon tm-github-link',
+				attributes: {
+					href: 'https://github.com/humanbydefinition/textmode-browser-extension',
+					target: '_blank',
+					rel: 'noreferrer',
+					title: 'GitHub repository',
+					'aria-label': 'GitHub repository',
+				},
+			},
+			icon('github')
+		);
+		const actions = h('div', { className: 'tm-panel__actions' }, supportLink, githubLink);
 		if (options.onClose) {
 			const closeButton = createButton('tm-button tm-button--ghost tm-button--icon', 'close panel');
 			closeButton.append(icon('x'));
@@ -68,10 +91,20 @@ export class OverlayPanelView {
 				options.onRemoveOverlay(this.overlayId);
 			}
 		});
-		const footer = h(
-			'footer',
-			{ className: 'tm-panel__footer' },
-			this.removeButton,
+		const ratingUrl = options.rateExtensionUrl === undefined ? defaultRateExtensionUrl : options.rateExtensionUrl;
+		const rateLink = ratingUrl
+			? h('a', {
+					className: 'tm-rate-link',
+					attributes: { href: ratingUrl, target: '_blank', rel: 'noreferrer' },
+					textContent: 'rate extension',
+				})
+			: null;
+		const footerMeta = h(
+			'div',
+			{
+				className: rateLink ? 'tm-panel__footer-meta' : 'tm-panel__footer-meta tm-panel__footer-meta--single',
+			},
+			rateLink,
 			h(
 				'p',
 				{ className: 'tm-built-with' },
@@ -82,6 +115,7 @@ export class OverlayPanelView {
 				})
 			)
 		);
+		const footer = h('footer', { className: 'tm-panel__footer' }, this.removeButton, footerMeta);
 
 		this.element = h(
 			'main',
@@ -93,7 +127,10 @@ export class OverlayPanelView {
 		);
 	}
 
-	public update(overlays: readonly OverlayDescriptor[]): void {
+	public update(
+		overlays: readonly OverlayDescriptor[],
+		customFonts: readonly CustomFontSummary[] = this.options.customFonts ?? []
+	): void {
 		const overlay = overlays[0];
 		this.overlayId = overlay?.id ?? null;
 		this.selectButtonLabel.textContent = overlay ? 'replace media' : 'select media';
@@ -112,14 +149,19 @@ export class OverlayPanelView {
 			this.overlayCard = new OverlayCardView({
 				overlay,
 				portalContainer: this.options.portalContainer,
+				customFonts,
+				allowCustomFontUpload: this.options.allowCustomFontUpload,
 				onUpdateOverlay: this.options.onUpdateOverlay,
 				onExportOverlay: this.options.onExportOverlay,
+				onUploadFont: this.options.onUploadFont,
+				onRemoveCustomFont: this.options.onRemoveCustomFont,
+				onError: this.options.onError,
 			});
 			removeChildren(this.overlayList);
 			this.overlayList.append(this.overlayCard.element);
 		}
 
-		this.overlayCard.update(overlay);
+		this.overlayCard.update(overlay, customFonts);
 	}
 
 	public dispose(): void {

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { DEFAULT_OVERLAY_SETTINGS } from '@/domain/overlay/overlay-settings';
+import { DEFAULT_FONT_ID, DEFAULT_OVERLAY_SETTINGS } from '@/domain/overlay/overlay-settings';
 import { createExportGrid } from '@/widgets/overlay-panel/settings/export-grid-view';
 import { GlyphRampFieldView } from '@/widgets/overlay-panel/settings/glyph-ramp-field-view';
 import { RangeFieldView } from '@/widgets/overlay-panel/settings/range-field-view';
@@ -28,7 +28,7 @@ describe('settings field views', () => {
 	it('keeps glyph ramp input text and preset navigation wired', () => {
 		const onChange = vi.fn();
 		const field = new GlyphRampFieldView({
-			fontId: DEFAULT_OVERLAY_SETTINGS.fontId,
+			fontId: DEFAULT_FONT_ID,
 			value: DEFAULT_OVERLAY_SETTINGS.glyphRamp,
 			onChange,
 		});

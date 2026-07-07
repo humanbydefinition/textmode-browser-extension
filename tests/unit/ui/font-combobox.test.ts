@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { BundledFontEntry } from '@/domain/fonts/font-registry';
-import type { BundledFontId } from '@/domain/overlay/overlay-settings';
-import { FontComboboxView } from '@/widgets/overlay-panel/font-combobox/font-combobox-view';
+import type { BundledFontId, FontId } from '@/domain/overlay/overlay-settings';
+import { FontComboboxView, type FontEntry } from '@/widgets/overlay-panel/font-combobox/font-combobox-view';
 
 function createFont(id: BundledFontId, displayName: string): BundledFontEntry {
 	return {
@@ -15,12 +15,12 @@ function createFont(id: BundledFontId, displayName: string): BundledFontEntry {
 	};
 }
 
-const TEST_FONTS: readonly BundledFontEntry[] = [
-	createFont('chunky', 'CHUNKY'),
-	createFont('bescii', 'BESCII'),
-	createFont('t64', 'T64'),
-	createFont('rook', 'Rook'),
-	createFont('unscii8', 'UNSCII 8'),
+const TEST_FONTS: readonly FontEntry[] = [
+	toBundledEntry(createFont('chunky', 'CHUNKY')),
+	toBundledEntry(createFont('bescii', 'BESCII')),
+	toBundledEntry(createFont('t64', 'T64')),
+	toBundledEntry(createFont('rook', 'Rook')),
+	toBundledEntry(createFont('unscii8', 'UNSCII 8')),
 ];
 
 describe('FontComboboxView', () => {
@@ -64,6 +64,10 @@ describe('FontComboboxView', () => {
 
 		const options = document.querySelectorAll('.tm-font-combobox__option');
 		expect(options.length).toBe(TEST_FONTS.length);
+		expect(document.querySelector('.tm-font-combobox__list')?.closest('[data-slot="scroll-area"]')).not.toBeNull();
+		expect(document.querySelector('.tm-font-combobox__viewport')?.getAttribute('data-slot')).toBe(
+			'scroll-area-viewport'
+		);
 	});
 
 	it('filters fonts by search query', () => {
@@ -114,25 +118,105 @@ describe('FontComboboxView', () => {
 		expect(trigger?.disabled).toBe(true);
 		expect(trigger?.textContent).toContain('No local fonts');
 	});
+
+	it('keeps the trigger enabled for upload-only states', () => {
+		const combobox = createCombobox({ fonts: [], allowCustomFontUpload: true });
+		host.append(combobox.element);
+
+		const trigger = host.querySelector<HTMLButtonElement>('[role="combobox"]');
+		expect(trigger?.disabled).toBe(false);
+	});
+
+	it('shows upload controls only when custom uploads are allowed', () => {
+		const hiddenCombobox = createCombobox();
+		host.append(hiddenCombobox.element);
+		host.querySelector<HTMLButtonElement>('[role="combobox"]')!.click();
+		expect(document.querySelector('.tm-font-combobox__upload-button')).toBeNull();
+		hiddenCombobox.dispose();
+		host.replaceChildren();
+		portalRoot.replaceChildren();
+
+		const uploadCombobox = createCombobox({ allowCustomFontUpload: true });
+		host.append(uploadCombobox.element);
+		host.querySelector<HTMLButtonElement>('[role="combobox"]')!.click();
+
+		expect(document.querySelector('.tm-font-combobox__upload-button')).not.toBeNull();
+	});
+
+	it('fires onUploadFont when the hidden file input changes', () => {
+		const onUploadFont = vi.fn();
+		const combobox = createCombobox({ allowCustomFontUpload: true, onUploadFont });
+		host.append(combobox.element);
+		host.querySelector<HTMLButtonElement>('[role="combobox"]')!.click();
+
+		const file = new File([new Uint8Array([0, 1, 0, 0])], 'Grid.ttf');
+		const input = document.querySelector<HTMLInputElement>('.tm-font-combobox__file-input');
+		expect(input).not.toBeNull();
+		Object.defineProperty(input, 'files', { configurable: true, value: [file] });
+		input!.dispatchEvent(new Event('change', { bubbles: true }));
+
+		expect(onUploadFont).toHaveBeenCalledWith(file);
+	});
+
+	it('renders custom entries and removes them', () => {
+		const onRemoveCustomFont = vi.fn();
+		const fonts: readonly FontEntry[] = [
+			{ kind: 'custom', id: 'custom:grid', displayName: 'Grid', fileName: 'Grid.ttf' },
+			...TEST_FONTS,
+		];
+		const combobox = createCombobox({ fonts, value: 'custom:grid', onRemoveCustomFont });
+		host.append(combobox.element);
+		host.querySelector<HTMLButtonElement>('[role="combobox"]')!.click();
+
+		expect(document.querySelector('.tm-font-combobox__section-header')?.textContent).toBe('Your fonts');
+		expect(document.querySelector('.tm-font-combobox__option--custom')?.textContent).toContain('Grid');
+		document.querySelector<HTMLButtonElement>('.tm-font-combobox__option-remove')!.click();
+
+		expect(onRemoveCustomFont).toHaveBeenCalledWith('custom:grid');
+	});
+
+	it('updates the rendered font list through setFonts', () => {
+		const combobox = createCombobox({ fonts: TEST_FONTS.slice(0, 1) });
+		host.append(combobox.element);
+		host.querySelector<HTMLButtonElement>('[role="combobox"]')!.click();
+		expect(document.querySelectorAll('.tm-font-combobox__option')).toHaveLength(1);
+
+		combobox.setFonts(TEST_FONTS);
+
+		expect(document.querySelectorAll('.tm-font-combobox__option')).toHaveLength(TEST_FONTS.length);
+	});
 });
 
 function createCombobox({
 	fonts = TEST_FONTS,
 	value = 'chunky',
 	fallbackLabel = 'CHUNKY',
+	allowCustomFontUpload = false,
 	onChange = vi.fn(),
+	onUploadFont,
+	onRemoveCustomFont,
 }: {
-	fonts?: readonly BundledFontEntry[];
-	value?: BundledFontId;
+	fonts?: readonly FontEntry[];
+	value?: FontId;
 	fallbackLabel?: string;
-	onChange?: (fontId: BundledFontId) => void;
+	allowCustomFontUpload?: boolean;
+	onChange?: (fontId: FontId) => void;
+	onUploadFont?: (file: File) => void;
+	onRemoveCustomFont?: (id: `custom:${string}`) => void;
 } = {}): FontComboboxView {
 	const combobox = new FontComboboxView({
 		fonts,
 		value,
 		portalContainer: document.querySelector<HTMLDivElement>('body > div:last-child')!,
+		allowCustomFontUpload,
 		onChange,
+		onUploadFont,
+		onRemoveCustomFont,
 	});
 	combobox.update(value, fallbackLabel);
 	return combobox;
+}
+
+function toBundledEntry(font: BundledFontEntry): FontEntry {
+	return { ...font, kind: 'bundled' };
 }

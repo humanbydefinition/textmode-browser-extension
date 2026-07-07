@@ -26,23 +26,25 @@
 
 </div>
 
-`Textmode Overlay` is a free and open-source browser extension utilizing [textmode.js](https://github.com/humanbydefinition/textmode.js) to render live ASCII/textmode overlays on visible `<canvas>` and `<video>` elements. It provides an in-page control panel for adjusting overlay settings and exporting the result as TXT, SVG, PNG, or JPG.
+`Textmode Overlay` is a free and open-source browser extension utilizing [textmode.js](https://github.com/humanbydefinition/textmode.js) to render live ASCII/textmode overlays on visible `<canvas>` and `<video>` elements. It provides an in-page control panel for adjusting overlay settings, applying real-time post-processing filters, uploading custom fonts, and exporting the result as TXT, SVG, PNG, or JPG.
 
 ## Features
 
-- Live textmode overlays on visible `<canvas>` and `<video>` elements.
-- In-page control panel for adjusting overlay settings.
-- Export overlays as TXT, SVG, PNG, or JPG.
+- **Live Textmode Conversion**: Real-time rendering of customizable textmode/ASCII grids over `<canvas>` and `<video>` elements.
+- **In-Page Control Panel**: Dynamic options for adjustments to characters, fonts, glyph sizes, post-fx filters, and more.
+- **Custom Fonts**: Upload your own TrueType (`.ttf`) or OpenType (`.otf`) fonts directly in the control panel to use custom character sets.
+- **Post-FX Filters**: Stackable, real-time filters to stylize the final output.
+- **Static Exports**: Export overlays as TXT, SVG, PNG, or JPG when you want a static copy of the canvas.
 
 ## Browser Support
 
-| Browser                                               | Build                   | Output                | Store                                                                                                          |
-| ----------------------------------------------------- | ----------------------- | --------------------- | -------------------------------------------------------------------------------------------------------------- |
-| [Chrome](https://www.google.com/chrome/)              | `npm run build:chrome`  | `.output/chrome-mv3`  | [Chrome Web Store](https://chromewebstore.google.com/detail/textmode-overlay/nmepplnokndndgeldlhbffhkipimmaia) |
-| [Opera](https://www.opera.com/download)               | `npm run build:chrome`  | `.output/chrome-mv3`  | [Opera Add-ons](https://addons.opera.com/en/extensions/details/textmode-overlay/)                              |
-| [Edge](https://www.microsoft.com/en-us/edge)          | `npm run build:edge`    | `.output/edge-mv3`    | Reviewing                                                                                                      |
-| [Firefox](https://www.mozilla.org/en-US/firefox/new/) | `npm run build:firefox` | `.output/firefox-mv3` | [Reviewing](https://addons.mozilla.org/en-US/firefox/addon/textmode-overlay/)                                  |
-| [Safari](https://www.apple.com/safari/)               | `npm run build:safari`  | `.output/safari-mv2`  | —                                                                                                              |
+| Browser                                               | Build                   | Output                     | Store                                                                                                          |
+| ----------------------------------------------------- | ----------------------- | -------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| [Chrome](https://www.google.com/chrome/)              | `npm run build:chrome`  | `.output/chrome-mv3`       | [Chrome Web Store](https://chromewebstore.google.com/detail/textmode-overlay/nmepplnokndndgeldlhbffhkipimmaia) |
+| [Opera](https://www.opera.com/download)               | `npm run build:opera`   | `.output/chrome-mv3-opera` | [Opera Add-ons](https://addons.opera.com/en/extensions/details/textmode-overlay/)                              |
+| [Edge](https://www.microsoft.com/en-us/edge)          | `npm run build:edge`    | `.output/edge-mv3`         | [Edge Add-ons](https://microsoftedge.microsoft.com/addons/detail/plmdfppaobnppibihdkfgoaeikehofjf)             |
+| [Firefox](https://www.mozilla.org/en-US/firefox/new/) | `npm run build:firefox` | `.output/firefox-mv3`      | [Firefox Add-ons](https://addons.mozilla.org/en-US/firefox/addon/textmode-overlay/)                            |
+| [Safari](https://www.apple.com/safari/)               | `npm run build:safari`  | `.output/safari-mv2`       | —                                                                                                              |
 
 ## Quick Start
 
@@ -83,12 +85,21 @@ Load the extension in Chrome:
 2. Click the textmode overlay extension action.
 3. Click **select media**.
 4. Click the target media element on the page.
-5. Adjust the overlay from the in-page panel.
+5. Adjust the overlay settings from the in-page panel.
 6. Export the result when you want a static artifact.
 
-Some media cannot be sampled. Cross-origin, tainted, DRM-protected, or otherwise restricted media may fail
-when the browser blocks WebGL or canvas pixel access. The extension should report those failures without
-breaking the page.
+> [!NOTE]
+> Some media cannot be sampled. Cross-origin, tainted, DRM-protected, or otherwise restricted media may fail when the browser blocks WebGL or canvas pixel access. The extension should report those failures without breaking the page.
+
+### Uploading Fonts
+
+Open the font picker from the in-page panel and choose **upload font...** to add a local TrueType `.ttf` or TrueType-outline `.otf` font. Uploaded fonts are session-only: they stay available while the content runtime is alive, but they are not persisted after page reloads or navigation. WOFF, WOFF2, CFF-based OTF files, and files larger than 10 MB are rejected.
+
+### Post-FX Filters
+
+Open the in-page control panel, switch to the **post fx** tab, and use that list to shape the final rendered output. Each row can be enabled or disabled, expanded to reveal its controls, and dragged by the grip handle to change the order in which the filters run.
+
+The stack is applied from top to bottom, so reordering filters can change the final look even when the same filters stay enabled. When a filter has adjustable properties, expand its row and update the available sliders or numeric controls directly from that panel.
 
 ## Development
 

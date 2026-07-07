@@ -1,13 +1,18 @@
 import type { OverlayDescriptor, OverlayExportFormat, OverlaySettings } from '../../domain/overlay/overlay-settings';
+import type { CustomFontId } from '../../domain/overlay/overlay-settings';
 import { OverlayPanelView } from './overlay-panel-view';
 import panelStyles from './popup.css?inline';
 
 export interface ControlPanelOptions {
 	headerFontUrl?: string | null;
+	allowCustomFontUpload?: boolean;
 	onStartPicking: () => void;
 	onUpdateOverlay: (id: string, settings: Partial<OverlaySettings>) => void;
 	onExportOverlay: (id: string, format: OverlayExportFormat) => void;
 	onRemoveOverlay: (id: string) => void;
+	onUploadFont?: (file: File) => Promise<{ id: CustomFontId; displayName: string }>;
+	onRemoveCustomFont?: (id: CustomFontId) => Promise<void> | void;
+	onError?: (message: string) => void;
 	onClose: () => void;
 }
 
@@ -83,10 +88,14 @@ export class ControlPanel {
 
 		this.view = new OverlayPanelView({
 			portalContainer: this.portalRoot,
+			allowCustomFontUpload: this.options.allowCustomFontUpload,
 			onStartPicking: this.options.onStartPicking,
 			onUpdateOverlay: this.options.onUpdateOverlay,
 			onExportOverlay: this.options.onExportOverlay,
 			onRemoveOverlay: this.options.onRemoveOverlay,
+			onUploadFont: this.options.onUploadFont,
+			onRemoveCustomFont: this.options.onRemoveCustomFont,
+			onError: this.options.onError,
 			onClose: this.options.onClose,
 		});
 		this.mountPoint.append(this.view.element);

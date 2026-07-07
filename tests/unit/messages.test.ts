@@ -6,6 +6,15 @@ describe('isRuntimeMessage', () => {
 		expect(isRuntimeMessage({ type: 'PING' })).toBe(true);
 		expect(isRuntimeMessage({ type: 'REMOVE_OVERLAY', id: 'overlay-1' })).toBe(true);
 		expect(isRuntimeMessage({ type: 'UPDATE_OVERLAY', id: 'overlay-1', settings: { fontSize: 16 } })).toBe(true);
+		expect(
+			isRuntimeMessage({
+				type: 'UPDATE_OVERLAY',
+				id: 'overlay-1',
+				settings: {
+					postFx: [{ id: 'fx-1', filter: 'brightness', enabled: true, params: { amount: 1.2 } }],
+				},
+			})
+		).toBe(true);
 		expect(isRuntimeMessage({ type: 'EXPORT_OVERLAY', id: 'overlay-1', format: 'txt' })).toBe(true);
 		expect(isRuntimeMessage({ type: 'EXPORT_OVERLAY', id: 'overlay-1', format: 'svg' })).toBe(true);
 		expect(isRuntimeMessage({ type: 'EXPORT_OVERLAY', id: 'overlay-1', format: 'png' })).toBe(true);
@@ -26,6 +35,33 @@ describe('isRuntimeMessage', () => {
 		expect(isRuntimeMessage({ type: 'UPDATE_OVERLAY', id: 'overlay-1', settings: { fontId: 'chunky' } })).toBe(
 			true
 		);
+	});
+
+	it('accepts overlay broadcasts with custom font summaries', () => {
+		expect(
+			isRuntimeMessage({
+				type: 'OVERLAY_LIST_CHANGED',
+				overlays: [],
+				customFonts: [{ id: 'custom:abc', displayName: 'Pixel Grid' }],
+			})
+		).toBe(true);
+	});
+
+	it('rejects malformed custom font summaries', () => {
+		expect(
+			isRuntimeMessage({
+				type: 'OVERLAY_LIST_CHANGED',
+				overlays: [],
+				customFonts: [{ id: 'custom:', displayName: 'Pixel Grid' }],
+			})
+		).toBe(false);
+		expect(
+			isRuntimeMessage({
+				type: 'OVERLAY_LIST_CHANGED',
+				overlays: [],
+				customFonts: [{ id: 'custom:abc', displayName: '' }],
+			})
+		).toBe(false);
 	});
 
 	it('rejects malformed overlay mutation messages', () => {

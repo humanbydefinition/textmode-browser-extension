@@ -8,11 +8,11 @@ By participating, you agree to follow our [Code of Conduct](CODE_OF_CONDUCT.md).
 
 ## Branching Model
 
-This repository uses a structured promotion pipeline to control releases:
+This repository uses a structured branch promotion flow for review and integration:
 
 - **`dev`**: The active integration branch. **All pull requests must target this branch.**
-- **`beta`**: The prerelease branch. Pushes/merges to `beta` automatically trigger a pre-release on GitHub.
-- **`main`**: The stable release branch. Pushes/merges to `main` automatically trigger a production release.
+- **`beta`**: The browser-testing branch for changes promoted from `dev`.
+- **`main`**: The stable branch for changes promoted after beta validation.
 
 _Note: Direct local pushes to `dev`, `beta`, and `main` are blocked by git hooks. Changes must be proposed via pull requests._
 
@@ -20,7 +20,7 @@ _Note: Direct local pushes to `dev`, `beta`, and `main` are blocked by git hooks
 
 ## Commit Guidelines
 
-We enforce **Conventional Commits** to automate versioning and release notes. Your commit messages must use one of these prefixes:
+We enforce **Conventional Commits** to keep history, reviews, and maintenance notes consistent. Your commit messages must use one of these prefixes:
 
 - `feat:` (New features)
 - `fix:` (Bug fixes)

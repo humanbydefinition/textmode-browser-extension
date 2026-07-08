@@ -18,9 +18,9 @@
 
 <!-- Note affected browsers, generated manifests, host permissions, web-accessible resources, storage, privacy, or store-review impact. Write "None" if not applicable. -->
 
-## Release Notes
+## User-Facing Notes
 
-<!-- Should this be mentioned in CHANGELOG.md or release notes? -->
+<!-- Should this be mentioned in user-facing docs, store reviewer notes, or a manual changelog? -->
 
 ## Checklist
 

@@ -91,6 +91,17 @@ test('Chrome extension can select a canvas and create an overlay', async () => {
 				})
 			)
 			.toBe(1);
+		await page.keyboard.press('Escape');
+		await page.getByRole('button', { name: 'reset all settings to defaults' }).click();
+		await expect
+			.poll(() =>
+				serviceWorker.evaluate(async () => {
+					const stored = await chrome.storage.local.get('custom-fonts:catalog:v1');
+					const catalog = stored['custom-fonts:catalog:v1'] as { fonts?: unknown[] } | undefined;
+					return catalog?.fonts?.length ?? 0;
+				})
+			)
+			.toBe(1);
 
 		await page.reload();
 		await serviceWorker.evaluate(async () => {

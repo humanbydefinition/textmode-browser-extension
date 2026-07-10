@@ -3,6 +3,7 @@ import {
 	DEFAULT_FONT_ID,
 	DEFAULT_OVERLAY_SETTINGS,
 	OVERLAY_POST_FX_FILTER_IDS,
+	createDefaultOverlaySettings,
 	type OverlayDescriptor,
 } from '../../../src/domain/overlay/overlay-settings';
 import { getAdjacentGlyphRampPreset } from '../../../src/domain/overlay/glyph-ramp-registry';
@@ -125,6 +126,39 @@ describe('OverlayPanelView', () => {
 		nextGlyphRampButton!.click();
 
 		expect(onUpdateOverlay).toHaveBeenCalledWith('overlay-1', { glyphRamp: expectedPreset.glyphRamp });
+	});
+
+	it('resets all overlay settings without removing persisted custom fonts', () => {
+		const onUpdateOverlay = vi.fn();
+		const onRemoveCustomFont = vi.fn();
+		const customFontId = 'custom:123e4567-e89b-12d3-a456-426614174000' as const;
+		const overlay = createOverlay({
+			...DEFAULT_OVERLAY_SETTINGS,
+			opacity: 0.25,
+			fontSize: 24,
+			fontId: customFontId,
+			invert: true,
+			postFx: DEFAULT_OVERLAY_SETTINGS.postFx.map((item, index) => ({
+				...item,
+				enabled: index === 0,
+			})),
+		});
+		const view = createView({
+			onUpdateOverlay,
+			onRemoveCustomFont,
+			customFonts: [{ id: customFontId, displayName: 'Stored Grid' }],
+		});
+		view.update([overlay], [{ id: customFontId, displayName: 'Stored Grid' }]);
+		host.append(view.element);
+
+		const resetButton = host.querySelector<HTMLButtonElement>('.tm-settings-reset');
+		expect(resetButton?.textContent).toContain('reset');
+		expect(resetButton?.closest('.tm-overlay-toggle-row')).not.toBeNull();
+		expect(host.querySelector('.tm-settings-form > .tm-settings-reset-row')).toBeNull();
+		resetButton?.click();
+
+		expect(onUpdateOverlay).toHaveBeenCalledWith('overlay-1', createDefaultOverlaySettings());
+		expect(onRemoveCustomFont).not.toHaveBeenCalled();
 	});
 
 	it('renders fixed post-fx accordion rows and toggles filters', () => {

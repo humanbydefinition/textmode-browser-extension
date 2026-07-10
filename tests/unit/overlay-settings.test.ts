@@ -3,6 +3,7 @@ import {
 	DEFAULT_FONT_ID,
 	DEFAULT_OVERLAY_SETTINGS,
 	OVERLAY_POST_FX_FILTER_IDS,
+	createDefaultOverlaySettings,
 	createOverlayPostFxItem,
 	isBundledFontId,
 	mergeOverlaySettings,
@@ -75,6 +76,15 @@ describe('mergeOverlaySettings', () => {
 		expect(mergeOverlaySettings(DEFAULT_OVERLAY_SETTINGS, {}).postFx.map((item) => item.filter)).toEqual(
 			OVERLAY_POST_FX_FILTER_IDS
 		);
+	});
+
+	it('creates fresh default post-fx state for reset operations', () => {
+		const first = createDefaultOverlaySettings();
+		const second = createDefaultOverlaySettings();
+
+		expect(first).toEqual(DEFAULT_OVERLAY_SETTINGS);
+		expect(first.postFx).not.toBe(second.postFx);
+		expect(first.postFx[0]).not.toBe(second.postFx[0]);
 	});
 
 	it('normalizes post-fx chains to one item per known filter while preserving order', () => {

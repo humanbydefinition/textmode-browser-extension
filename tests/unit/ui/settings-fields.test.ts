@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { DEFAULT_FONT_ID, DEFAULT_OVERLAY_SETTINGS } from '@/domain/overlay/overlay-settings';
+import { OverlaySettingsFormView } from '@/widgets/overlay-panel/overlay-settings-form-view';
 import { createExportGrid } from '@/widgets/overlay-panel/settings/export-grid-view';
 import { GlyphRampFieldView } from '@/widgets/overlay-panel/settings/glyph-ramp-field-view';
 import { RangeFieldView } from '@/widgets/overlay-panel/settings/range-field-view';
@@ -39,6 +40,26 @@ describe('settings field views', () => {
 
 		expect(onChange).toHaveBeenCalledWith(expect.any(String));
 		field.element.remove();
+	});
+
+	it('renders font arrow controls outside the label element', () => {
+		const form = new OverlaySettingsFormView({
+			settings: DEFAULT_OVERLAY_SETTINGS,
+			portalContainer: document.body,
+			onChange: vi.fn(),
+			onExport: vi.fn(),
+		});
+		document.body.append(form.element);
+
+		const fontField = Array.from(form.element.querySelectorAll('.tm-field')).find((field) =>
+			field.querySelector('.tm-font-combobox__actions')
+		);
+
+		expect(fontField?.firstElementChild?.tagName).toBe('DIV');
+		expect(fontField?.querySelector('.tm-font-combobox__actions')?.closest('label')).toBeNull();
+
+		form.dispose();
+		form.element.remove();
 	});
 
 	it('renders export buttons with fixed format callbacks', () => {

@@ -14,7 +14,7 @@ import { TabsView } from './components/tabs-view';
 import { FontComboboxView, type FontEntry } from './font-combobox/font-combobox-view';
 import { ColorModeFieldView } from './settings/color-mode-field-view';
 import { createExportGrid } from './settings/export-grid-view';
-import { createButton, createSettingField, createToggleField, createToggleInput } from './settings/form-controls';
+import { createButton, createToggleField, createToggleInput } from './settings/form-controls';
 import { GlyphRampFieldView } from './settings/glyph-ramp-field-view';
 import { RangeFieldView } from './settings/range-field-view';
 import { formatPercent, formatPixels, overlaySettingLimits } from './overlay-ui-model';
@@ -133,7 +133,17 @@ export class OverlaySettingsFormView {
 			this.charColorModeField.element,
 			this.cellColorModeField.element,
 			this.glyphRampField.element,
-			createSettingField('font', this.fontCombobox.element, undefined, this.fontCombobox.cycleControls)
+			h(
+				'div',
+				{ className: 'tm-field' },
+				h(
+					'div',
+					{ className: 'tm-field__label' },
+					h('span', { textContent: 'font' }),
+					this.fontCombobox.cycleControls
+				),
+				this.fontCombobox.element
+			)
 		);
 		this.tabs.advancedContent.append(advancedControls);
 		this.postFxPanel = new PostFxPanelView({

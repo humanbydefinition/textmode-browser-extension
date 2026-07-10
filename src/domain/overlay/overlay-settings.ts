@@ -44,19 +44,23 @@ export interface OverlayDescriptor {
 	latestError?: string;
 }
 
-export const DEFAULT_OVERLAY_SETTINGS: OverlaySettings = {
-	enabled: true,
-	opacity: 1,
-	fontSize: 8,
-	fontId: DEFAULT_FONT_ID,
-	glyphRamp: ' .:-=+*#%@',
-	invert: false,
-	charColorMode: 'sampled',
-	charColor: '#ffffff',
-	cellColorMode: 'fixed',
-	cellColor: '#000000',
-	postFx: createDefaultOverlayPostFxItems(),
-};
+export function createDefaultOverlaySettings(): OverlaySettings {
+	return {
+		enabled: true,
+		opacity: 1,
+		fontSize: 8,
+		fontId: DEFAULT_FONT_ID,
+		glyphRamp: ' .:-=+*#%@',
+		invert: false,
+		charColorMode: 'sampled',
+		charColor: '#ffffff',
+		cellColorMode: 'fixed',
+		cellColor: '#000000',
+		postFx: createDefaultOverlayPostFxItems(),
+	};
+}
+
+export const DEFAULT_OVERLAY_SETTINGS: OverlaySettings = createDefaultOverlaySettings();
 
 export function mergeOverlaySettings(base: OverlaySettings, patch: Partial<OverlaySettings>): OverlaySettings {
 	const next: OverlaySettings = {

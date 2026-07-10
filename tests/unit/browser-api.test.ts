@@ -30,10 +30,12 @@ describe('storage local adapter', () => {
 		const port = createStorageLocalPort(storage as never);
 
 		await expect(port.storageLocalGet<{ saved: boolean }>('preset')).resolves.toEqual({ saved: true });
+		await expect(port.storageLocalGetAll()).resolves.toEqual({ null: { saved: true } });
 		await port.storageLocalSet({ preset: { saved: false } });
 		await port.storageLocalRemove('preset');
 
 		expect(storage.get).toHaveBeenCalledWith('preset');
+		expect(storage.get).toHaveBeenCalledWith(null);
 		expect(storage.set).toHaveBeenCalledWith({ preset: { saved: false } });
 		expect(storage.remove).toHaveBeenCalledWith('preset');
 	});

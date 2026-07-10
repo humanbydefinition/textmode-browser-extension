@@ -9,7 +9,7 @@ export interface OverlayCardViewOptions {
 	portalContainer: HTMLElement;
 	customFonts?: readonly CustomFontSummary[];
 	allowCustomFontUpload?: boolean;
-	onUpdateOverlay: (id: string, settings: Partial<OverlaySettings>) => void;
+	onUpdateOverlay: (id: string, settings: Partial<OverlaySettings>) => Promise<void> | void;
 	onExportOverlay: (id: string, format: OverlayExportFormat) => void;
 	onUploadFont?: (file: File) => Promise<{ id: CustomFontId; displayName: string }>;
 	onRemoveCustomFont?: (id: CustomFontId) => Promise<void> | void;

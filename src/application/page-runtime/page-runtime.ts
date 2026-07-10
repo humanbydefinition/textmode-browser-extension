@@ -30,14 +30,24 @@ export class PageRuntime {
 	private readonly actions: RuntimeActionHandler;
 	private readonly pageUrl: URL;
 	private readonly presetStore: SitePresetStore;
-	private readonly presetLoadComplete: Promise<void>;
+	private readonly runtimeReady: Promise<void>;
 	private sitePreset: OverlaySettings | null = null;
 
 	public constructor(options: PageRuntimeOptions = {}) {
 		this.manager = new OverlayManager(() => this.sync());
 		this.pageUrl = options.pageUrl ?? new URL(window.location.href);
 		this.presetStore = options.presetStore ?? createSitePresetStore();
-		this.presetLoadComplete = this.loadSitePreset();
+		this.runtimeReady = Promise.all([runtimeFontRegistry.initialize(), this.loadSitePreset()]).then(
+			() => undefined
+		);
+		runtimeFontRegistry.subscribe((change) => {
+			if (change.removedIds.length > 0) {
+				void this.handleRemovedCustomFonts(change.removedIds).catch((error) => {
+					broadcastError(toUserMessage(error));
+				});
+			}
+			this.sync();
+		});
 		this.actions = createRuntimeActionHandler({
 			toggleControlPanel: () => this.toggleControlPanel(),
 			startPicking: () => this.startPicking(),
@@ -60,6 +70,7 @@ export class PageRuntime {
 			return true;
 		});
 		this.sync();
+		void this.runtimeReady.then(() => this.sync());
 	}
 
 	private async handleMessage(message: unknown): Promise<RuntimeAck> {
@@ -79,6 +90,7 @@ export class PageRuntime {
 	}
 
 	private async toggleControlPanel(): Promise<void> {
+		await this.runtimeReady;
 		if (this.controlPanel) {
 			this.destroyControlPanel();
 		} else {
@@ -88,7 +100,7 @@ export class PageRuntime {
 				allowCustomFontUpload: true,
 				onStartPicking: () => this.startPicking(),
 				onUpdateOverlay: (id, settings) => {
-					this.updateOverlay(id, settings);
+					return this.updateOverlay(id, settings).then(() => undefined);
 				},
 				onExportOverlay: (id, format) => {
 					void this.manager.exportOverlay(id, format).catch((error) => {
@@ -100,12 +112,7 @@ export class PageRuntime {
 					this.manager.removeOverlay(id);
 				},
 				onUploadFont: (file) => runtimeFontRegistry.addCustomFont(file),
-				onRemoveCustomFont: async (id) => {
-					this.manager.revertOverlaysUsingFont(id);
-					await new Promise<void>((resolve) => queueMicrotask(resolve));
-					runtimeFontRegistry.removeCustomFont(id);
-					this.sync();
-				},
+				onRemoveCustomFont: (id) => runtimeFontRegistry.removeCustomFont(id),
 				onError: (message) => {
 					broadcastError(message);
 					this.sync();
@@ -142,8 +149,8 @@ export class PageRuntime {
 
 	private async createOverlay(element: SelectableElement, settings?: Partial<OverlaySettings>): Promise<void> {
 		try {
-			await this.presetLoadComplete;
-			const overlay = this.manager.createOverlay(element, settings ?? this.sitePreset ?? {});
+			await this.runtimeReady;
+			const overlay = await this.manager.createOverlay(element, settings ?? this.sitePreset ?? {});
 			this.sitePreset = overlay.settings;
 		} catch (error) {
 			const message = toUserMessage(error);
@@ -152,10 +159,25 @@ export class PageRuntime {
 		}
 	}
 
-	private updateOverlay(id: string, settings: Partial<OverlaySettings>): OverlayDescriptor[] {
-		const overlays = this.manager.updateOverlay(id, settings);
+	private async updateOverlay(id: string, settings: Partial<OverlaySettings>): Promise<OverlayDescriptor[]> {
+		await this.runtimeReady;
+		const overlays = await this.manager.updateOverlay(id, settings);
 		this.saveActiveOverlayPreset(overlays);
 		return overlays;
+	}
+
+	private async handleRemovedCustomFonts(ids: readonly `custom:${string}`[]): Promise<void> {
+		for (const id of ids) {
+			const overlays = await this.manager.revertOverlaysUsingFont(id);
+			if (this.sitePreset?.fontId === id) {
+				this.sitePreset = { ...this.sitePreset, fontId: DEFAULT_FONT_ID };
+				void this.presetStore.saveForUrl(this.pageUrl, this.sitePreset).catch((error) => {
+					broadcastError(toUserMessage(error));
+				});
+			}
+			this.saveActiveOverlayPreset(overlays);
+		}
+		this.sync();
 	}
 
 	private pauseAll(): OverlayDescriptor[] {

@@ -4,6 +4,7 @@ import { classNames, h, removeChildren } from '../dom';
 import { icon } from '../icons';
 import { PopoverView } from '../components/popover-view';
 import { ScrollAreaView } from '../components/scroll-area-view';
+import { createButton } from '../settings/form-controls';
 
 export type FontEntry =
 	| (BundledFontEntry & { kind: 'bundled' })
@@ -19,14 +20,17 @@ export interface FontComboboxViewOptions {
 	value: FontId;
 	portalContainer: HTMLElement;
 	allowCustomFontUpload?: boolean;
-	onChange: (fontId: FontId) => void;
-	onUploadFont?: (file: File) => void;
-	onRemoveCustomFont?: (id: CustomFontId) => void;
+	onChange: (fontId: FontId) => Promise<void> | void;
+	onUploadFont?: (file: File) => Promise<void> | void;
+	onRemoveCustomFont?: (id: CustomFontId) => Promise<void> | void;
 }
 
 export class FontComboboxView {
 	public readonly element: HTMLButtonElement;
+	public readonly cycleControls: HTMLDivElement;
 	private readonly valueLabel: HTMLSpanElement;
+	private readonly previousButton: HTMLButtonElement;
+	private readonly nextButton: HTMLButtonElement;
 	private readonly searchInput: HTMLInputElement;
 	private readonly list: HTMLElement;
 	private readonly scrollArea: ScrollAreaView;
@@ -35,6 +39,7 @@ export class FontComboboxView {
 	private fonts: readonly FontEntry[];
 	private value: FontId;
 	private query = '';
+	private busy = false;
 
 	public constructor(private readonly options: FontComboboxViewOptions) {
 		this.fonts = options.fonts;
@@ -49,6 +54,15 @@ export class FontComboboxView {
 			this.valueLabel,
 			icon('chevron-down', 'tm-font-combobox__chevron')
 		);
+		this.previousButton = createButton('tm-button tm-button--ghost tm-button--glyph-nav', 'previous font');
+		this.previousButton.title = 'previous font';
+		this.previousButton.append(icon('arrow-left'));
+		this.previousButton.addEventListener('click', () => void this.selectAdjacent(-1));
+		this.nextButton = createButton('tm-button tm-button--ghost tm-button--glyph-nav', 'next font');
+		this.nextButton.title = 'next font';
+		this.nextButton.append(icon('arrow-right'));
+		this.nextButton.addEventListener('click', () => void this.selectAdjacent(1));
+		this.cycleControls = h('div', { className: 'tm-font-combobox__actions' }, this.previousButton, this.nextButton);
 		this.searchInput = h('input', {
 			className: 'tm-font-combobox__search tm-input',
 			attributes: {
@@ -135,6 +149,9 @@ export class FontComboboxView {
 		this.valueLabel.textContent = isDisabled
 			? 'No local fonts'
 			: (selectedFont?.displayName ?? fallbackLabel ?? 'System default');
+		const canCycle = this.fonts.length > 1 && !this.busy;
+		this.previousButton.disabled = !canCycle;
+		this.nextButton.disabled = !canCycle;
 		this.renderList();
 	}
 
@@ -214,7 +231,7 @@ export class FontComboboxView {
 		removeButton.addEventListener('click', (event) => {
 			event.preventDefault();
 			event.stopPropagation();
-			this.options.onRemoveCustomFont?.(font.id);
+			void this.runBusy(() => this.options.onRemoveCustomFont?.(font.id));
 		});
 		return h('div', { className: 'tm-font-combobox__option-row' }, option, removeButton);
 	}
@@ -233,12 +250,7 @@ export class FontComboboxView {
 			...children
 		);
 		option.addEventListener('click', () => {
-			this.options.onChange(font.id);
-			this.value = font.id;
-			this.query = '';
-			this.searchInput.value = '';
-			this.popover.setOpen(false);
-			this.render();
+			void this.selectFont(font);
 		});
 		return option;
 	}
@@ -256,9 +268,7 @@ export class FontComboboxView {
 			if (this.fileInput) {
 				this.fileInput.value = '';
 			}
-			if (file) {
-				this.options.onUploadFont?.(file);
-			}
+			if (file) void this.runBusy(() => this.options.onUploadFont?.(file));
 		});
 		const uploadButton = h(
 			'button',
@@ -271,6 +281,45 @@ export class FontComboboxView {
 		);
 		uploadButton.addEventListener('click', () => this.fileInput?.click());
 		return h('div', { className: 'tm-font-combobox__upload-row' }, this.fileInput, uploadButton);
+	}
+
+	private async runBusy(action: () => Promise<void> | void | undefined): Promise<void> {
+		if (this.busy) return;
+		this.busy = true;
+		this.element.setAttribute('aria-busy', 'true');
+		this.element.disabled = true;
+		this.previousButton.disabled = true;
+		this.nextButton.disabled = true;
+		try {
+			await action();
+		} catch {
+			// The owning form reports the operation error and keeps the prior selection.
+		} finally {
+			this.busy = false;
+			this.element.removeAttribute('aria-busy');
+			this.render();
+		}
+	}
+
+	private async selectFont(font: FontEntry): Promise<void> {
+		await this.runBusy(async () => {
+			await this.options.onChange(font.id);
+			this.value = font.id;
+			this.query = '';
+			this.searchInput.value = '';
+			this.popover.setOpen(false);
+			this.render();
+		});
+	}
+
+	private async selectAdjacent(direction: -1 | 1): Promise<void> {
+		if (this.fonts.length < 2) return;
+		const currentIndex = this.fonts.findIndex((font) => font.id === this.value);
+		const baseIndex = currentIndex >= 0 ? currentIndex : 0;
+		const nextIndex = (baseIndex + direction + this.fonts.length) % this.fonts.length;
+		const font = this.fonts[nextIndex];
+		if (!font) return;
+		await this.selectFont(font);
 	}
 }
 

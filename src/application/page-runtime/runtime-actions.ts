@@ -6,7 +6,7 @@ export interface RuntimeActionDependencies {
 	toggleControlPanel(): Promise<void>;
 	startPicking(): void;
 	listOverlays(): OverlayDescriptor[];
-	updateOverlay(id: string, settings: Partial<OverlaySettings>): OverlayDescriptor[];
+	updateOverlay(id: string, settings: Partial<OverlaySettings>): Promise<OverlayDescriptor[]>;
 	exportOverlay(id: string, format: OverlayExportFormat): Promise<OverlayDescriptor[]>;
 	removeOverlay(id: string): OverlayDescriptor[];
 	pauseAll(): OverlayDescriptor[];
@@ -33,7 +33,7 @@ export function createRuntimeActionHandler(deps: RuntimeActionDependencies): Run
 					case 'LIST_OVERLAYS':
 						return { ok: true, overlays: deps.listOverlays() };
 					case 'UPDATE_OVERLAY':
-						return { ok: true, overlays: deps.updateOverlay(message.id, message.settings) };
+						return { ok: true, overlays: await deps.updateOverlay(message.id, message.settings) };
 					case 'EXPORT_OVERLAY':
 						return { ok: true, overlays: await deps.exportOverlay(message.id, message.format) };
 					case 'REMOVE_OVERLAY':

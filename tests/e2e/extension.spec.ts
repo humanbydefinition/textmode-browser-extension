@@ -76,6 +76,45 @@ test('Chrome extension can select a canvas and create an overlay', async () => {
 		expect(popoverState.backgroundColor).not.toBe('rgba(0, 0, 0, 0)');
 		expect(popoverState.backgroundColor).not.toBe('transparent');
 		expect(popoverState.color).not.toBe('');
+
+		await page.keyboard.press('Escape');
+		await page.locator('[role="combobox"]').click();
+		await page
+			.locator('.tm-font-combobox__file-input')
+			.setInputFiles(resolve(import.meta.dirname, '../../public/fonts/atascii.ttf'));
+		await expect
+			.poll(() =>
+				serviceWorker.evaluate(async () => {
+					const stored = await chrome.storage.local.get('custom-fonts:catalog:v1');
+					const catalog = stored['custom-fonts:catalog:v1'] as { fonts?: unknown[] } | undefined;
+					return catalog?.fonts?.length ?? 0;
+				})
+			)
+			.toBe(1);
+		await page.keyboard.press('Escape');
+		await page.getByRole('button', { name: 'reset all settings to defaults' }).click();
+		await expect
+			.poll(() =>
+				serviceWorker.evaluate(async () => {
+					const stored = await chrome.storage.local.get('custom-fonts:catalog:v1');
+					const catalog = stored['custom-fonts:catalog:v1'] as { fonts?: unknown[] } | undefined;
+					return catalog?.fonts?.length ?? 0;
+				})
+			)
+			.toBe(1);
+
+		await page.reload();
+		await serviceWorker.evaluate(async () => {
+			const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+			if (!tab.id) throw new Error('Missing active tab after reload.');
+			await chrome.scripting.executeScript({ target: { tabId: tab.id }, files: ['/content-runtime.js'] });
+			await chrome.tabs.sendMessage(tab.id, { type: 'TOGGLE_OVERLAY' });
+		});
+		await page.getByRole('button', { name: /select media/i }).click();
+		await page.locator('canvas#demo-canvas').click({ position: { x: 24, y: 24 } });
+		await page.getByRole('tab', { name: 'advanced' }).click();
+		await page.locator('[role="combobox"]').click();
+		await expect(page.getByText('atascii.ttf')).toBeVisible();
 	} finally {
 		await context.close();
 		await rm(userDataDir, { recursive: true, force: true });

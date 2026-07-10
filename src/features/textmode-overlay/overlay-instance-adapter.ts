@@ -7,6 +7,7 @@ import { applyPostFxFilters, waitForPostFxFilterRegistration } from './post-fx-r
 
 export interface OverlayInstanceAdapterOptions {
 	resolveFontAssetUrl?: (fontId: FontId) => string | null;
+	fontAssetUrl?: string | null;
 }
 
 export function createOverlayInstance(
@@ -15,7 +16,7 @@ export function createOverlayInstance(
 	options: OverlayInstanceAdapterOptions = {}
 ): void {
 	const resolveFontAssetUrl = options.resolveFontAssetUrl ?? getFontAssetUrl;
-	const fontSource = resolveFontAssetUrl(controller.settings.fontId);
+	const fontSource = options.fontAssetUrl ?? resolveFontAssetUrl(controller.settings.fontId);
 	const instance = renderer.create(controller.element, controller.settings, fontSource ? { fontSource } : undefined);
 	controller.instance = instance;
 	controller.loadedFontId = controller.settings.fontId;
@@ -43,6 +44,12 @@ export function createOverlayInstance(
 	});
 
 	applyControllerSettings(controller, { resolveFontAssetUrl });
+}
+
+export async function loadControllerFont(controller: OverlayController, fontUrl: string): Promise<void> {
+	if (!controller.instance) return;
+	await controller.instance.loadFont(fontUrl);
+	controller.loadedFontId = controller.settings.fontId;
 }
 
 export function applyControllerSettings(

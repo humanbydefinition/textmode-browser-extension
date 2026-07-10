@@ -5,15 +5,16 @@ import {
 	resolveFontId,
 } from '../../shared/fonts/runtime-font-registry';
 import type { CustomFontSummary } from '../../domain/fonts/custom-font-entry';
-import type { CustomFontId, OverlayExportFormat, OverlaySettings } from '../../domain/overlay/overlay-settings';
-import { DEFAULT_FONT_ID, isBundledFontId } from '../../domain/overlay/overlay-settings';
+import type { CustomFontId, FontId, OverlayExportFormat, OverlaySettings } from '../../domain/overlay/overlay-settings';
+import { DEFAULT_FONT_ID, createDefaultOverlaySettings, isBundledFontId } from '../../domain/overlay/overlay-settings';
 import { toUserMessage } from '../../shared/errors/errors';
 import { h } from './dom';
+import { icon } from './icons';
 import { TabsView } from './components/tabs-view';
 import { FontComboboxView, type FontEntry } from './font-combobox/font-combobox-view';
 import { ColorModeFieldView } from './settings/color-mode-field-view';
 import { createExportGrid } from './settings/export-grid-view';
-import { createSettingField, createToggleField, createToggleInput } from './settings/form-controls';
+import { createButton, createToggleField, createToggleInput } from './settings/form-controls';
 import { GlyphRampFieldView } from './settings/glyph-ramp-field-view';
 import { RangeFieldView } from './settings/range-field-view';
 import { formatPercent, formatPixels, overlaySettingLimits } from './overlay-ui-model';
@@ -24,7 +25,7 @@ interface OverlaySettingsFormViewOptions {
 	portalContainer: HTMLElement;
 	customFonts?: readonly CustomFontSummary[];
 	allowCustomFontUpload?: boolean;
-	onChange: (settings: Partial<OverlaySettings>) => void;
+	onChange: (settings: Partial<OverlaySettings>) => Promise<void> | void;
 	onExport: (format: OverlayExportFormat) => void;
 	onUploadFont?: (file: File) => Promise<{ id: CustomFontId; displayName: string }>;
 	onRemoveCustomFont?: (id: CustomFontId) => Promise<void> | void;
@@ -43,6 +44,7 @@ export class OverlaySettingsFormView {
 	private readonly fontCombobox: FontComboboxView;
 	private readonly postFxPanel: PostFxPanelView;
 	private readonly tabs: TabsView;
+	private readonly resetButton: HTMLButtonElement;
 	private availableFonts: readonly FontEntry[];
 	private customFontSummaries: readonly CustomFontSummary[];
 
@@ -50,6 +52,24 @@ export class OverlaySettingsFormView {
 		this.customFontSummaries = options.customFonts ?? [];
 		this.availableFonts = this.refreshAvailableFonts();
 		this.overlayToggle = createToggleInput((enabled) => this.options.onChange({ enabled }));
+		this.overlayToggle.setAttribute('aria-label', 'overlay');
+		this.resetButton = createButton(
+			'tm-button tm-button--ghost tm-settings-reset',
+			'reset all settings to defaults'
+		);
+		this.resetButton.append(icon('rotate-ccw'), 'reset');
+		this.resetButton.addEventListener('click', () => void this.resetSettings());
+		const overlayRow = h(
+			'div',
+			{ className: 'tm-toggle-row tm-overlay-toggle-row' },
+			h(
+				'div',
+				{ className: 'tm-overlay-toggle-actions' },
+				h('span', { textContent: 'overlay' }),
+				this.resetButton
+			),
+			h('label', { className: 'tm-overlay-toggle-control' }, this.overlayToggle)
+		);
 		this.opacityField = new RangeFieldView({
 			label: 'opacity',
 			value: options.settings.opacity,
@@ -67,7 +87,7 @@ export class OverlaySettingsFormView {
 		const quickControls = h(
 			'section',
 			{ className: 'tm-control-group', attributes: { 'aria-label': 'quick overlay controls' } },
-			createToggleField('overlay', this.overlayToggle),
+			overlayRow,
 			this.opacityField.element,
 			this.fontSizeField.element
 		);
@@ -102,9 +122,9 @@ export class OverlaySettingsFormView {
 			value: options.settings.fontId,
 			portalContainer: options.portalContainer,
 			allowCustomFontUpload: options.allowCustomFontUpload ?? false,
-			onChange: (fontId) => this.options.onChange({ fontId }),
-			onUploadFont: options.onUploadFont ? (file) => void this.uploadFont(file) : undefined,
-			onRemoveCustomFont: options.onRemoveCustomFont ? (id) => void this.removeCustomFont(id) : undefined,
+			onChange: (fontId) => this.selectFont(fontId),
+			onUploadFont: options.onUploadFont ? (file) => this.uploadFont(file) : undefined,
+			onRemoveCustomFont: options.onRemoveCustomFont ? (id) => this.removeCustomFont(id) : undefined,
 		});
 		const advancedControls = h(
 			'div',
@@ -113,7 +133,17 @@ export class OverlaySettingsFormView {
 			this.charColorModeField.element,
 			this.cellColorModeField.element,
 			this.glyphRampField.element,
-			createSettingField('font', this.fontCombobox.element)
+			h(
+				'div',
+				{ className: 'tm-field' },
+				h(
+					'div',
+					{ className: 'tm-field__label' },
+					h('span', { textContent: 'font' }),
+					this.fontCombobox.cycleControls
+				),
+				this.fontCombobox.element
+			)
 		);
 		this.tabs.advancedContent.append(advancedControls);
 		this.postFxPanel = new PostFxPanelView({
@@ -194,9 +224,18 @@ export class OverlaySettingsFormView {
 			this.availableFonts = this.refreshAvailableFonts();
 			this.fontCombobox.setFonts(this.availableFonts);
 			this.fontCombobox.update(entry.id, entry.displayName);
-			this.options.onChange({ fontId: entry.id });
+			await this.options.onChange({ fontId: entry.id });
 		} catch (error) {
 			this.options.onError?.(toUserMessage(error));
+		}
+	}
+
+	private async selectFont(fontId: FontId): Promise<void> {
+		try {
+			await this.options.onChange({ fontId });
+		} catch (error) {
+			this.options.onError?.(toUserMessage(error));
+			throw error;
 		}
 	}
 
@@ -211,6 +250,20 @@ export class OverlaySettingsFormView {
 			}
 		} catch (error) {
 			this.options.onError?.(toUserMessage(error));
+		}
+	}
+
+	private async resetSettings(): Promise<void> {
+		if (this.resetButton.disabled) return;
+		this.resetButton.disabled = true;
+		this.resetButton.setAttribute('aria-busy', 'true');
+		try {
+			await this.options.onChange(createDefaultOverlaySettings());
+		} catch (error) {
+			this.options.onError?.(toUserMessage(error));
+		} finally {
+			this.resetButton.disabled = false;
+			this.resetButton.removeAttribute('aria-busy');
 		}
 	}
 }

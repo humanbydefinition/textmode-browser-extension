@@ -500,6 +500,30 @@ select {
 	grid-template-rows: auto minmax(0, 1fr);
 }
 
+.tm-overlay-toggle-actions {
+	display: flex;
+	align-items: center;
+	gap: 5px;
+}
+
+.tm-settings-reset {
+	min-height: 18px;
+	border-radius: 3px;
+	padding: 0 4px;
+	gap: 4px;
+	color: var(--tm-neutral-73);
+	font-size: 10px;
+}
+
+.tm-settings-reset svg {
+	width: 12px;
+	height: 12px;
+}
+
+.tm-overlay-toggle-control {
+	display: inline-flex;
+}
+
 .tm-popover-layer {
 	position: fixed;
 	inset: 0;
@@ -821,6 +845,13 @@ select {
 	gap: 4px;
 	min-width: 0;
 	max-width: 66%;
+}
+
+.tm-font-combobox__actions {
+	display: inline-flex;
+	align-items: center;
+	justify-content: flex-end;
+	gap: 4px;
 }
 
 .tm-glyph-ramp-name {

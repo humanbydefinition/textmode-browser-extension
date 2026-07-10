@@ -1,7 +1,23 @@
-import { addActionClickedListener, addInstalledListener, sendMessageToTab } from '../../shared/browser/browser-api';
+import {
+	addActionClickedListener,
+	addInstalledListener,
+	addRuntimeMessageListener,
+	sendMessageToTab,
+	storageLocalGet,
+	storageLocalRemove,
+	storageLocalSet,
+} from '../../shared/browser/browser-api';
 import { ensureContentRuntime } from './runtime-injection';
+import { attachCustomFontCoordinatorListener, createCustomFontCoordinator } from './custom-font-coordinator';
 
 export function startBackgroundServiceWorker(): void {
+	const coordinator = createCustomFontCoordinator({
+		get: storageLocalGet,
+		set: storageLocalSet,
+		remove: storageLocalRemove,
+	});
+	attachCustomFontCoordinatorListener(coordinator, addRuntimeMessageListener);
+	void coordinator.cleanup().catch((error) => console.warn('Unable to clean custom font storage:', error));
 	addInstalledListener(() => {
 		console.info('textmode installed.');
 	});

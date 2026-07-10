@@ -1,6 +1,6 @@
 {
 	"name": "textmode-ascii-overlay-extension",
-	"version": "1.1.0",
+	"version": "1.2.0",
 	"description": "Browser extension for overlaying real-time textmode.js ASCII conversion on page canvas and video elements.",
 	"type": "module",
 	"license": "MIT",

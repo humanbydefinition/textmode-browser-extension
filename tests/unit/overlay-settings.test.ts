@@ -3,6 +3,7 @@ import {
 	DEFAULT_FONT_ID,
 	DEFAULT_OVERLAY_SETTINGS,
 	OVERLAY_POST_FX_FILTER_IDS,
+	createDefaultOverlaySettings,
 	createOverlayPostFxItem,
 	isBundledFontId,
 	mergeOverlaySettings,
@@ -77,6 +78,15 @@ describe('mergeOverlaySettings', () => {
 		);
 	});
 
+	it('creates fresh default post-fx state for reset operations', () => {
+		const first = createDefaultOverlaySettings();
+		const second = createDefaultOverlaySettings();
+
+		expect(first).toEqual(DEFAULT_OVERLAY_SETTINGS);
+		expect(first.postFx).not.toBe(second.postFx);
+		expect(first.postFx[0]).not.toBe(second.postFx[0]);
+	});
+
 	it('normalizes post-fx chains to one item per known filter while preserving order', () => {
 		const first = { ...createOverlayPostFxItem('brightness'), enabled: true, params: { amount: 99 } };
 		const duplicate = { ...createOverlayPostFxItem('brightness'), id: 'postfx-brightness-copy' };
@@ -95,9 +105,9 @@ describe('mergeOverlaySettings', () => {
 
 	describe('isBundledFontId', () => {
 		it('returns true for known font ids', () => {
-			expect(isBundledFontId('chunky')).toBe(true);
 			expect(isBundledFontId('bescii')).toBe(true);
-			expect(isBundledFontId('t64')).toBe(true);
+			expect(isBundledFontId('ursafont')).toBe(true);
+			expect(isBundledFontId('cpc464')).toBe(true);
 		});
 
 		it('returns false for unknown strings', () => {

@@ -7,6 +7,7 @@ import {
 	type OverlayDescriptor,
 } from '../../../src/domain/overlay/overlay-settings';
 import { getAdjacentGlyphRampPreset } from '../../../src/domain/overlay/glyph-ramp-registry';
+import { getAvailableFonts } from '../../../src/shared/fonts/runtime-font-registry';
 import { OverlayPanelView } from '../../../src/widgets/overlay-panel/overlay-panel-view';
 
 describe('OverlayPanelView', () => {
@@ -126,6 +127,23 @@ describe('OverlayPanelView', () => {
 		nextGlyphRampButton!.click();
 
 		expect(onUpdateOverlay).toHaveBeenCalledWith('overlay-1', { glyphRamp: expectedPreset.glyphRamp });
+	});
+
+	it('cycles fonts from the advanced controls', () => {
+		const onUpdateOverlay = vi.fn();
+		const overlay = createOverlay();
+		const fonts = getAvailableFonts();
+		const currentIndex = fonts.findIndex((font) => font.id === overlay.settings.fontId);
+		const expectedFontId = fonts[(currentIndex + 1) % fonts.length]!.id;
+		const view = createView({ onUpdateOverlay });
+		view.update([overlay]);
+		host.append(view.element);
+
+		const nextFontButton = host.querySelector<HTMLButtonElement>('button[aria-label="next font"]');
+		expect(nextFontButton).not.toBeNull();
+		nextFontButton!.click();
+
+		expect(onUpdateOverlay).toHaveBeenCalledWith('overlay-1', { fontId: expectedFontId });
 	});
 
 	it('resets all overlay settings without removing persisted custom fonts', () => {

@@ -97,6 +97,24 @@ describe('FontComboboxView', () => {
 		expect(onChange).toHaveBeenCalledWith('atascii');
 	});
 
+	it('cycles fonts through the previous/next controls', async () => {
+		const onChange = vi.fn();
+		const combobox = createCombobox({ onChange });
+		host.append(combobox.cycleControls, combobox.element);
+
+		host.querySelector<HTMLButtonElement>('button[aria-label="next font"]')?.click();
+		await Promise.resolve();
+		await Promise.resolve();
+		expect(onChange).toHaveBeenCalledWith('ursafont');
+		expect(combobox.element.textContent).toContain('UrsaFont');
+
+		host.querySelector<HTMLButtonElement>('button[aria-label="previous font"]')?.click();
+		await Promise.resolve();
+		await Promise.resolve();
+		expect(onChange).toHaveBeenLastCalledWith('bescii');
+		expect(combobox.element.textContent).toContain('BESCII');
+	});
+
 	it('keeps the previous selection when an async font change fails', async () => {
 		const onChange = vi.fn(async () => {
 			throw new Error('Font failed to load.');

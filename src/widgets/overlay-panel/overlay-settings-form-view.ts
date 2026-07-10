@@ -133,7 +133,7 @@ export class OverlaySettingsFormView {
 			this.charColorModeField.element,
 			this.cellColorModeField.element,
 			this.glyphRampField.element,
-			createSettingField('font', this.fontCombobox.element)
+			createSettingField('font', this.fontCombobox.element, undefined, this.fontCombobox.cycleControls)
 		);
 		this.tabs.advancedContent.append(advancedControls);
 		this.postFxPanel = new PostFxPanelView({

@@ -847,6 +847,13 @@ select {
 	max-width: 66%;
 }
 
+.tm-font-combobox__actions {
+	display: inline-flex;
+	align-items: center;
+	justify-content: flex-end;
+	gap: 4px;
+}
+
 .tm-glyph-ramp-name {
 	min-width: 0;
 	max-width: 108px;

@@ -46,10 +46,7 @@ export interface CustomFontStorageResponse extends RuntimeAck {
 }
 
 export type RuntimeMessage =
-	| PopupToContentMessage
-	| ContentToPopupMessage
-	| CustomFontStorageMessage
-	| { type: 'PING' };
+	PopupToContentMessage | ContentToPopupMessage | CustomFontStorageMessage | { type: 'PING' };
 
 export interface RuntimeAck {
 	ok: boolean;

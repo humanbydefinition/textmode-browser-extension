@@ -7,7 +7,7 @@ describe('extension manifest', () => {
 	it('keeps the default build action-triggered and least-privilege', () => {
 		const manifest = createExtensionManifest({ browser: 'chrome', fontResources: TEST_FONT_RESOURCES });
 
-		expect(manifest.permissions).toEqual(['activeTab', 'scripting', 'storage']);
+		expect(manifest.permissions).toEqual(['activeTab', 'scripting', 'storage', 'unlimitedStorage']);
 		expect(manifest.host_permissions).toBeUndefined();
 		expect(manifest.action?.default_popup).toBeUndefined();
 	});

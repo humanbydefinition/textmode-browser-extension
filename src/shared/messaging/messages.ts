@@ -10,6 +10,12 @@ import {
 } from '../../domain/overlay/overlay-settings';
 import type { CustomFontSummary } from '../../domain/fonts/custom-font-entry';
 import { isCustomFontId } from '../../domain/fonts/font-id';
+import {
+	normalizeCustomFontUploadDescriptor,
+	type CustomFontUploadDescriptor,
+	type StoredCustomFontMetadata,
+} from '../../domain/fonts/custom-font-storage';
+import type { FontUploadErrorCode } from '../errors/errors';
 
 export type PopupToContentMessage =
 	| { type: 'START_PICKING' }
@@ -28,7 +34,22 @@ export type ContentToPopupMessage =
 	| { type: 'PICKING_CANCELLED' }
 	| { type: 'ERROR'; message: string };
 
-export type RuntimeMessage = PopupToContentMessage | ContentToPopupMessage | { type: 'PING' };
+export type CustomFontStorageMessage =
+	| { type: 'BEGIN_CUSTOM_FONT_UPLOAD'; descriptor: CustomFontUploadDescriptor }
+	| { type: 'COMMIT_CUSTOM_FONT_UPLOAD'; id: `custom:${string}` }
+	| { type: 'ABORT_CUSTOM_FONT_UPLOAD'; id: `custom:${string}` }
+	| { type: 'REMOVE_CUSTOM_FONT'; id: `custom:${string}` };
+
+export interface CustomFontStorageResponse extends RuntimeAck {
+	font?: StoredCustomFontMetadata;
+	errorCode?: FontUploadErrorCode;
+}
+
+export type RuntimeMessage =
+	| PopupToContentMessage
+	| ContentToPopupMessage
+	| CustomFontStorageMessage
+	| { type: 'PING' };
 
 export interface RuntimeAck {
 	ok: boolean;
@@ -41,7 +62,26 @@ export function isRuntimeMessage(value: unknown): value is RuntimeMessage {
 		return false;
 	}
 
-	return isPopupToContentMessage(value) || isContentToPopupMessage(value) || value.type === 'PING';
+	return (
+		isPopupToContentMessage(value) ||
+		isContentToPopupMessage(value) ||
+		isCustomFontStorageMessage(value) ||
+		value.type === 'PING'
+	);
+}
+
+export function isCustomFontStorageMessage(value: unknown): value is CustomFontStorageMessage {
+	if (!isRecord(value) || typeof value.type !== 'string') return false;
+	switch (value.type) {
+		case 'BEGIN_CUSTOM_FONT_UPLOAD':
+			return normalizeCustomFontUploadDescriptor(value.descriptor) !== null;
+		case 'COMMIT_CUSTOM_FONT_UPLOAD':
+		case 'ABORT_CUSTOM_FONT_UPLOAD':
+		case 'REMOVE_CUSTOM_FONT':
+			return isCustomFontId(value.id);
+		default:
+			return false;
+	}
 }
 
 export function isPopupToContentMessage(value: unknown): value is PopupToContentMessage {

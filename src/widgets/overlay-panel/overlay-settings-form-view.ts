@@ -5,7 +5,7 @@ import {
 	resolveFontId,
 } from '../../shared/fonts/runtime-font-registry';
 import type { CustomFontSummary } from '../../domain/fonts/custom-font-entry';
-import type { CustomFontId, OverlayExportFormat, OverlaySettings } from '../../domain/overlay/overlay-settings';
+import type { CustomFontId, FontId, OverlayExportFormat, OverlaySettings } from '../../domain/overlay/overlay-settings';
 import { DEFAULT_FONT_ID, isBundledFontId } from '../../domain/overlay/overlay-settings';
 import { toUserMessage } from '../../shared/errors/errors';
 import { h } from './dom';
@@ -24,7 +24,7 @@ interface OverlaySettingsFormViewOptions {
 	portalContainer: HTMLElement;
 	customFonts?: readonly CustomFontSummary[];
 	allowCustomFontUpload?: boolean;
-	onChange: (settings: Partial<OverlaySettings>) => void;
+	onChange: (settings: Partial<OverlaySettings>) => Promise<void> | void;
 	onExport: (format: OverlayExportFormat) => void;
 	onUploadFont?: (file: File) => Promise<{ id: CustomFontId; displayName: string }>;
 	onRemoveCustomFont?: (id: CustomFontId) => Promise<void> | void;
@@ -102,9 +102,9 @@ export class OverlaySettingsFormView {
 			value: options.settings.fontId,
 			portalContainer: options.portalContainer,
 			allowCustomFontUpload: options.allowCustomFontUpload ?? false,
-			onChange: (fontId) => this.options.onChange({ fontId }),
-			onUploadFont: options.onUploadFont ? (file) => void this.uploadFont(file) : undefined,
-			onRemoveCustomFont: options.onRemoveCustomFont ? (id) => void this.removeCustomFont(id) : undefined,
+			onChange: (fontId) => this.selectFont(fontId),
+			onUploadFont: options.onUploadFont ? (file) => this.uploadFont(file) : undefined,
+			onRemoveCustomFont: options.onRemoveCustomFont ? (id) => this.removeCustomFont(id) : undefined,
 		});
 		const advancedControls = h(
 			'div',
@@ -194,9 +194,18 @@ export class OverlaySettingsFormView {
 			this.availableFonts = this.refreshAvailableFonts();
 			this.fontCombobox.setFonts(this.availableFonts);
 			this.fontCombobox.update(entry.id, entry.displayName);
-			this.options.onChange({ fontId: entry.id });
+			await this.options.onChange({ fontId: entry.id });
 		} catch (error) {
 			this.options.onError?.(toUserMessage(error));
+		}
+	}
+
+	private async selectFont(fontId: FontId): Promise<void> {
+		try {
+			await this.options.onChange({ fontId });
+		} catch (error) {
+			this.options.onError?.(toUserMessage(error));
+			throw error;
 		}
 	}
 

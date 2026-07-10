@@ -7,7 +7,7 @@ export interface ControlPanelOptions {
 	headerFontUrl?: string | null;
 	allowCustomFontUpload?: boolean;
 	onStartPicking: () => void;
-	onUpdateOverlay: (id: string, settings: Partial<OverlaySettings>) => void;
+	onUpdateOverlay: (id: string, settings: Partial<OverlaySettings>) => Promise<void> | void;
 	onExportOverlay: (id: string, format: OverlayExportFormat) => void;
 	onRemoveOverlay: (id: string) => void;
 	onUploadFont?: (file: File) => Promise<{ id: CustomFontId; displayName: string }>;

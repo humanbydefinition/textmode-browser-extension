@@ -7,6 +7,7 @@ export type RuntimeMessageListener = Parameters<typeof browser.runtime.onMessage
 export type ActionClickedListener = Parameters<typeof browser.action.onClicked.addListener>[0];
 type ToolbarActionApi = typeof browser.action | typeof browser.browserAction;
 type StorageLocalApi = Pick<typeof browser.storage.local, 'get' | 'set' | 'remove'>;
+export type StorageChangedListener = Parameters<typeof browser.storage.onChanged.addListener>[0];
 type BrowserWithOptionalToolbarApis = typeof browser & {
 	action?: typeof browser.action;
 	browserAction?: typeof browser.browserAction;
@@ -22,17 +23,22 @@ export interface BrowserPort {
 	addInstalledListener(listener: () => void): void;
 	addActionClickedListener(listener: ActionClickedListener): void;
 	storageLocalGet<TValue>(key: string): Promise<TValue | undefined>;
+	storageLocalGetAll(): Promise<Record<string, unknown>>;
 	storageLocalSet(record: Record<string, unknown>): Promise<void>;
 	storageLocalRemove(key: string): Promise<void>;
+	addStorageChangedListener(listener: StorageChangedListener): () => void;
 }
 
 export function createStorageLocalPort(
 	storageArea: StorageLocalApi
-): Pick<BrowserPort, 'storageLocalGet' | 'storageLocalSet' | 'storageLocalRemove'> {
+): Pick<BrowserPort, 'storageLocalGet' | 'storageLocalGetAll' | 'storageLocalSet' | 'storageLocalRemove'> {
 	return {
 		async storageLocalGet<TValue>(key: string) {
 			const record = (await storageArea.get(key)) as Record<string, TValue | undefined>;
 			return record[key];
+		},
+		async storageLocalGetAll() {
+			return (await storageArea.get(null)) as Record<string, unknown>;
 		},
 		async storageLocalSet(record) {
 			await storageArea.set(record);
@@ -75,11 +81,18 @@ export const browserPort: BrowserPort = {
 	storageLocalGet(key) {
 		return createStorageLocalPort(browser.storage.local).storageLocalGet(key);
 	},
+	storageLocalGetAll() {
+		return createStorageLocalPort(browser.storage.local).storageLocalGetAll();
+	},
 	storageLocalSet(record) {
 		return createStorageLocalPort(browser.storage.local).storageLocalSet(record);
 	},
 	storageLocalRemove(key) {
 		return createStorageLocalPort(browser.storage.local).storageLocalRemove(key);
+	},
+	addStorageChangedListener(listener) {
+		browser.storage.onChanged.addListener(listener);
+		return () => browser.storage.onChanged.removeListener(listener);
 	},
 };
 
@@ -100,5 +113,7 @@ export const addRuntimeMessageListener = browserPort.addRuntimeMessageListener;
 export const addInstalledListener = browserPort.addInstalledListener;
 export const addActionClickedListener = browserPort.addActionClickedListener;
 export const storageLocalGet = browserPort.storageLocalGet;
+export const storageLocalGetAll = browserPort.storageLocalGetAll;
 export const storageLocalSet = browserPort.storageLocalSet;
 export const storageLocalRemove = browserPort.storageLocalRemove;
+export const addStorageChangedListener = browserPort.addStorageChangedListener;

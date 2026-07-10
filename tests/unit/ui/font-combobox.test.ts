@@ -97,6 +97,24 @@ describe('FontComboboxView', () => {
 		expect(onChange).toHaveBeenCalledWith('atascii');
 	});
 
+	it('keeps the previous selection when an async font change fails', async () => {
+		const onChange = vi.fn(async () => {
+			throw new Error('Font failed to load.');
+		});
+		const combobox = createCombobox({ onChange });
+		host.append(combobox.element);
+		combobox.element.click();
+
+		const options = document.querySelectorAll<HTMLButtonElement>('.tm-font-combobox__option');
+		options[2]!.click();
+		expect(combobox.element.getAttribute('aria-busy')).toBe('true');
+		await Promise.resolve();
+		await Promise.resolve();
+
+		expect(combobox.element.textContent).toContain('BESCII');
+		expect(combobox.element.hasAttribute('aria-busy')).toBe(false);
+	});
+
 	it('renders external links with correct URLs', () => {
 		const combobox = createCombobox();
 		host.append(combobox.element);

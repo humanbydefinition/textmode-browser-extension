@@ -29,8 +29,10 @@ vi.mock('../../src/shared/browser/browser-api', () => ({
 	sendMessageToRuntime: vi.fn(async () => undefined),
 	getExtensionAssetUrl: vi.fn((path: string) => `chrome-extension://test/${path}`),
 	storageLocalGet: vi.fn(),
+	storageLocalGetAll: vi.fn(),
 	storageLocalSet: vi.fn(),
 	storageLocalRemove: vi.fn(),
+	addStorageChangedListener: vi.fn(() => vi.fn()),
 }));
 
 vi.mock('textmode.js', () => ({

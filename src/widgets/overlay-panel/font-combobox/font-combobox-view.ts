@@ -19,9 +19,9 @@ export interface FontComboboxViewOptions {
 	value: FontId;
 	portalContainer: HTMLElement;
 	allowCustomFontUpload?: boolean;
-	onChange: (fontId: FontId) => void;
-	onUploadFont?: (file: File) => void;
-	onRemoveCustomFont?: (id: CustomFontId) => void;
+	onChange: (fontId: FontId) => Promise<void> | void;
+	onUploadFont?: (file: File) => Promise<void> | void;
+	onRemoveCustomFont?: (id: CustomFontId) => Promise<void> | void;
 }
 
 export class FontComboboxView {
@@ -35,6 +35,7 @@ export class FontComboboxView {
 	private fonts: readonly FontEntry[];
 	private value: FontId;
 	private query = '';
+	private busy = false;
 
 	public constructor(private readonly options: FontComboboxViewOptions) {
 		this.fonts = options.fonts;
@@ -214,7 +215,7 @@ export class FontComboboxView {
 		removeButton.addEventListener('click', (event) => {
 			event.preventDefault();
 			event.stopPropagation();
-			this.options.onRemoveCustomFont?.(font.id);
+			void this.runBusy(() => this.options.onRemoveCustomFont?.(font.id));
 		});
 		return h('div', { className: 'tm-font-combobox__option-row' }, option, removeButton);
 	}
@@ -233,12 +234,14 @@ export class FontComboboxView {
 			...children
 		);
 		option.addEventListener('click', () => {
-			this.options.onChange(font.id);
-			this.value = font.id;
-			this.query = '';
-			this.searchInput.value = '';
-			this.popover.setOpen(false);
-			this.render();
+			void this.runBusy(async () => {
+				await this.options.onChange(font.id);
+				this.value = font.id;
+				this.query = '';
+				this.searchInput.value = '';
+				this.popover.setOpen(false);
+				this.render();
+			});
 		});
 		return option;
 	}
@@ -256,9 +259,7 @@ export class FontComboboxView {
 			if (this.fileInput) {
 				this.fileInput.value = '';
 			}
-			if (file) {
-				this.options.onUploadFont?.(file);
-			}
+			if (file) void this.runBusy(() => this.options.onUploadFont?.(file));
 		});
 		const uploadButton = h(
 			'button',
@@ -271,6 +272,22 @@ export class FontComboboxView {
 		);
 		uploadButton.addEventListener('click', () => this.fileInput?.click());
 		return h('div', { className: 'tm-font-combobox__upload-row' }, this.fileInput, uploadButton);
+	}
+
+	private async runBusy(action: () => Promise<void> | void | undefined): Promise<void> {
+		if (this.busy) return;
+		this.busy = true;
+		this.element.setAttribute('aria-busy', 'true');
+		this.element.disabled = true;
+		try {
+			await action();
+		} catch {
+			// The owning form reports the operation error and keeps the prior selection.
+		} finally {
+			this.busy = false;
+			this.element.removeAttribute('aria-busy');
+			this.render();
+		}
 	}
 }
 

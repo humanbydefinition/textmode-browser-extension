@@ -1,4 +1,12 @@
-export type FontUploadErrorCode = 'INVALID_TYPE' | 'INVALID_SIGNATURE' | 'TOO_LARGE';
+export type FontUploadErrorCode =
+	| 'INVALID_TYPE'
+	| 'INVALID_SIGNATURE'
+	| 'TOO_LARGE'
+	| 'COUNT_LIMIT'
+	| 'TOTAL_SIZE_LIMIT'
+	| 'STORAGE_QUOTA'
+	| 'STORAGE_UNAVAILABLE'
+	| 'CORRUPT_STORED_FONT';
 
 export class FontUploadError extends Error {
 	public constructor(

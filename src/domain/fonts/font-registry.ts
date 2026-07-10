@@ -5,28 +5,27 @@ export type { BundledFontEntry } from './font-metadata';
 export interface FontRegistry {
 	getAvailableFonts(): readonly BundledFontEntry[];
 	getFontEntry(fontId: BundledFontId): BundledFontEntry | null;
-	getPreferredFontEntry(fontId: BundledFontId): BundledFontEntry | null;
+	getPreferredFontEntry(fontId: BundledFontId): BundledFontEntry;
 	resolveFontId(fontId: BundledFontId): BundledFontId | null;
 }
 
-export function createFontRegistry(fontAssetPaths: readonly string[]): FontRegistry {
-	const availableAssetPathSet = new Set(fontAssetPaths);
-	const availableFonts = BUNDLED_FONTS.filter((font) => availableAssetPathSet.has(font.assetPath));
-	const fallbackFont = availableFonts.find((font) => font.id === DEFAULT_FONT_ID) ?? availableFonts[0] ?? null;
+export function createFontRegistry(): FontRegistry {
+	const availableFonts = BUNDLED_FONTS;
+	const defaultEntry = availableFonts.find((font) => font.id === DEFAULT_FONT_ID)!;
 
 	function getFontEntry(fontId: BundledFontId): BundledFontEntry | null {
 		return availableFonts.find((font) => font.id === fontId) ?? null;
 	}
 
-	function getPreferredFontEntry(fontId: BundledFontId): BundledFontEntry | null {
-		return getFontEntry(fontId) ?? fallbackFont;
+	function getPreferredFontEntry(fontId: BundledFontId): BundledFontEntry {
+		return getFontEntry(fontId) ?? defaultEntry;
 	}
 
 	return {
 		getAvailableFonts: () => availableFonts,
 		getFontEntry,
 		getPreferredFontEntry,
-		resolveFontId: (fontId) => getPreferredFontEntry(fontId)?.id ?? null,
+		resolveFontId: (fontId) => getFontEntry(fontId)?.id ?? null,
 	};
 }
 

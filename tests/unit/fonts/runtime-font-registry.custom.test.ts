@@ -1,7 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { CUSTOM_FONT_MAX_BYTES, createRuntimeFontRegistry } from '@/shared/fonts/runtime-font-registry';
 
-const TEST_FONT_ASSET_PATHS = ['fonts/Bescii-Mono.ttf', 'fonts/UrsaFont.ttf'];
 const TRUE_TYPE_SIGNATURE = new Uint8Array([0x00, 0x01, 0x00, 0x00, 0x01, 0x02]);
 const CFF_SIGNATURE = new Uint8Array([0x4f, 0x54, 0x54, 0x4f, 0x01, 0x02]);
 
@@ -27,7 +26,7 @@ describe('runtime custom font registry', () => {
 	});
 
 	it('adds TrueType fonts and exposes blob URLs plus summaries', async () => {
-		const registry = createRuntimeFontRegistry(TEST_FONT_ASSET_PATHS, (path) => `chrome-extension://test/${path}`);
+		const registry = createRuntimeFontRegistry((path) => `chrome-extension://test/${path}`);
 		const entry = await registry.addCustomFont(new File([TRUE_TYPE_SIGNATURE], 'Pixel Grid.ttf'));
 
 		expect(entry.id).toMatch(/^custom:/);
@@ -36,12 +35,18 @@ describe('runtime custom font registry', () => {
 		expect(registry.getCustomFontUrl(entry.id)).toBe('blob:test-font');
 		expect(registry.getFontAssetUrl(entry.id)).toBe('blob:test-font');
 		expect(registry.resolveFontId(entry.id)).toBe(entry.id);
-		expect(registry.getAllFonts().map((font) => font.id)).toEqual([entry.id, 'ursafont', 'bescii']);
+		expect(registry.getAllFonts().map((font) => font.id)).toEqual([
+			entry.id,
+			'ursafont',
+			'atascii',
+			'bescii',
+			'cpc464',
+		]);
 		expect(registry.toCustomFontSummaries()).toEqual([{ id: entry.id, displayName: 'Pixel Grid' }]);
 	});
 
 	it('revokes blob URLs when custom fonts are removed', async () => {
-		const registry = createRuntimeFontRegistry(TEST_FONT_ASSET_PATHS);
+		const registry = createRuntimeFontRegistry();
 		const entry = await registry.addCustomFont(new File([TRUE_TYPE_SIGNATURE], 'Grid.ttf'));
 
 		registry.removeCustomFont(entry.id);
@@ -52,7 +57,7 @@ describe('runtime custom font registry', () => {
 	});
 
 	it('rejects unsupported font uploads', async () => {
-		const registry = createRuntimeFontRegistry(TEST_FONT_ASSET_PATHS);
+		const registry = createRuntimeFontRegistry();
 
 		await expect(registry.addCustomFont(new File([TRUE_TYPE_SIGNATURE], 'Grid.woff2'))).rejects.toThrow(
 			/WOFF2 fonts are not supported/

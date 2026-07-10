@@ -11,7 +11,6 @@ import {
 } from '../../domain/fonts/font-id';
 import { FontUploadError } from '../errors/errors';
 import { getExtensionAssetUrl } from '../browser/browser-api';
-import { availableFontAssetPaths } from '../config/available-font-assets';
 
 export const CUSTOM_FONT_MAX_BYTES = 10 * 1024 * 1024;
 
@@ -29,10 +28,9 @@ export interface RuntimeFontRegistry {
 }
 
 export function createRuntimeFontRegistry(
-	fontAssetPaths: readonly string[],
 	resolveAssetUrl: (assetPath: string) => string = getExtensionAssetUrl
 ): RuntimeFontRegistry {
-	const registry = createFontRegistry(fontAssetPaths);
+	const registry = createFontRegistry();
 	const customFonts = new Map<CustomFontId, { entry: CustomFontEntry; blobUrl: string }>();
 
 	function getCustomFonts(): CustomFontEntry[] {
@@ -88,7 +86,7 @@ export function createRuntimeFontRegistry(
 	};
 }
 
-const runtimeFontRegistry = createRuntimeFontRegistry(availableFontAssetPaths);
+const runtimeFontRegistry = createRuntimeFontRegistry();
 
 export function getPreferredFontEntry(fontId: FontId): BundledFontEntry | CustomFontEntry | null {
 	return runtimeFontRegistry.getPreferredFontEntry(fontId);

@@ -95,9 +95,9 @@ describe('mergeOverlaySettings', () => {
 
 	describe('isBundledFontId', () => {
 		it('returns true for known font ids', () => {
-			expect(isBundledFontId('chunky')).toBe(true);
 			expect(isBundledFontId('bescii')).toBe(true);
-			expect(isBundledFontId('t64')).toBe(true);
+			expect(isBundledFontId('ursafont')).toBe(true);
+			expect(isBundledFontId('cpc464')).toBe(true);
 		});
 
 		it('returns false for unknown strings', () => {

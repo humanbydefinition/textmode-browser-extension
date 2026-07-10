@@ -16,11 +16,10 @@ function createFont(id: BundledFontId, displayName: string): BundledFontEntry {
 }
 
 const TEST_FONTS: readonly FontEntry[] = [
-	toBundledEntry(createFont('chunky', 'CHUNKY')),
 	toBundledEntry(createFont('bescii', 'BESCII')),
-	toBundledEntry(createFont('t64', 'T64')),
-	toBundledEntry(createFont('rook', 'Rook')),
-	toBundledEntry(createFont('unscii8', 'UNSCII 8')),
+	toBundledEntry(createFont('ursafont', 'UrsaFont')),
+	toBundledEntry(createFont('atascii', 'ATASCII')),
+	toBundledEntry(createFont('cpc464', 'CPC464')),
 ];
 
 describe('FontComboboxView', () => {
@@ -44,16 +43,16 @@ describe('FontComboboxView', () => {
 
 		const trigger = host.querySelector<HTMLButtonElement>('[role="combobox"]');
 		expect(trigger).not.toBeNull();
-		expect(trigger!.textContent).toContain('CHUNKY');
+		expect(trigger!.textContent).toContain('BESCII');
 	});
 
-	it('shows fallback text when no font matches the value', () => {
-		const fontsWithoutChunky = TEST_FONTS.filter((font) => font.id !== 'chunky');
-		const combobox = createCombobox({ fonts: fontsWithoutChunky, fallbackLabel: 'BESCII' });
+	it('shows the first available font when the selected value is not in the list', () => {
+		const fontsWithoutBescii = TEST_FONTS.filter((font) => font.id !== 'bescii');
+		const combobox = createCombobox({ fonts: fontsWithoutBescii, value: 'bescii', fallbackLabel: 'UrsaFont' });
 		host.append(combobox.element);
 
 		const trigger = host.querySelector<HTMLButtonElement>('[role="combobox"]');
-		expect(trigger!.textContent).toContain('BESCII');
+		expect(trigger!.textContent).toContain('UrsaFont');
 	});
 
 	it('renders popover content when opened', () => {
@@ -78,12 +77,12 @@ describe('FontComboboxView', () => {
 		const searchInput = document.querySelector<HTMLInputElement>('.tm-font-combobox__search');
 		expect(searchInput).not.toBeNull();
 
-		searchInput!.value = 'CHUNKY';
+		searchInput!.value = 'CPC';
 		searchInput!.dispatchEvent(new Event('input', { bubbles: true }));
 
 		const options = document.querySelectorAll('.tm-font-combobox__option');
 		expect(options.length).toBe(1);
-		expect(options[0]!.textContent).toContain('CHUNKY');
+		expect(options[0]!.textContent).toContain('CPC464');
 	});
 
 	it('calls onChange when a font is selected', () => {
@@ -95,7 +94,7 @@ describe('FontComboboxView', () => {
 		const options = document.querySelectorAll<HTMLButtonElement>('.tm-font-combobox__option');
 		options[2]!.click();
 
-		expect(onChange).toHaveBeenCalledWith('t64');
+		expect(onChange).toHaveBeenCalledWith('atascii');
 	});
 
 	it('renders external links with correct URLs', () => {
@@ -189,8 +188,8 @@ describe('FontComboboxView', () => {
 
 function createCombobox({
 	fonts = TEST_FONTS,
-	value = 'chunky',
-	fallbackLabel = 'CHUNKY',
+	value = 'bescii',
+	fallbackLabel = 'BESCII',
 	allowCustomFontUpload = false,
 	onChange = vi.fn(),
 	onUploadFont,

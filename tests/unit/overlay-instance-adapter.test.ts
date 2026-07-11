@@ -142,6 +142,42 @@ describe('overlay instance adapter', () => {
 		applyControllerSettings(controller);
 		expect(instance.overlay.conversionMode).toHaveBeenLastCalledWith('brightness');
 	});
+
+	it('renders contours without a brightness pass when brightness is disabled', () => {
+		const instance = createTextmodeInstance();
+		const controller = createController(instance, {
+			brightnessEnabled: false,
+			contour: { ...DEFAULT_OVERLAY_SETTINGS.contour, enabled: true },
+		});
+
+		applyControllerSettings(controller);
+
+		expect(instance.overlay.conversions).toHaveBeenCalledWith([
+			expect.objectContaining({ mode: 'contour', characters: CONTOUR_DEFAULT_CHARACTERS }),
+		]);
+	});
+
+	it('skips source drawing when both converters are disabled', () => {
+		let drawCallback: (() => void) | null = null;
+		const instance = createTextmodeInstance({
+			draw: vi.fn((callback: () => void) => {
+				drawCallback = callback;
+			}),
+		});
+		const controller = createController(instance, {
+			brightnessEnabled: false,
+			contour: { ...DEFAULT_OVERLAY_SETTINGS.contour, enabled: false },
+		});
+
+		createOverlayInstance(
+			controller,
+			{ create: vi.fn(() => instance as unknown as ExportableTextmodeInstance) },
+			{ resolveFontAssetUrl: () => null }
+		);
+		(drawCallback as unknown as () => void)();
+
+		expect(instance.image).not.toHaveBeenCalled();
+	});
 });
 
 function createController(

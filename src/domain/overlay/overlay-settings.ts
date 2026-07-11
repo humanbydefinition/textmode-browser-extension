@@ -32,6 +32,7 @@ export interface OverlaySettings {
 	fontSize: number;
 	fontId: FontId;
 	glyphRamp: string;
+	brightnessEnabled: boolean;
 	invert: boolean;
 	charColorMode: SourceColorMode;
 	charColor: string;
@@ -65,6 +66,7 @@ export function createDefaultOverlaySettings(): OverlaySettings {
 		fontSize: 8,
 		fontId: DEFAULT_FONT_ID,
 		glyphRamp: ' .:-=+*#%@',
+		brightnessEnabled: true,
 		invert: false,
 		charColorMode: 'sampled',
 		charColor: '#ffffff',

@@ -18,6 +18,7 @@ describe('mergeOverlaySettings', () => {
 
 		expect(settings.fontSize).toBe(12);
 		expect(settings.glyphRamp).toBe('abc');
+		expect(settings.brightnessEnabled).toBe(true);
 	});
 
 	it('clamps numeric values into supported ranges', () => {

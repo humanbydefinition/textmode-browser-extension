@@ -49,6 +49,10 @@ export function normalizeOverlaySettings(value: Partial<OverlaySettings>): Overl
 	return {
 		...normalized,
 		enabled: typeof value.enabled === 'boolean' ? normalized.enabled : DEFAULT_OVERLAY_SETTINGS.enabled,
+		brightnessEnabled:
+			typeof value.brightnessEnabled === 'boolean'
+				? normalized.brightnessEnabled
+				: DEFAULT_OVERLAY_SETTINGS.brightnessEnabled,
 		invert: typeof value.invert === 'boolean' ? normalized.invert : DEFAULT_OVERLAY_SETTINGS.invert,
 		charColorMode: isSourceColorMode(value.charColorMode)
 			? normalized.charColorMode

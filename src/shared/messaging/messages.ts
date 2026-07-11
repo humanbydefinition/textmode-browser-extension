@@ -141,6 +141,7 @@ function isOverlaySettingsPatch(value: unknown): value is Partial<OverlaySetting
 	return Object.entries(value).every(([key, patchValue]) => {
 		switch (key) {
 			case 'enabled':
+			case 'brightnessEnabled':
 			case 'invert':
 				return typeof patchValue === 'boolean';
 			case 'opacity':

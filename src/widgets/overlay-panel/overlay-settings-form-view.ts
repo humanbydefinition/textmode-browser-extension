@@ -141,7 +141,7 @@ export class OverlaySettingsFormView {
 			),
 			this.fontCombobox.element
 		);
-		quickControls.insertBefore(fontField, this.opacityField.element);
+		quickControls.append(fontField);
 		const brightnessControls = h(
 			'div',
 			{ className: 'tm-control-group tm-converter-controls tm-brightness-controls' },
@@ -215,6 +215,7 @@ export class OverlaySettingsFormView {
 		this.fontCombobox.dispose();
 		this.postFxPanel.dispose();
 		this.contourPanel.dispose();
+		this.converterTabs.dispose();
 		this.tabs.dispose();
 	}
 

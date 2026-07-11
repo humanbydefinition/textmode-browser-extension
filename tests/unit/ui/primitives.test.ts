@@ -16,6 +16,7 @@ describe('vanilla UI primitives', () => {
 		expect(tabs.exportContent.hidden).toBe(false);
 		expect(tabs.advancedContent.hidden).toBe(true);
 		expect(tabs.exportContent.closest('[data-slot="scroll-area"]')).not.toBeNull();
+		expect(tabs.advancedContent.closest('[data-slot="scroll-area"]')).toBeNull();
 		expect(tabs.element.querySelector('[data-slot="tabs-list"]')?.closest('[data-slot="scroll-area"]')).toBeNull();
 
 		triggers[1]?.click();

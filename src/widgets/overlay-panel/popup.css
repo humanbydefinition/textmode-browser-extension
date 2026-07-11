@@ -499,6 +499,7 @@ select {
 
 .tm-settings-form {
 	grid-template-rows: auto minmax(0, 1fr);
+	overflow: hidden;
 }
 
 .tm-overlay-toggle-actions {
@@ -545,10 +546,18 @@ select {
 	min-width: 0;
 	border-top: 1px solid var(--tm-neutral-26);
 	padding-top: 8px;
+	overflow: hidden;
 }
 
 .tm-tabs-scroll-area {
 	min-height: 0;
+}
+
+.tm-tabs-body {
+	display: grid;
+	grid-template-rows: minmax(0, 1fr);
+	min-height: 0;
+	overflow: hidden;
 }
 
 .tm-tabs-scroll-area__content {
@@ -605,8 +614,10 @@ select {
 
 .tm-converter-tabs {
 	display: grid;
+	grid-template-rows: auto minmax(0, 1fr);
 	gap: 9px;
 	min-width: 0;
+	min-height: 0;
 }
 
 .tm-converter-tabs-list {
@@ -659,6 +670,32 @@ select {
 .tm-converter-tabs-content[hidden],
 .tm-converter-tabs-content[data-state='inactive'] {
 	display: none;
+}
+
+.tm-converter-scroll-area,
+.tm-converter-scroll-area__viewport {
+	min-height: 0;
+}
+
+.tm-converter-scroll-area__content {
+	display: grid;
+	align-content: start;
+}
+
+.tm-tabs-content[data-state='active'],
+.tm-advanced-controls {
+	min-height: 0;
+}
+
+.tm-tabs-body > .tm-tabs-content[data-state='active'] {
+	display: grid;
+	grid-template-rows: minmax(0, 1fr);
+	overflow: hidden;
+}
+
+.tm-advanced-controls {
+	grid-template-rows: minmax(0, 1fr);
+	overflow: hidden;
 }
 
 .tm-accordion,

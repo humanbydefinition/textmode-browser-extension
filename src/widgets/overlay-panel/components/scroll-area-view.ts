@@ -73,6 +73,7 @@ export class ScrollAreaView {
 		this.resizeObserver =
 			typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(() => this.updateThumb());
 		this.resizeObserver?.observe(this.content);
+		this.resizeObserver?.observe(this.viewport);
 
 		this.mutationObserver =
 			typeof MutationObserver === 'undefined' ? null : new MutationObserver(() => this.syncObservers());

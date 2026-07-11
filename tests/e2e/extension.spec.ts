@@ -24,6 +24,7 @@ test('Chrome extension can select a canvas and create an overlay', async () => {
 
 	try {
 		const page = context.pages()[0] ?? (await context.newPage());
+		await page.setViewportSize({ width: 800, height: 720 });
 		await page.goto(server.url);
 		await expect(page.locator('canvas#demo-canvas')).toBeVisible();
 
@@ -52,6 +53,17 @@ test('Chrome extension can select a canvas and create an overlay', async () => {
 		await expect(page.getByRole('button', { name: /PNG/i })).toBeVisible();
 		await expect(page.getByRole('button', { name: /JPG/i })).toBeVisible();
 		await page.getByRole('tab', { name: 'advanced' }).click();
+		const brightnessLayout = await readConverterLayout(page, 'brightness');
+		expect(brightnessLayout.tabListInsideScrollArea).toBe(false);
+		expect(brightnessLayout.viewportClientHeight).toBeGreaterThan(0);
+		await page.getByRole('tab', { name: 'contour' }).click();
+		const contourLayout = await readConverterLayout(page, 'contour');
+		expect(brightnessLayout.viewportScrollHeight).toBeGreaterThan(brightnessLayout.viewportClientHeight);
+		expect(brightnessLayout.endAccessible).toBe(true);
+		expect(contourLayout.viewportClientHeight).toBeGreaterThan(0);
+		expect(contourLayout.viewportScrollHeight).toBeGreaterThan(contourLayout.viewportClientHeight);
+		expect(contourLayout.endAccessible).toBe(true);
+		await page.getByRole('tab', { name: 'brightness' }).click();
 		await page.getByRole('button', { name: /characters color/i }).click();
 		await expect(page.locator('[data-slot="popover-content"]')).toBeVisible();
 
@@ -121,6 +133,33 @@ test('Chrome extension can select a canvas and create an overlay', async () => {
 		await server.close();
 	}
 });
+
+async function readConverterLayout(page: import('@playwright/test').Page, converter: 'brightness' | 'contour') {
+	return page.evaluate((converterName) => {
+		const panelHost = document.querySelector('#textmode-ascii-overlay-control-panel-root');
+		const root = panelHost?.shadowRoot;
+		const controls = root?.querySelector<HTMLElement>(`.tm-${converterName}-controls`);
+		const scrollArea = controls?.closest<HTMLElement>('[data-slot="scroll-area"]');
+		const viewport = scrollArea?.querySelector<HTMLElement>('[data-slot="scroll-area-viewport"]');
+		const tabList = root?.querySelector<HTMLElement>('.tm-converter-tabs-list');
+		if (viewport) viewport.scrollTop = viewport.scrollHeight;
+		const viewportRect = viewport?.getBoundingClientRect();
+		const lastControlRect = controls?.lastElementChild?.getBoundingClientRect();
+		const endAccessible = Boolean(
+			viewportRect &&
+			lastControlRect &&
+			lastControlRect.top >= viewportRect.top - 1 &&
+			lastControlRect.bottom <= viewportRect.bottom + 1
+		);
+		if (viewport) viewport.scrollTop = 0;
+		return {
+			tabListInsideScrollArea: Boolean(tabList?.closest('[data-slot="scroll-area"]')),
+			viewportClientHeight: viewport?.clientHeight ?? 0,
+			viewportScrollHeight: viewport?.scrollHeight ?? 0,
+			endAccessible,
+		};
+	}, converter);
+}
 
 interface FixtureServer {
 	url: string;

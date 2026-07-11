@@ -1,5 +1,6 @@
 import { h } from '../dom';
 import { createToggleInput } from '../settings/form-controls';
+import { ScrollAreaView } from './scroll-area-view';
 
 type ConverterTab = 'brightness' | 'contour';
 
@@ -13,6 +14,8 @@ export class ConverterTabsView {
 	private readonly contourHeader: HTMLDivElement;
 	private readonly brightnessContent: HTMLElement;
 	private readonly contourContent: HTMLElement;
+	private readonly brightnessScrollArea: ScrollAreaView;
+	private readonly contourScrollArea: ScrollAreaView;
 	private readonly brightnessEnabledInput: HTMLInputElement;
 	private readonly contourEnabledInput: HTMLInputElement;
 	private value: ConverterTab = 'brightness';
@@ -28,19 +31,25 @@ export class ConverterTabsView {
 		const id = `converter-tabs-${++converterTabsId}`;
 		this.brightnessContent = options.brightnessContent;
 		this.contourContent = options.contoursContent;
-		this.brightnessContent.id = `${id}-brightness-panel`;
-		this.contourContent.id = `${id}-contour-panel`;
-		this.brightnessContent.classList.add('tm-converter-tabs-content');
-		this.contourContent.classList.add('tm-converter-tabs-content');
-		this.brightnessContent.setAttribute('role', 'tabpanel');
-		this.contourContent.setAttribute('role', 'tabpanel');
+		this.brightnessScrollArea = this.createScrollArea();
+		this.contourScrollArea = this.createScrollArea();
+		this.brightnessScrollArea.content.append(this.brightnessContent);
+		this.contourScrollArea.content.append(this.contourContent);
+		const brightnessPanel = this.brightnessScrollArea.element;
+		const contourPanel = this.contourScrollArea.element;
+		brightnessPanel.id = `${id}-brightness-panel`;
+		contourPanel.id = `${id}-contour-panel`;
+		brightnessPanel.classList.add('tm-converter-tabs-content');
+		contourPanel.classList.add('tm-converter-tabs-content');
+		brightnessPanel.setAttribute('role', 'tabpanel');
+		contourPanel.setAttribute('role', 'tabpanel');
 
-		this.brightnessTrigger = this.createTrigger('brightness', this.brightnessContent.id);
-		this.contourTrigger = this.createTrigger('contour', this.contourContent.id);
+		this.brightnessTrigger = this.createTrigger('brightness', brightnessPanel.id);
+		this.contourTrigger = this.createTrigger('contour', contourPanel.id);
 		this.brightnessTrigger.id = `${id}-brightness-tab`;
 		this.contourTrigger.id = `${id}-contour-tab`;
-		this.brightnessContent.setAttribute('aria-labelledby', this.brightnessTrigger.id);
-		this.contourContent.setAttribute('aria-labelledby', this.contourTrigger.id);
+		brightnessPanel.setAttribute('aria-labelledby', this.brightnessTrigger.id);
+		contourPanel.setAttribute('aria-labelledby', this.contourTrigger.id);
 		this.brightnessEnabledInput = createToggleInput(options.onBrightnessEnabledChange);
 		this.brightnessEnabledInput.setAttribute('aria-label', 'brightness on');
 		this.contourEnabledInput = createToggleInput(options.onContoursEnabledChange);
@@ -63,8 +72,8 @@ export class ConverterTabsView {
 			'div',
 			{ className: 'tm-converter-tabs', attributes: { 'data-slot': 'converter-tabs' } },
 			list,
-			this.brightnessContent,
-			this.contourContent
+			brightnessPanel,
+			contourPanel
 		);
 		this.render();
 		this.update(options.brightnessEnabled, options.contoursEnabled);
@@ -73,6 +82,11 @@ export class ConverterTabsView {
 	public update(brightnessEnabled: boolean, contoursEnabled: boolean): void {
 		this.brightnessEnabledInput.checked = brightnessEnabled;
 		this.contourEnabledInput.checked = contoursEnabled;
+	}
+
+	public dispose(): void {
+		this.brightnessScrollArea.dispose();
+		this.contourScrollArea.dispose();
 	}
 
 	private createTrigger(value: ConverterTab, controls: string): HTMLButtonElement {
@@ -92,14 +106,29 @@ export class ConverterTabsView {
 		);
 	}
 
+	private createScrollArea(): ScrollAreaView {
+		return new ScrollAreaView({
+			rootClassName: 'tm-converter-scroll-area',
+			viewportClassName: 'tm-converter-scroll-area__viewport',
+			contentClassName: 'tm-converter-scroll-area__content',
+		});
+	}
+
 	private setValue(value: ConverterTab): void {
 		this.value = value;
 		this.render();
 	}
 
 	private render(): void {
-		updateTab(this.brightnessHeader, this.brightnessTrigger, this.brightnessContent, this.value === 'brightness');
-		updateTab(this.contourHeader, this.contourTrigger, this.contourContent, this.value === 'contour');
+		updateTab(
+			this.brightnessHeader,
+			this.brightnessTrigger,
+			this.brightnessScrollArea.element,
+			this.value === 'brightness'
+		);
+		updateTab(this.contourHeader, this.contourTrigger, this.contourScrollArea.element, this.value === 'contour');
+		this.brightnessScrollArea.update();
+		this.contourScrollArea.update();
 	}
 }
 

@@ -156,15 +156,18 @@ describe('OverlayPanelView', () => {
 		host.querySelectorAll<HTMLButtonElement>('button[role="tab"]')[1]?.click();
 		const advanced = host.querySelector<HTMLElement>('.tm-advanced-controls');
 		const converterTabs = advanced?.querySelector<HTMLElement>('.tm-converter-tabs');
-		expect(host.querySelector('.tm-main-font-field')?.previousElementSibling).toBe(
-			host.querySelector('.tm-overlay-toggle-row')
-		);
-		expect(host.querySelector('.tm-main-font-field')?.nextElementSibling).toBe(
-			host.querySelector('.tm-settings-form > .tm-control-group .tm-field--range')
-		);
+		const quickControls = host.querySelector<HTMLElement>('.tm-settings-form > .tm-control-group');
+		expect(quickControls?.children[0]).toBe(host.querySelector('.tm-overlay-toggle-row'));
+		expect(quickControls?.children[1]?.textContent).toContain('opacity');
+		expect(quickControls?.children[2]?.textContent).toContain('font size');
+		expect(quickControls?.children[3]).toBe(host.querySelector('.tm-main-font-field'));
 		expect(advanced?.firstElementChild).toBe(converterTabs);
+		expect(
+			converterTabs?.querySelector('.tm-converter-tabs-list')?.closest('[data-slot="scroll-area"]')
+		).toBeNull();
 
 		const brightnessControls = converterTabs?.querySelector<HTMLElement>('.tm-brightness-controls');
+		expect(brightnessControls?.closest('[data-slot="scroll-area"]')).not.toBeNull();
 		expect(brightnessControls?.hidden).toBe(false);
 		expect(brightnessControls?.children[0]?.textContent).toContain('invert');
 		expect(brightnessControls?.children[1]?.textContent).toContain('characters');
@@ -188,6 +191,7 @@ describe('OverlayPanelView', () => {
 				?.closest<HTMLElement>('.tm-converter-tab-header')?.dataset.state
 		).toBe('active');
 		const contourControls = converterTabs?.querySelector<HTMLElement>('.tm-contour-controls');
+		expect(contourControls?.closest('[data-slot="scroll-area"]')).not.toBeNull();
 		expect(contourControls?.hidden).toBe(false);
 		expect(contourControls?.children[0]?.textContent).toContain('invert');
 		expect(contourControls?.children[1]?.textContent).toContain('characters');

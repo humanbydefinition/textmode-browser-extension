@@ -132,7 +132,7 @@ export class OverlaySettingsFormView {
 		});
 		const fontField = h(
 			'div',
-			{ className: 'tm-field tm-advanced-font-field' },
+			{ className: 'tm-field tm-main-font-field' },
 			h(
 				'div',
 				{ className: 'tm-field__label' },
@@ -141,6 +141,7 @@ export class OverlaySettingsFormView {
 			),
 			this.fontCombobox.element
 		);
+		quickControls.insertBefore(fontField, this.opacityField.element);
 		const brightnessControls = h(
 			'div',
 			{ className: 'tm-control-group tm-converter-controls tm-brightness-controls' },
@@ -165,7 +166,6 @@ export class OverlaySettingsFormView {
 		const advancedControls = h(
 			'div',
 			{ className: 'tm-control-group tm-advanced-controls' },
-			fontField,
 			this.converterTabs.element
 		);
 		this.tabs.advancedContent.append(advancedControls);

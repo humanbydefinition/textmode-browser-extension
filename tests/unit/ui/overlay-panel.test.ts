@@ -156,8 +156,13 @@ describe('OverlayPanelView', () => {
 		host.querySelectorAll<HTMLButtonElement>('button[role="tab"]')[1]?.click();
 		const advanced = host.querySelector<HTMLElement>('.tm-advanced-controls');
 		const converterTabs = advanced?.querySelector<HTMLElement>('.tm-converter-tabs');
-		expect(advanced?.firstElementChild?.classList.contains('tm-advanced-font-field')).toBe(true);
-		expect(advanced?.children[1]).toBe(converterTabs);
+		expect(host.querySelector('.tm-main-font-field')?.previousElementSibling).toBe(
+			host.querySelector('.tm-overlay-toggle-row')
+		);
+		expect(host.querySelector('.tm-main-font-field')?.nextElementSibling).toBe(
+			host.querySelector('.tm-settings-form > .tm-control-group .tm-field--range')
+		);
+		expect(advanced?.firstElementChild).toBe(converterTabs);
 
 		const brightnessControls = converterTabs?.querySelector<HTMLElement>('.tm-brightness-controls');
 		expect(brightnessControls?.hidden).toBe(false);
@@ -166,13 +171,22 @@ describe('OverlayPanelView', () => {
 		expect(brightnessControls?.children[2]?.textContent).toContain('cells');
 		expect(brightnessControls?.children[3]?.textContent).toContain('glyph ramp');
 
-		converterTabs?.querySelector<HTMLInputElement>('input[aria-label="brightness on"]')?.click();
+		const brightnessEnabledInput = converterTabs?.querySelector<HTMLInputElement>(
+			'input[aria-label="brightness on"]'
+		);
+		expect(brightnessEnabledInput?.closest<HTMLElement>('.tm-converter-tab-header')?.dataset.state).toBe('active');
+		brightnessEnabledInput?.click();
 		expect(onUpdateOverlay).toHaveBeenLastCalledWith('overlay-1', { brightnessEnabled: false });
 
 		const contoursTrigger = [...(converterTabs?.querySelectorAll<HTMLButtonElement>('[role="tab"]') ?? [])].find(
-			(button) => button.textContent === 'contours'
+			(button) => button.textContent === 'contour'
 		);
 		contoursTrigger?.click();
+		expect(
+			converterTabs
+				?.querySelector<HTMLInputElement>('input[aria-label="contour on"]')
+				?.closest<HTMLElement>('.tm-converter-tab-header')?.dataset.state
+		).toBe('active');
 		const contourControls = converterTabs?.querySelector<HTMLElement>('.tm-contour-controls');
 		expect(contourControls?.hidden).toBe(false);
 		expect(contourControls?.children[0]?.textContent).toContain('invert');
@@ -182,7 +196,7 @@ describe('OverlayPanelView', () => {
 		expect(contourControls?.children[4]?.textContent).toContain('color sensitivity');
 		expect(contourControls?.querySelector('button[aria-label="next glyph ramp"]')).toBeNull();
 
-		converterTabs?.querySelector<HTMLInputElement>('input[aria-label="contours on"]')?.click();
+		converterTabs?.querySelector<HTMLInputElement>('input[aria-label="contour on"]')?.click();
 		expect(onUpdateOverlay).toHaveBeenLastCalledWith('overlay-1', {
 			contour: { ...overlay.settings.contour, enabled: true },
 		});

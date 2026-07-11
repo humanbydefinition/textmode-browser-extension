@@ -586,7 +586,7 @@ select {
 }
 
 .tm-tabs-trigger[data-state='active'],
-.tm-converter-tabs-trigger[data-state='active'] {
+.tm-converter-tab-header[data-state='active'] {
 	border-color: var(--tm-neutral-26);
 	background: var(--tm-neutral-1a);
 	color: var(--tm-neutral-f5);
@@ -624,6 +624,12 @@ select {
 	grid-template-columns: minmax(0, 1fr) auto;
 	align-items: center;
 	min-width: 0;
+	border: 1px solid transparent;
+	border-radius: calc(var(--tm-radius) - 2px);
+}
+
+.tm-converter-tab-header[data-state='active'] .tm-converter-tabs-trigger {
+	color: var(--tm-neutral-f5);
 }
 
 .tm-converter-tabs-trigger {

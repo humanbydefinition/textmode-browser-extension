@@ -19,6 +19,7 @@ import { GlyphRampFieldView } from './settings/glyph-ramp-field-view';
 import { RangeFieldView } from './settings/range-field-view';
 import { formatPercent, formatPixels, overlaySettingLimits } from './overlay-ui-model';
 import { PostFxPanelView } from './post-fx-panel-view';
+import { ContourPanelView } from './contour-panel-view';
 
 interface OverlaySettingsFormViewOptions {
 	settings: OverlaySettings;
@@ -43,6 +44,7 @@ export class OverlaySettingsFormView {
 	private readonly glyphRampField: GlyphRampFieldView;
 	private readonly fontCombobox: FontComboboxView;
 	private readonly postFxPanel: PostFxPanelView;
+	private readonly contourPanel: ContourPanelView;
 	private readonly tabs: TabsView;
 	private readonly resetButton: HTMLButtonElement;
 	private availableFonts: readonly FontEntry[];
@@ -143,7 +145,12 @@ export class OverlaySettingsFormView {
 					this.fontCombobox.cycleControls
 				),
 				this.fontCombobox.element
-			)
+			),
+			(this.contourPanel = new ContourPanelView({
+				settings: options.settings,
+				portalContainer: options.portalContainer,
+				onChange: (settings) => this.options.onChange(settings),
+			})).element
 		);
 		this.tabs.advancedContent.append(advancedControls);
 		this.postFxPanel = new PostFxPanelView({
@@ -178,6 +185,7 @@ export class OverlaySettingsFormView {
 		this.glyphRampField.update(glyphRampFontId, settings.glyphRamp);
 		this.fontCombobox.update(activeFontId, customFont?.displayName ?? selectedFont?.displayName ?? 'Custom font');
 		this.postFxPanel.update(settings);
+		this.contourPanel.update(settings);
 
 		if (resolvedFontId && resolvedFontId !== settings.fontId) {
 			this.options.onChange({ fontId: resolvedFontId });
@@ -189,6 +197,7 @@ export class OverlaySettingsFormView {
 		this.cellColorModeField.dispose();
 		this.fontCombobox.dispose();
 		this.postFxPanel.dispose();
+		this.contourPanel.dispose();
 		this.tabs.dispose();
 	}
 

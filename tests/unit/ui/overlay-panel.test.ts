@@ -146,6 +146,49 @@ describe('OverlayPanelView', () => {
 		expect(onUpdateOverlay).toHaveBeenCalledWith('overlay-1', { fontId: expectedFontId });
 	});
 
+	it('configures contours from a collapsed Advanced-tab accordion without a glyph ramp', () => {
+		const onUpdateOverlay = vi.fn();
+		const overlay = createOverlay();
+		const view = createView({ onUpdateOverlay });
+		view.update([overlay]);
+		host.append(view.element);
+
+		host.querySelectorAll<HTMLButtonElement>('button[role="tab"]')[1]?.click();
+		const row = host.querySelector<HTMLElement>('.tm-contour-row');
+		expect(row).not.toBeNull();
+		expect(row?.querySelector('.tm-contour-content')?.hasAttribute('hidden')).toBe(true);
+		expect(row?.querySelector('button[aria-label="next glyph ramp"]')).toBeNull();
+
+		row?.querySelector<HTMLInputElement>('.tm-contour-toggle input')?.click();
+		expect(onUpdateOverlay).toHaveBeenLastCalledWith('overlay-1', {
+			contour: { ...overlay.settings.contour, enabled: true },
+		});
+
+		row?.querySelector<HTMLButtonElement>('.tm-contour-main')?.click();
+		expect(row?.querySelector<HTMLElement>('.tm-contour-content')?.hidden).toBe(false);
+		expect(row?.textContent).toContain('threshold');
+		expect(row?.textContent).toContain('color sensitivity');
+		expect(row?.textContent).toContain('#000000');
+
+		const invertToggle = [...(row?.querySelectorAll<HTMLLabelElement>('.tm-toggle-row') ?? [])]
+			.find((field) => field.textContent?.includes('invert'))
+			?.querySelector<HTMLInputElement>('input');
+		invertToggle?.click();
+		expect(onUpdateOverlay).toHaveBeenLastCalledWith('overlay-1', {
+			contour: { ...overlay.settings.contour, invert: true },
+		});
+
+		const thresholdField = [...(row?.querySelectorAll<HTMLElement>('.tm-field') ?? [])].find((field) =>
+			field.textContent?.includes('threshold')
+		);
+		thresholdField
+			?.querySelector<HTMLElement>('[data-slot="slider-thumb"]')
+			?.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }));
+		expect(onUpdateOverlay).toHaveBeenLastCalledWith('overlay-1', {
+			contour: { ...overlay.settings.contour, threshold: 0.13 },
+		});
+	});
+
 	it('resets all overlay settings without removing persisted custom fonts', () => {
 		const onUpdateOverlay = vi.fn();
 		const onRemoveCustomFont = vi.fn();

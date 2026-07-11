@@ -1,6 +1,7 @@
 import { textmode } from 'textmode.js';
 import { createTextmodeExportPlugin } from 'textmode.export.js';
 import { FiltersPlugin } from 'textmode.filters.js';
+import { ContourConversionPlugin } from 'textmode.contour.js';
 import type { TextmodeExportAPI } from 'textmode.export.js';
 import type { OverlaySettings } from '../../domain/overlay/overlay-settings';
 import type { SelectableElement } from '../media-picker/element-picker';
@@ -29,7 +30,7 @@ export const textmodeOverlayRenderer: OverlayRendererPort = {
 			fontSize: settings.fontSize,
 			...(options.fontSource ? { fontSource: options.fontSource } : {}),
 			loadingScreen: { transition: 'none' },
-			plugins: [FiltersPlugin, createTextmodeExportPlugin({ overlay: false })],
+			plugins: [ContourConversionPlugin, FiltersPlugin, createTextmodeExportPlugin({ overlay: false })],
 		});
 	},
 };

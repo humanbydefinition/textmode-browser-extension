@@ -66,6 +66,18 @@ describe('site overlay presets', () => {
 		});
 	});
 
+	it('adds default contour settings to older presets', () => {
+		const legacySettings: Partial<typeof DEFAULT_OVERLAY_SETTINGS> = { ...DEFAULT_OVERLAY_SETTINGS };
+		delete legacySettings.contour;
+		const preset = normalizeStoredSitePreset({
+			version: SITE_PRESET_VERSION,
+			updatedAt: 123,
+			settings: legacySettings,
+		});
+
+		expect(preset?.settings.contour).toEqual(DEFAULT_OVERLAY_SETTINGS.contour);
+	});
+
 	it('ignores malformed or future-version payloads', () => {
 		expect(normalizeStoredSitePreset(null)).toBeNull();
 		expect(normalizeStoredSitePreset({ version: SITE_PRESET_VERSION })).toBeNull();

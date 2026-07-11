@@ -15,6 +15,24 @@ describe('isRuntimeMessage', () => {
 				},
 			})
 		).toBe(true);
+		expect(
+			isRuntimeMessage({
+				type: 'UPDATE_OVERLAY',
+				id: 'overlay-1',
+				settings: {
+					contour: {
+						enabled: true,
+						invert: false,
+						threshold: 0.2,
+						colorSensitivity: 0.8,
+						charColorMode: 'fixed',
+						charColor: '#ffffff',
+						cellColorMode: 'fixed',
+						cellColor: '#000000',
+					},
+				},
+			})
+		).toBe(true);
 		expect(isRuntimeMessage({ type: 'EXPORT_OVERLAY', id: 'overlay-1', format: 'txt' })).toBe(true);
 		expect(isRuntimeMessage({ type: 'EXPORT_OVERLAY', id: 'overlay-1', format: 'svg' })).toBe(true);
 		expect(isRuntimeMessage({ type: 'EXPORT_OVERLAY', id: 'overlay-1', format: 'png' })).toBe(true);
@@ -74,6 +92,13 @@ describe('isRuntimeMessage', () => {
 			isRuntimeMessage({ type: 'UPDATE_OVERLAY', id: 'overlay-1', settings: { charColorMode: 'rainbow' } })
 		).toBe(false);
 		expect(isRuntimeMessage({ type: 'UPDATE_OVERLAY', id: 'overlay-1', settings: { mystery: true } })).toBe(false);
+		expect(
+			isRuntimeMessage({
+				type: 'UPDATE_OVERLAY',
+				id: 'overlay-1',
+				settings: { contour: { enabled: true, threshold: 2 } },
+			})
+		).toBe(false);
 		expect(isRuntimeMessage({ type: 'EXPORT_OVERLAY' })).toBe(false);
 		expect(isRuntimeMessage({ type: 'EXPORT_OVERLAY', id: 1, format: 'png' })).toBe(false);
 		expect(isRuntimeMessage({ type: 'EXPORT_OVERLAY', id: 'overlay-1' })).toBe(false);

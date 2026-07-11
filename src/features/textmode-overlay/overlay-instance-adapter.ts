@@ -1,4 +1,5 @@
 import type { FontId } from '../../domain/overlay/overlay-settings';
+import { CONTOUR_DEFAULT_CHARACTERS } from 'textmode.contour.js';
 import { getFontAssetUrl } from '../../shared/fonts/runtime-font-registry';
 import type { SelectableElement } from '../media-picker/element-picker';
 import type { OverlayController } from './overlay-session';
@@ -110,6 +111,35 @@ function configureSource(controller: OverlayController): void {
 		.cellColorMode(settings.cellColorMode)
 		.cellColor(settings.cellColor)
 		.background(settings.cellColor);
+
+	if (!settings.contour.enabled) {
+		source.conversionMode('brightness');
+		return;
+	}
+
+	source.conversions([
+		{
+			mode: 'brightness',
+			characters: settings.glyphRamp,
+			charColorMode: settings.charColorMode,
+			charColor: settings.charColor,
+			cellColorMode: settings.cellColorMode,
+			cellColor: settings.cellColor,
+		},
+		{
+			mode: 'contour',
+			characters: CONTOUR_DEFAULT_CHARACTERS,
+			invert: settings.contour.invert,
+			charColorMode: settings.contour.charColorMode,
+			charColor: settings.contour.charColor,
+			cellColorMode: settings.contour.cellColorMode,
+			cellColor: settings.contour.cellColor,
+			options: {
+				threshold: settings.contour.threshold,
+				colorSensitivity: settings.contour.colorSensitivity,
+			},
+		},
+	]);
 }
 
 function canRenderElement(element: SelectableElement): boolean {

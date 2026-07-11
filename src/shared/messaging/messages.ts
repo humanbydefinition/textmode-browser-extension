@@ -5,6 +5,7 @@ import {
 	type OverlayDescriptor,
 	type OverlayExportFormat,
 	type OverlayPostFxItem,
+	type OverlayContourSettings,
 	type OverlaySettings,
 	type SourceColorMode,
 } from '../../domain/overlay/overlay-settings';
@@ -155,10 +156,32 @@ function isOverlaySettingsPatch(value: unknown): value is Partial<OverlaySetting
 				return isSourceColorMode(patchValue);
 			case 'postFx':
 				return Array.isArray(patchValue) && patchValue.every(isOverlayPostFxItem);
+			case 'contour':
+				return isOverlayContourSettings(patchValue);
 			default:
 				return false;
 		}
 	});
+}
+
+function isOverlayContourSettings(value: unknown): value is OverlayContourSettings {
+	return (
+		isRecord(value) &&
+		typeof value.enabled === 'boolean' &&
+		typeof value.invert === 'boolean' &&
+		typeof value.threshold === 'number' &&
+		Number.isFinite(value.threshold) &&
+		value.threshold >= 0 &&
+		value.threshold <= 1 &&
+		typeof value.colorSensitivity === 'number' &&
+		Number.isFinite(value.colorSensitivity) &&
+		value.colorSensitivity >= 0 &&
+		value.colorSensitivity <= 1 &&
+		isSourceColorMode(value.charColorMode) &&
+		isOverlayRgbColor(value.charColor) &&
+		isSourceColorMode(value.cellColorMode) &&
+		isOverlayRgbColor(value.cellColor)
+	);
 }
 
 function isOverlayPostFxItem(value: unknown): value is OverlayPostFxItem {
@@ -175,6 +198,10 @@ function isOverlayPostFxItem(value: unknown): value is OverlayPostFxItem {
 
 function isSourceColorMode(value: unknown): value is SourceColorMode {
 	return typeof value === 'string' && SOURCE_COLOR_MODES.includes(value as SourceColorMode);
+}
+
+function isOverlayRgbColor(value: unknown): value is string {
+	return typeof value === 'string' && /^#[0-9a-f]{6}$/i.test(value);
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

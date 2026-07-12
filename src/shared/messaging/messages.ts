@@ -29,6 +29,55 @@ export type PopupToContentMessage =
 	| { type: 'REMOVE_ALL' }
 	| { type: 'TOGGLE_OVERLAY' };
 
+export interface FrameAddress {
+	frameId: number;
+	runtimeId: string;
+}
+
+export const FRAME_RUNTIME_READY_PROBE = { type: 'FRAME_PING' } as const satisfies FrameCommand;
+
+export type FrameCommand =
+	| { type: 'FRAME_PING'; runtimeId?: string }
+	| { type: 'FRAME_BEGIN_PICKING'; pickSessionId: string }
+	| { type: 'FRAME_END_PICKING'; pickSessionId: string }
+	| {
+			type: 'FRAME_CREATE_OVERLAY';
+			runtimeId: string;
+			targetToken: string;
+			overlayId: string;
+			settings: Partial<OverlaySettings>;
+	  }
+	| { type: 'FRAME_UPDATE_OVERLAY'; runtimeId: string; overlayId: string; settings: Partial<OverlaySettings> }
+	| { type: 'FRAME_EXPORT_OVERLAY'; runtimeId: string; overlayId: string; format: OverlayExportFormat }
+	| { type: 'FRAME_REMOVE_OVERLAY'; runtimeId?: string; overlayId: string }
+	| { type: 'FRAME_PAUSE_ALL'; runtimeId?: string }
+	| { type: 'FRAME_RESUME_ALL'; runtimeId?: string }
+	| { type: 'FRAME_REMOVE_ALL'; runtimeId?: string };
+
+export type FrameEvent =
+	| { type: 'FRAME_TARGET_PICKED'; pickSessionId: string; runtimeId: string; targetToken: string }
+	| { type: 'FRAME_PICKING_CANCELLED'; pickSessionId: string; runtimeId: string }
+	| { type: 'FRAME_UNAVAILABLE_IFRAME'; pickSessionId: string; runtimeId: string; reason: string }
+	| { type: 'FRAME_OVERLAY_STATE'; runtimeId: string; overlays: OverlayDescriptor[] }
+	| { type: 'FRAME_DISPOSING'; runtimeId: string };
+
+export type FrameRoutingMessage =
+	| { type: 'ENSURE_FRAME_AGENTS' }
+	| { type: 'BROADCAST_FRAME_COMMAND'; command: FrameCommand }
+	| { type: 'SEND_FRAME_COMMAND'; frameId: number; command: FrameCommand }
+	| {
+			type: 'PREPARE_FRAME_OVERLAY';
+			frameId: number;
+			command: Extract<FrameCommand, { type: 'FRAME_CREATE_OVERLAY' }>;
+	  }
+	| { type: 'FRAME_EVENT'; event: FrameEvent };
+
+export interface RoutedFrameEventMessage {
+	type: 'ROUTED_FRAME_EVENT';
+	frameId: number;
+	event: FrameEvent;
+}
+
 export type ContentToPopupMessage =
 	| { type: 'OVERLAY_LIST_CHANGED'; overlays: OverlayDescriptor[]; customFonts?: CustomFontSummary[] }
 	| { type: 'PICKING_STARTED' }
@@ -47,7 +96,12 @@ export interface CustomFontStorageResponse extends RuntimeAck {
 }
 
 export type RuntimeMessage =
-	PopupToContentMessage | ContentToPopupMessage | CustomFontStorageMessage | { type: 'PING' };
+	| PopupToContentMessage
+	| ContentToPopupMessage
+	| CustomFontStorageMessage
+	| FrameCommand
+	| FrameRoutingMessage
+	| RoutedFrameEventMessage;
 
 export interface RuntimeAck {
 	ok: boolean;
@@ -64,7 +118,107 @@ export function isRuntimeMessage(value: unknown): value is RuntimeMessage {
 		isPopupToContentMessage(value) ||
 		isContentToPopupMessage(value) ||
 		isCustomFontStorageMessage(value) ||
-		value.type === 'PING'
+		isFrameCommand(value) ||
+		isFrameRoutingMessage(value) ||
+		isRoutedFrameEventMessage(value)
+	);
+}
+
+export function isFrameCommand(value: unknown): value is FrameCommand {
+	if (!isRecord(value) || typeof value.type !== 'string') return false;
+	switch (value.type) {
+		case 'FRAME_PING':
+			return value.runtimeId === undefined || typeof value.runtimeId === 'string';
+		case 'FRAME_BEGIN_PICKING':
+		case 'FRAME_END_PICKING':
+			return typeof value.pickSessionId === 'string';
+		case 'FRAME_CREATE_OVERLAY':
+			return (
+				typeof value.runtimeId === 'string' &&
+				typeof value.targetToken === 'string' &&
+				typeof value.overlayId === 'string' &&
+				isOverlaySettingsPatch(value.settings)
+			);
+		case 'FRAME_UPDATE_OVERLAY':
+			return (
+				typeof value.runtimeId === 'string' &&
+				typeof value.overlayId === 'string' &&
+				isOverlaySettingsPatch(value.settings)
+			);
+		case 'FRAME_EXPORT_OVERLAY':
+			return (
+				typeof value.runtimeId === 'string' &&
+				typeof value.overlayId === 'string' &&
+				isOverlayExportFormat(value.format)
+			);
+		case 'FRAME_REMOVE_OVERLAY':
+			return (
+				(value.runtimeId === undefined || typeof value.runtimeId === 'string') &&
+				typeof value.overlayId === 'string'
+			);
+		case 'FRAME_PAUSE_ALL':
+		case 'FRAME_RESUME_ALL':
+		case 'FRAME_REMOVE_ALL':
+			return value.runtimeId === undefined || typeof value.runtimeId === 'string';
+		default:
+			return false;
+	}
+}
+
+export function isFrameEvent(value: unknown): value is FrameEvent {
+	if (!isRecord(value) || typeof value.type !== 'string') return false;
+	switch (value.type) {
+		case 'FRAME_TARGET_PICKED':
+			return (
+				typeof value.pickSessionId === 'string' &&
+				typeof value.runtimeId === 'string' &&
+				typeof value.targetToken === 'string'
+			);
+		case 'FRAME_PICKING_CANCELLED':
+			return typeof value.pickSessionId === 'string' && typeof value.runtimeId === 'string';
+		case 'FRAME_UNAVAILABLE_IFRAME':
+			return (
+				typeof value.pickSessionId === 'string' &&
+				typeof value.runtimeId === 'string' &&
+				typeof value.reason === 'string'
+			);
+		case 'FRAME_OVERLAY_STATE':
+			return typeof value.runtimeId === 'string' && Array.isArray(value.overlays);
+		case 'FRAME_DISPOSING':
+			return typeof value.runtimeId === 'string';
+		default:
+			return false;
+	}
+}
+
+export function isFrameRoutingMessage(value: unknown): value is FrameRoutingMessage {
+	if (!isRecord(value) || typeof value.type !== 'string') return false;
+	switch (value.type) {
+		case 'ENSURE_FRAME_AGENTS':
+			return true;
+		case 'BROADCAST_FRAME_COMMAND':
+			return isFrameCommand(value.command);
+		case 'SEND_FRAME_COMMAND':
+			return Number.isInteger(value.frameId) && isFrameCommand(value.command);
+		case 'PREPARE_FRAME_OVERLAY':
+			return (
+				Number.isInteger(value.frameId) &&
+				isFrameCommand(value.command) &&
+				value.command.type === 'FRAME_CREATE_OVERLAY'
+			);
+		case 'FRAME_EVENT':
+			return isFrameEvent(value.event);
+		default:
+			return false;
+	}
+}
+
+export function isRoutedFrameEventMessage(value: unknown): value is RoutedFrameEventMessage {
+	return (
+		isRecord(value) &&
+		value.type === 'ROUTED_FRAME_EVENT' &&
+		Number.isInteger(value.frameId) &&
+		isFrameEvent(value.event)
 	);
 }
 

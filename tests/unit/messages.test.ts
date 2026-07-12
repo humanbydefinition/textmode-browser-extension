@@ -3,7 +3,7 @@ import { isRuntimeMessage } from '../../src/shared/messaging/messages';
 
 describe('isRuntimeMessage', () => {
 	it('accepts supported messages with valid payloads', () => {
-		expect(isRuntimeMessage({ type: 'PING' })).toBe(true);
+		expect(isRuntimeMessage({ type: 'FRAME_PING' })).toBe(true);
 		expect(isRuntimeMessage({ type: 'REMOVE_OVERLAY', id: 'overlay-1' })).toBe(true);
 		expect(isRuntimeMessage({ type: 'UPDATE_OVERLAY', id: 'overlay-1', settings: { fontSize: 16 } })).toBe(true);
 		expect(
@@ -40,6 +40,31 @@ describe('isRuntimeMessage', () => {
 		expect(isRuntimeMessage({ type: 'EXPORT_OVERLAY', id: 'overlay-1', format: 'svg' })).toBe(true);
 		expect(isRuntimeMessage({ type: 'EXPORT_OVERLAY', id: 'overlay-1', format: 'png' })).toBe(true);
 		expect(isRuntimeMessage({ type: 'EXPORT_OVERLAY', id: 'overlay-1', format: 'jpg' })).toBe(true);
+		expect(isRuntimeMessage({ type: 'ENSURE_FRAME_AGENTS' })).toBe(true);
+		expect(
+			isRuntimeMessage({
+				type: 'BROADCAST_FRAME_COMMAND',
+				command: { type: 'FRAME_BEGIN_PICKING', pickSessionId: 'pick-1' },
+			})
+		).toBe(true);
+		expect(
+			isRuntimeMessage({
+				type: 'SEND_FRAME_COMMAND',
+				frameId: 4,
+				command: { type: 'FRAME_REMOVE_ALL', runtimeId: 'runtime-1' },
+			})
+		).toBe(true);
+		expect(
+			isRuntimeMessage({
+				type: 'FRAME_EVENT',
+				event: {
+					type: 'FRAME_TARGET_PICKED',
+					pickSessionId: 'pick-1',
+					runtimeId: 'runtime-1',
+					targetToken: 'target-1',
+				},
+			})
+		).toBe(true);
 	});
 
 	it('rejects missing or non-string types', () => {
@@ -106,5 +131,21 @@ describe('isRuntimeMessage', () => {
 		expect(isRuntimeMessage({ type: 'EXPORT_OVERLAY', id: 1, format: 'png' })).toBe(false);
 		expect(isRuntimeMessage({ type: 'EXPORT_OVERLAY', id: 'overlay-1' })).toBe(false);
 		expect(isRuntimeMessage({ type: 'EXPORT_OVERLAY', id: 'overlay-1', format: 'webp' })).toBe(false);
+		expect(
+			isRuntimeMessage({
+				type: 'SEND_FRAME_COMMAND',
+				frameId: 'child',
+				command: { type: 'FRAME_REMOVE_ALL' },
+			})
+		).toBe(false);
+		expect(
+			isRuntimeMessage({
+				type: 'FRAME_CREATE_OVERLAY',
+				runtimeId: 'runtime-1',
+				targetToken: 'target-1',
+				overlayId: 'overlay-1',
+				settings: { fontSize: 'large' },
+			})
+		).toBe(false);
 	});
 });

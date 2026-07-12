@@ -86,10 +86,6 @@ export class PageRuntime {
 			return { ok: false, error: 'Unsupported extension message.' };
 		}
 
-		if (message.type === 'PING') {
-			return { ok: true };
-		}
-
 		if (!isPopupToContentMessage(message)) {
 			return { ok: false, error: 'Unsupported page-to-popup message received by content runtime.' };
 		}

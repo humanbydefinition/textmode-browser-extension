@@ -55,4 +55,30 @@ describe('element-picker', () => {
 		expect(document.querySelector('.textmode-ascii-overlay-picker')).toBeNull();
 		expect(document.documentElement.style.cursor).toBe('');
 	});
+
+	it('blocks inaccessible iframes during picking and reports why they are unavailable', () => {
+		const iframe = document.createElement('iframe');
+		Object.defineProperty(iframe, 'contentDocument', { value: null });
+		mockRect(iframe, { left: 12, top: 24, width: 320, height: 180 });
+		document.body.append(iframe);
+		const onUnavailableFrame = vi.fn();
+		const picker = new ElementPicker({
+			onPick: vi.fn(),
+			onCancel: vi.fn(),
+			onUnavailableFrame,
+		});
+
+		picker.start();
+		const blocker = document.querySelector<HTMLElement>('.textmode-ascii-overlay-iframe-blocker');
+		expect(blocker).not.toBeNull();
+		expect(blocker?.style.left).toBe('12px');
+		expect(blocker?.style.width).toBe('320px');
+		blocker?.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+
+		expect(onUnavailableFrame).toHaveBeenCalledWith(expect.stringContaining('same-origin'));
+		expect(document.querySelector('.textmode-ascii-overlay-iframe-blocker')).not.toBeNull();
+
+		picker.stop(false);
+		expect(document.querySelector('.textmode-ascii-overlay-iframe-blocker')).toBeNull();
+	});
 });

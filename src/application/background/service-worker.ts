@@ -9,6 +9,7 @@ import {
 } from '../../shared/browser/browser-api';
 import { ensureContentRuntime } from './runtime-injection';
 import { attachCustomFontCoordinatorListener, createCustomFontCoordinator } from './custom-font-coordinator';
+import { attachFrameRouterListener } from './frame-router';
 
 export function startBackgroundServiceWorker(): void {
 	const coordinator = createCustomFontCoordinator({
@@ -17,6 +18,7 @@ export function startBackgroundServiceWorker(): void {
 		remove: storageLocalRemove,
 	});
 	attachCustomFontCoordinatorListener(coordinator, addRuntimeMessageListener);
+	attachFrameRouterListener();
 	void coordinator.cleanup().catch((error) => console.warn('Unable to clean custom font storage:', error));
 	addInstalledListener(() => {
 		console.info('textmode installed.');

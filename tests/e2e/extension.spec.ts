@@ -42,6 +42,62 @@ test('Chrome extension can select a canvas and create an overlay', async () => {
 		});
 
 		await expect(page.locator('#textmode-ascii-overlay-control-panel-root')).toBeAttached();
+		const panelHost = page.locator('#textmode-ascii-overlay-control-panel-root');
+		const initialPanelRect = await panelHost.boundingBox();
+		const moveHandle = page.getByRole('button', { name: /move panel/i });
+		const moveHandleRect = await moveHandle.boundingBox();
+		if (!initialPanelRect || !moveHandleRect) {
+			throw new Error('Expected the in-page panel and move handle to have visible bounds.');
+		}
+
+		await page.mouse.move(
+			moveHandleRect.x + moveHandleRect.width / 2,
+			moveHandleRect.y + moveHandleRect.height / 2
+		);
+		await page.mouse.down();
+		await page.mouse.move(
+			moveHandleRect.x + moveHandleRect.width / 2 - 180,
+			moveHandleRect.y + moveHandleRect.height / 2 + 60,
+			{ steps: 4 }
+		);
+		await page.mouse.up();
+
+		const movedPanelRect = await panelHost.boundingBox();
+		if (!movedPanelRect) throw new Error('Expected the moved panel to remain visible.');
+		expect(movedPanelRect.x).toBeLessThan(initialPanelRect.x - 150);
+		expect(movedPanelRect.y).toBeGreaterThan(initialPanelRect.y + 40);
+		expect(movedPanelRect.x).toBeGreaterThanOrEqual(9);
+		expect(movedPanelRect.y).toBeGreaterThanOrEqual(9);
+		expect(movedPanelRect.x + movedPanelRect.width).toBeLessThanOrEqual(791);
+		expect(movedPanelRect.y + movedPanelRect.height).toBeLessThanOrEqual(711);
+
+		await expect
+			.poll(() =>
+				serviceWorker.evaluate(async () => {
+					const stored = await chrome.storage.local.get('site-panel-position:v1:127.0.0.1');
+					return stored['site-panel-position:v1:127.0.0.1'];
+				})
+			)
+			.toMatchObject({
+				version: 1,
+				placement: {
+					xRatio: expect.any(Number),
+					yRatio: expect.any(Number),
+				},
+			});
+
+		await page.getByRole('button', { name: /close panel/i }).click();
+		await expect(panelHost).toHaveCount(0);
+		await serviceWorker.evaluate(async () => {
+			const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+			if (!tab.id) throw new Error('Missing active tab while reopening panel.');
+			await chrome.tabs.sendMessage(tab.id, { type: 'TOGGLE_OVERLAY' });
+		});
+		await expect(panelHost).toBeAttached();
+		const reopenedPanelRect = await panelHost.boundingBox();
+		expect(reopenedPanelRect?.x).toBeCloseTo(movedPanelRect.x, 0);
+		expect(reopenedPanelRect?.y).toBeCloseTo(movedPanelRect.y, 0);
+
 		await page.getByRole('button', { name: /select media/i }).click();
 		await page.locator('canvas#demo-canvas').click({ position: { x: 24, y: 24 } });
 
@@ -122,6 +178,10 @@ test('Chrome extension can select a canvas and create an overlay', async () => {
 			await chrome.scripting.executeScript({ target: { tabId: tab.id }, files: ['/content-runtime.js'] });
 			await chrome.tabs.sendMessage(tab.id, { type: 'TOGGLE_OVERLAY' });
 		});
+		await expect(panelHost).toBeAttached();
+		const reloadedPanelRect = await panelHost.boundingBox();
+		expect(reloadedPanelRect?.x).toBeCloseTo(movedPanelRect.x, 0);
+		expect(reloadedPanelRect?.y).toBeCloseTo(movedPanelRect.y, 0);
 		await page.getByRole('button', { name: /select media/i }).click();
 		await page.locator('canvas#demo-canvas').click({ position: { x: 24, y: 24 } });
 		await page.getByRole('tab', { name: 'advanced' }).click();

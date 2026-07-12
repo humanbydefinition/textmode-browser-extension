@@ -9,6 +9,7 @@ import { rateExtensionUrl as defaultRateExtensionUrl } from '../../shared/config
 
 export interface OverlayPanelViewOptions {
 	portalContainer: HTMLElement;
+	mode?: 'popup' | 'in-page';
 	customFonts?: readonly CustomFontSummary[];
 	allowCustomFontUpload?: boolean;
 	onStartPicking: () => void;
@@ -24,6 +25,7 @@ export interface OverlayPanelViewOptions {
 
 export class OverlayPanelView {
 	public readonly element: HTMLElement;
+	public readonly moveHandleElement: HTMLButtonElement | null;
 	private readonly selectButton: HTMLButtonElement;
 	private readonly selectButtonLabel: Text;
 	private readonly overlayList: HTMLElement;
@@ -32,6 +34,7 @@ export class OverlayPanelView {
 	private overlayId: string | null = null;
 
 	public constructor(private readonly options: OverlayPanelViewOptions) {
+		const mode = options.mode ?? 'popup';
 		const title = h(
 			'div',
 			{ className: 'tm-panel__title' },
@@ -42,23 +45,35 @@ export class OverlayPanelView {
 				h('span', {}, 'overlay', h('span', { className: 'tm-panel__title-char', textContent: '' }))
 			)
 		);
+		this.moveHandleElement =
+			mode === 'in-page' ? createButton('tm-panel__header-action tm-panel__move-handle', 'move panel') : null;
+		if (this.moveHandleElement) {
+			const moveInstructions = 'Move panel. Drag to move or double-click to reset its position.';
+			this.moveHandleElement.setAttribute('aria-label', moveInstructions);
+			this.moveHandleElement.setAttribute('title', moveInstructions);
+			this.moveHandleElement.append(icon('grip-vertical'));
+		}
 		const supportLink = h(
 			'a',
 			{
-				className: 'tm-button tm-button--ghost tm-support-link',
+				className:
+					mode === 'in-page'
+						? 'tm-button tm-button--ghost tm-button--icon tm-panel__header-action tm-support-link'
+						: 'tm-button tm-button--ghost tm-panel__header-action tm-support-link',
 				attributes: {
 					href: 'https://ko-fi.com/humanbydefinition',
 					target: '_blank',
 					rel: 'noreferrer',
+					...(mode === 'in-page' ? { title: 'Support textmode', 'aria-label': 'Support textmode' } : {}),
 				},
 			},
 			icon('heart-handshake'),
-			'support'
+			mode === 'popup' ? 'support' : null
 		);
 		const githubLink = h(
 			'a',
 			{
-				className: 'tm-button tm-button--ghost tm-button--icon tm-github-link',
+				className: 'tm-button tm-button--ghost tm-button--icon tm-panel__header-action tm-github-link',
 				attributes: {
 					href: 'https://github.com/humanbydefinition/textmode-browser-extension',
 					target: '_blank',
@@ -69,9 +84,12 @@ export class OverlayPanelView {
 			},
 			icon('github')
 		);
-		const actions = h('div', { className: 'tm-panel__actions' }, supportLink, githubLink);
+		const actions = h('div', { className: 'tm-panel__actions' }, supportLink, githubLink, this.moveHandleElement);
 		if (options.onClose) {
-			const closeButton = createButton('tm-button tm-button--ghost tm-button--icon', 'close panel');
+			const closeButton = createButton(
+				'tm-button tm-button--ghost tm-button--icon tm-panel__header-action',
+				'close panel'
+			);
 			closeButton.append(icon('x'));
 			closeButton.addEventListener('click', options.onClose);
 			actions.append(closeButton);
@@ -119,7 +137,11 @@ export class OverlayPanelView {
 
 		this.element = h(
 			'main',
-			{ className: 'tm-panel', attributes: { 'data-testid': 'overlay-panel' } },
+			{
+				className: 'tm-panel',
+				attributes: { 'data-testid': 'overlay-panel' },
+				dataset: { mode },
+			},
 			header,
 			this.selectButton,
 			this.overlayList,

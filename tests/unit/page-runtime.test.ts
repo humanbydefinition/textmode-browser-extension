@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { PageRuntime } from '../../src/application/page-runtime/page-runtime';
 import { DEFAULT_OVERLAY_SETTINGS, type OverlayDescriptor } from '../../src/domain/overlay/overlay-settings';
 import type { SitePresetStore } from '../../src/application/page-runtime/site-preset-store';
+import type { PanelPlacementStore } from '../../src/application/page-runtime/panel-placement-store';
 import { createMockSource, MockResizeObserver, mockRect } from './test-helpers';
 import { sendMessageToRuntime } from '../../src/shared/browser/browser-api';
 
@@ -75,6 +76,7 @@ vi.mock('textmode.export.js', () => ({
 describe('PageRuntime site presets', () => {
 	const pageUrl = new URL('https://www.youtube.com/watch?v=abc');
 	let store: SitePresetStore;
+	let placementStore: PanelPlacementStore;
 
 	beforeEach(() => {
 		instances.length = 0;
@@ -89,6 +91,11 @@ describe('PageRuntime site presets', () => {
 		});
 		store = {
 			loadForUrl: vi.fn(async () => ({ ...DEFAULT_OVERLAY_SETTINGS, fontSize: 19 })),
+			saveForUrl: vi.fn(async () => undefined),
+			removeForUrl: vi.fn(async () => undefined),
+		};
+		placementStore = {
+			loadForUrl: vi.fn(async () => ({ xRatio: 0.25, yRatio: 0.75 })),
 			saveForUrl: vi.fn(async () => undefined),
 			removeForUrl: vi.fn(async () => undefined),
 		};
@@ -172,6 +179,33 @@ describe('PageRuntime site presets', () => {
 		});
 		expect(sendMessageToRuntime).toHaveBeenCalledWith({ type: 'ERROR', message: 'Storage unavailable.' });
 	});
+
+	it('loads, saves, and resets panel placement independently from overlay settings', async () => {
+		const runtime = new PageRuntime({ pageUrl, presetStore: store, panelPlacementStore: placementStore });
+		await getRuntimeReady(runtime);
+
+		expect(placementStore.loadForUrl).toHaveBeenCalledWith(pageUrl);
+		await savePanelPlacement(runtime, { xRatio: 0.4, yRatio: 0.6 });
+		expect(placementStore.saveForUrl).toHaveBeenCalledWith(pageUrl, { xRatio: 0.4, yRatio: 0.6 });
+		expect(store.saveForUrl).not.toHaveBeenCalled();
+
+		await resetPanelPlacement(runtime);
+		expect(placementStore.removeForUrl).toHaveBeenCalledWith(pageUrl);
+	});
+
+	it('reports placement storage failures without reverting the live placement', async () => {
+		vi.mocked(placementStore.saveForUrl).mockRejectedValue(new Error('Placement storage unavailable.'));
+		const runtime = new PageRuntime({ pageUrl, presetStore: store, panelPlacementStore: placementStore });
+		await getRuntimeReady(runtime);
+
+		await savePanelPlacement(runtime, { xRatio: 0.1, yRatio: 0.9 });
+
+		expect(getPanelPlacement(runtime)).toEqual({ xRatio: 0.1, yRatio: 0.9 });
+		expect(sendMessageToRuntime).toHaveBeenCalledWith({
+			type: 'ERROR',
+			message: 'Placement storage unavailable.',
+		});
+	});
 });
 
 function createCanvas(id: string): HTMLCanvasElement {
@@ -208,4 +242,24 @@ async function getActiveOverlayId(runtime: PageRuntime): Promise<string> {
 async function flushPromises(): Promise<void> {
 	await Promise.resolve();
 	await Promise.resolve();
+}
+
+async function getRuntimeReady(runtime: PageRuntime): Promise<void> {
+	await (runtime as unknown as { runtimeReady: Promise<void> }).runtimeReady;
+}
+
+async function savePanelPlacement(runtime: PageRuntime, placement: { xRatio: number; yRatio: number }): Promise<void> {
+	await (
+		runtime as unknown as {
+			savePanelPlacement(placement: { xRatio: number; yRatio: number }): Promise<void>;
+		}
+	).savePanelPlacement(placement);
+}
+
+async function resetPanelPlacement(runtime: PageRuntime): Promise<void> {
+	await (runtime as unknown as { resetPanelPlacement(): Promise<void> }).resetPanelPlacement();
+}
+
+function getPanelPlacement(runtime: PageRuntime): { xRatio: number; yRatio: number } | null {
+	return (runtime as unknown as { panelPlacement: { xRatio: number; yRatio: number } | null }).panelPlacement;
 }

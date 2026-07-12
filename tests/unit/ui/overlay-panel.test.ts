@@ -38,6 +38,39 @@ describe('OverlayPanelView', () => {
 		expect(onStartPicking).toHaveBeenCalledTimes(1);
 	});
 
+	it('keeps the popup header unchanged and compacts only the in-page header', () => {
+		const popupView = createView();
+		popupView.update([]);
+		host.append(popupView.element);
+
+		expect(popupView.moveHandleElement).toBeNull();
+		expect(popupView.element.dataset.mode).toBe('popup');
+		expect(popupView.element.querySelector('.tm-support-link')?.textContent).toContain('support');
+
+		const inPageView = createView({ mode: 'in-page', onClose: vi.fn() });
+		inPageView.update([]);
+		host.append(inPageView.element);
+
+		expect(inPageView.moveHandleElement).not.toBeNull();
+		expect(inPageView.element.dataset.mode).toBe('in-page');
+		expect(
+			inPageView.element
+				.querySelector('.tm-panel__header')
+				?.firstElementChild?.classList.contains('tm-panel__title')
+		).toBe(true);
+		const headerActions = [...inPageView.element.querySelectorAll('.tm-panel__actions > *')];
+		expect(headerActions.at(-2)).toBe(inPageView.moveHandleElement);
+		expect(headerActions.at(-1)?.getAttribute('aria-label')).toBe('close panel');
+		expect(inPageView.moveHandleElement?.getAttribute('aria-keyshortcuts')).toBeNull();
+		expect(inPageView.moveHandleElement?.getAttribute('title')).toContain('double-click');
+		expect(inPageView.moveHandleElement?.classList.contains('tm-button')).toBe(false);
+		expect(headerActions.every((action) => action.classList.contains('tm-panel__header-action'))).toBe(true);
+		expect(inPageView.element.querySelector('.tm-support-link')?.textContent).not.toContain('support');
+		expect(inPageView.element.querySelector('.tm-support-link')?.getAttribute('aria-label')).toBe(
+			'Support textmode'
+		);
+	});
+
 	it('renders the store rating link when a rating URL is available', () => {
 		const rateExtensionUrl = 'https://example.com/rate';
 		const view = createView({ rateExtensionUrl });

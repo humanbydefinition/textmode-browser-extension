@@ -66,7 +66,7 @@ select {
 	display: grid;
 	grid-template-rows: auto auto minmax(0, 1fr) auto;
 	gap: 12px;
-	width: var(--tm-panel-width);
+	width: 100%;
 	max-width: var(--tm-panel-width);
 	max-height: min(640px, calc(100vh - 60px));
 	min-width: 0;
@@ -99,6 +99,30 @@ select {
 	gap: 10px;
 	min-height: 32px;
 	min-width: 0;
+}
+
+.tm-panel__move-handle {
+	appearance: none;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	flex: 0 0 auto;
+	width: 28px;
+	height: 28px;
+	padding: 0;
+	cursor: grab;
+	touch-action: none;
+}
+
+.tm-panel__move-handle svg {
+	width: 14px;
+	height: 14px;
+	stroke-width: 2.5;
+}
+
+.tm-panel[data-dragging] .tm-panel__move-handle,
+.tm-panel[data-dragging] {
+	cursor: grabbing;
 }
 
 .tm-panel__title {
@@ -254,6 +278,27 @@ select {
 	border-color: var(--tm-neutral-52);
 	background: var(--tm-neutral-1a);
 	color: var(--tm-neutral-fa);
+}
+
+.tm-panel__header-action,
+.tm-panel__header-action:hover:not(:disabled) {
+	border: 0;
+	background: transparent;
+	box-shadow: none;
+}
+
+.tm-panel__header-action {
+	color: var(--tm-neutral-73);
+	transition: color 0.15s;
+}
+
+.tm-panel__header-action:hover:not(:disabled) {
+	color: var(--tm-neutral-fa);
+}
+
+.tm-panel__header-action:focus-visible {
+	outline: 2px solid var(--tm-neutral-fa);
+	outline-offset: 1px;
 }
 
 .tm-select-button,

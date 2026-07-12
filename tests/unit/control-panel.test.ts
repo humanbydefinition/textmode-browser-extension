@@ -42,6 +42,9 @@ describe('ControlPanel', () => {
 		expect(host?.dataset.textmodeAsciiExtensionUi).toBe('true');
 		expect(host?.shadowRoot?.querySelector('[data-testid="overlay-panel"]')).not.toBeNull();
 		expect(document.querySelector('[data-testid="overlay-panel"]')).toBeNull();
+		expect(host?.shadowRoot?.querySelector('.tm-panel__move-handle')).not.toBeNull();
+		expect(host?.shadowRoot?.querySelector('.tm-panel')?.getAttribute('data-mode')).toBe('in-page');
+		expect(host?.shadowRoot?.querySelector('.tm-support-link')?.textContent).not.toContain('support');
 
 		panel.unmount();
 		expect(document.querySelector('#textmode-ascii-overlay-control-panel-root')).toBeNull();

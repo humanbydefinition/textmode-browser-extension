@@ -69,14 +69,17 @@ export class ControlPanel {
 				all: initial;
 				display: block;
 				width: min(300px, calc(100vw - 20px));
+				background: transparent;
 				color-scheme: dark;
-				box-shadow: 0 18px 42px rgb(0 0 0 / 0.42);
 			}
 
 			:host .tm-panel {
 				border: 1px solid var(--tm-neutral-26);
 				border-radius: 8px;
-				box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.04);
+				background-clip: padding-box;
+				box-shadow:
+					inset 0 1px 0 rgb(255 255 255 / 0.04),
+					0 18px 42px rgb(0 0 0 / 0.42);
 			}
 
 			${panelStyles}

@@ -31,6 +31,7 @@
 ## Features
 
 - **Live Textmode Conversion**: Real-time rendering of customizable textmode/ASCII grids over `<canvas>` and `<video>` elements.
+- **Same-Origin Iframes**: Select media inside same-origin, nested, `srcdoc`, and dynamically added iframe documents.
 - **In-Page Control Panel**: Dynamic options for adjustments to characters, fonts, glyph sizes, post-fx filters, and more.
 - **Custom Fonts**: Upload your own TrueType (`.ttf`) or OpenType (`.otf`) fonts directly in the control panel to use custom character sets.
 - **Post-FX Filters**: Stackable, real-time filters to stylize the final output.
@@ -79,6 +80,43 @@ Load the extension in Chrome:
 3. Click **Load unpacked**.
 4. Select `.output/chrome-mv3`.
 
+## Firefox Reviewer Build Instructions
+
+The submitted Firefox source package includes all files needed to reproduce the review build locally.
+
+Environment requirements:
+
+- [Node.js](https://nodejs.org/en/download) 20.8.1 or newer
+- npm
+
+Build steps:
+
+```sh
+npm ci
+npm run zip:firefox
+```
+
+Expected outputs:
+
+- Unpacked Firefox build: `.output/firefox-mv3`
+- Firefox submission archive: `.output/textmode-ascii-overlay-extension-1.2.0-firefox.zip`
+
+The build runs entirely locally with open-source tooling from `package.json`. No remote code loading or web-based build service is required to produce the submitted Firefox package.
+
+## Custom Font Persistence
+
+Uploaded TrueType fonts are stored locally in the current browser profile and are never synced or uploaded to a remote service. The library supports up to 10 fonts, 10 MB per font, and 50 MB of raw font data in total. Removing the extension also removes its browser-managed font storage.
+
+The persistence format is versioned. `custom-fonts:catalog:v1` contains metadata only, while each Base64 payload is stored under its own `custom-font:data:v1:<uuid>` key. Uploads use a background-coordinated reserve/write/commit lifecycle so concurrent tabs cannot exceed library limits or publish incomplete files. Content runtimes subscribe to catalog revisions and load a payload only when that font is selected; generated object URLs are scoped to that runtime and revoked when the font is removed.
+
+When changing the schema, add a new versioned normalizer and an explicit migration instead of rewriting unknown records. Keep catalog records JSON-compatible, avoid placing payload data in the catalog, and preserve the lazy-loading boundary in `runtime-font-registry`.
+
+## Privacy and Permissions
+
+Production builds declare `activeTab`, `scripting`, `storage`, and `unlimitedStorage`. Access to page media is user-triggered and processed locally; per-hostname presets, panel placement, and uploaded fonts remain in browser-managed extension storage. The extension has no backend, account synchronization, analytics, advertising, or remote telemetry, and it does not transmit selected page content or exports to textmode.art.
+
+See the [Imprint](https://legal.textmode.art/projects/extension.textmode.art/en/imprint) and [Privacy Policy](https://legal.textmode.art/projects/extension.textmode.art/en/privacy) for the complete disclosures covering the extension and extension.textmode.art landing page.
+
 ## Usage
 
 1. Open a [page](https://www.youtube.com/watch?v=dQw4w9WgXcQ) with a visible canvas or video element.
@@ -90,10 +128,12 @@ Load the extension in Chrome:
 
 > [!NOTE]
 > Some media cannot be sampled. Cross-origin, tainted, DRM-protected, or otherwise restricted media may fail when the browser blocks WebGL or canvas pixel access. The extension should report those failures without breaking the page.
+>
+> The extension keeps its action-triggered `activeTab` permission model. Iframes that do not share the top page's origin, including opaque sandboxed frames, are marked as unavailable while selecting media.
 
 ### Uploading Fonts
 
-Open the font picker from the in-page panel and choose **upload font...** to add a local TrueType `.ttf` or TrueType-outline `.otf` font. Uploaded fonts are session-only: they stay available while the content runtime is alive, but they are not persisted after page reloads or navigation. WOFF, WOFF2, CFF-based OTF files, and files larger than 10 MB are rejected.
+Open the font picker from the in-page panel and choose **upload font...** to add a local TrueType `.ttf` or TrueType-outline `.otf` font. Uploaded fonts are persisted in browser-managed extension storage and remain available after page reloads or navigation until you remove them, clear the extension data, or uninstall the extension. WOFF, WOFF2, CFF-based OTF files, and files larger than 10 MB are rejected.
 
 ### Post-FX Filters
 

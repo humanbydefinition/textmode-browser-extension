@@ -1,0 +1,59 @@
+{
+	"schemaVersion": 1,
+	"name": "Textmode Overlay",
+	"version": "1.2.0",
+	"repositoryUrl": "https://github.com/humanbydefinition/textmode-browser-extensions",
+	"supportUrl": "https://code.textmode.art/docs/support",
+	"browserListings": [
+		{
+			"target": "chrome",
+			"label": "Chrome",
+			"installUrl": "https://chromewebstore.google.com/detail/textmode-overlay/nmepplnokndndgeldlhbffhkipimmaia",
+			"availability": "store",
+			"ctaLabel": "Add to Chrome - free",
+			"detail": "Manifest V3 | Chrome Web Store"
+		},
+		{
+			"target": "edge",
+			"label": "Edge",
+			"installUrl": "https://microsoftedge.microsoft.com/addons/detail/plmdfppaobnppibihdkfgoaeikehofjf",
+			"availability": "store",
+			"ctaLabel": "Add to Edge - free",
+			"detail": "Manifest V3 | Microsoft Edge Add-ons"
+		},
+		{
+			"target": "firefox",
+			"label": "Firefox",
+			"installUrl": "https://addons.mozilla.org/en-US/firefox/addon/textmode-overlay/",
+			"availability": "store",
+			"ctaLabel": "Add to Firefox - free",
+			"detail": "Manifest V3 | Firefox Add-ons"
+		},
+		{
+			"target": "opera",
+			"label": "Opera",
+			"installUrl": "https://addons.opera.com/en/extensions/details/textmode-overlay/",
+			"availability": "store",
+			"ctaLabel": "Add to Opera - free",
+			"detail": "Manifest V3 | Opera Add-ons"
+		},
+		{
+			"target": "safari",
+			"label": "Safari",
+			"installUrl": "https://github.com/humanbydefinition/textmode-browser-extensions",
+			"availability": "source",
+			"ctaLabel": "View Safari source build",
+			"detail": "Source build | no public store listing"
+		}
+	],
+	"capabilities": {
+		"exportFormats": ["TXT", "SVG", "PNG", "JPG"],
+		"glyphRampPresetIds": ["classic", "minimal", "soft", "dense"],
+		"postFxCount": 16,
+		"customFonts": {
+			"maxCount": 10,
+			"maxFileBytes": 10485760,
+			"maxTotalBytes": 52428800
+		}
+	}
+}

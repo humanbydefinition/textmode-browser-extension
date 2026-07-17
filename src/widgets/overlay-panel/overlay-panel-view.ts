@@ -47,7 +47,9 @@ export class OverlayPanelView {
 			)
 		);
 		this.moveHandleElement =
-			mode === 'in-page' ? createButton('tm-panel__header-action tm-panel__move-handle', 'move panel') : null;
+			mode === 'in-page'
+				? createButton('tm-button--subtle tm-panel__header-action tm-panel__move-handle', 'move panel')
+				: null;
 		if (this.moveHandleElement) {
 			const moveInstructions = 'Move panel. Drag to move or double-click to reset its position.';
 			this.moveHandleElement.setAttribute('aria-label', moveInstructions);
@@ -59,8 +61,8 @@ export class OverlayPanelView {
 			{
 				className:
 					mode === 'in-page'
-						? 'tm-button tm-button--ghost tm-button--icon tm-panel__header-action tm-support-link'
-						: 'tm-button tm-button--ghost tm-panel__header-action tm-support-link',
+						? 'tm-button tm-button--ghost tm-button--subtle tm-button--icon tm-panel__header-action tm-support-link'
+						: 'tm-button tm-button--ghost tm-button--subtle tm-panel__header-action tm-support-link',
 				attributes: {
 					href: 'https://ko-fi.com/humanbydefinition',
 					target: '_blank',
@@ -74,7 +76,8 @@ export class OverlayPanelView {
 		const githubLink = h(
 			'a',
 			{
-				className: 'tm-button tm-button--ghost tm-button--icon tm-panel__header-action tm-github-link',
+				className:
+					'tm-button tm-button--ghost tm-button--subtle tm-button--icon tm-panel__header-action tm-github-link',
 				attributes: {
 					href: 'https://github.com/humanbydefinition/textmode-browser-extension',
 					target: '_blank',
@@ -88,7 +91,7 @@ export class OverlayPanelView {
 		const actions = h('div', { className: 'tm-panel__actions' }, supportLink, githubLink, this.moveHandleElement);
 		if (options.onClose) {
 			const closeButton = createButton(
-				'tm-button tm-button--ghost tm-button--icon tm-panel__header-action',
+				'tm-button tm-button--ghost tm-button--subtle tm-button--icon tm-panel__header-action',
 				'close panel'
 			);
 			closeButton.append(icon('x'));

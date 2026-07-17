@@ -58,7 +58,7 @@ export class OverlaySettingsFormView {
 		this.overlayToggle = createToggleInput((enabled) => this.options.onChange({ enabled }));
 		this.overlayToggle.setAttribute('aria-label', 'overlay');
 		this.resetButton = createButton(
-			'tm-button tm-button--ghost tm-settings-reset',
+			'tm-button tm-button--ghost tm-button--subtle tm-settings-reset',
 			'reset all settings to defaults'
 		);
 		this.resetButton.append(icon('rotate-ccw'), 'reset');

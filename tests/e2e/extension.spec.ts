@@ -192,7 +192,14 @@ test('Chrome extension can select a canvas and create an overlay', async () => {
 			)
 			.toBe(1);
 		await page.keyboard.press('Escape');
-		await page.getByRole('button', { name: 'reset all settings to defaults' }).click();
+		const resetButton = page.getByRole('button', { name: 'reset all settings to defaults' });
+		await expect(resetButton).toHaveCSS('border-top-width', '0px');
+		await expect(resetButton).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+		await expect(resetButton).toHaveCSS('box-shadow', 'none');
+		await resetButton.hover();
+		await expect(resetButton).toHaveCSS('border-top-width', '0px');
+		await expect(resetButton).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+		await resetButton.click();
 		await expect
 			.poll(() =>
 				serviceWorker.evaluate(async () => {

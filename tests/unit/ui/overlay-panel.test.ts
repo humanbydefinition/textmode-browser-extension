@@ -65,6 +65,7 @@ describe('OverlayPanelView', () => {
 		expect(inPageView.moveHandleElement?.getAttribute('title')).toContain('double-click');
 		expect(inPageView.moveHandleElement?.classList.contains('tm-button')).toBe(false);
 		expect(headerActions.every((action) => action.classList.contains('tm-panel__header-action'))).toBe(true);
+		expect(headerActions.every((action) => action.classList.contains('tm-button--subtle'))).toBe(true);
 		expect(inPageView.element.querySelector('.tm-support-link')?.textContent).not.toContain('support');
 		expect(inPageView.element.querySelector('.tm-support-link')?.getAttribute('aria-label')).toBe(
 			'Support textmode'
@@ -282,6 +283,7 @@ describe('OverlayPanelView', () => {
 
 		const resetButton = host.querySelector<HTMLButtonElement>('.tm-settings-reset');
 		expect(resetButton?.textContent).toContain('reset');
+		expect(resetButton?.classList.contains('tm-button--subtle')).toBe(true);
 		expect(resetButton?.closest('.tm-overlay-toggle-row')).not.toBeNull();
 		expect(host.querySelector('.tm-settings-form > .tm-settings-reset-row')).toBeNull();
 		resetButton?.click();

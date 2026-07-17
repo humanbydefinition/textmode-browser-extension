@@ -263,12 +263,16 @@ export class PanelPlacementController {
 	} {
 		const surfaceRect = this.surface.getBoundingClientRect();
 		const hostRect = this.host.getBoundingClientRect();
+		const documentElement = this.host.ownerDocument.documentElement;
+		const view = this.host.ownerDocument.defaultView ?? window;
+		const viewportWidth = documentElement.clientWidth || view.innerWidth;
+		const viewportHeight = documentElement.clientHeight || view.innerHeight;
 		const width = surfaceRect.width || hostRect.width || 0;
 		const height = surfaceRect.height || hostRect.height || 0;
-		const minLeft = Math.min(VIEWPORT_GUTTER, Math.max(0, window.innerWidth - width));
-		const minTop = Math.min(VIEWPORT_GUTTER, Math.max(0, window.innerHeight - height));
-		const maxLeft = Math.max(minLeft, window.innerWidth - width - VIEWPORT_GUTTER);
-		const maxTop = Math.max(minTop, window.innerHeight - height - VIEWPORT_GUTTER);
+		const minLeft = Math.min(VIEWPORT_GUTTER, Math.max(0, viewportWidth - width));
+		const minTop = Math.min(VIEWPORT_GUTTER, Math.max(0, viewportHeight - height));
+		const maxLeft = Math.max(minLeft, viewportWidth - width - VIEWPORT_GUTTER);
+		const maxTop = Math.max(minTop, viewportHeight - height - VIEWPORT_GUTTER);
 
 		return {
 			minLeft,

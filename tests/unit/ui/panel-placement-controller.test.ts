@@ -55,6 +55,8 @@ describe('PanelPlacementController', () => {
 		vi.stubGlobal('cancelAnimationFrame', vi.fn());
 		Object.defineProperty(window, 'innerWidth', { configurable: true, value: 800 });
 		Object.defineProperty(window, 'innerHeight', { configurable: true, value: 600 });
+		Object.defineProperty(document.documentElement, 'clientWidth', { configurable: true, value: 800 });
+		Object.defineProperty(document.documentElement, 'clientHeight', { configurable: true, value: 600 });
 	});
 
 	afterEach(() => {
@@ -68,6 +70,14 @@ describe('PanelPlacementController', () => {
 		expect(host.style.left).toBe('490px');
 		expect(host.style.top).toBe('10px');
 		expect(controller.getPlacement()).toEqual({ xRatio: 1, yRatio: 0 });
+	});
+
+	it('keeps the default gutter inside a scrollbar-reduced viewport', () => {
+		Object.defineProperty(document.documentElement, 'clientWidth', { configurable: true, value: 785 });
+
+		const { host } = createHarness();
+
+		expect(host.style.left).toBe('475px');
 	});
 
 	it('drags one-to-one, clamps to the viewport, and commits on release', () => {
@@ -131,6 +141,8 @@ describe('PanelPlacementController', () => {
 
 		Object.defineProperty(window, 'innerWidth', { configurable: true, value: 600 });
 		Object.defineProperty(window, 'innerHeight', { configurable: true, value: 400 });
+		Object.defineProperty(document.documentElement, 'clientWidth', { configurable: true, value: 600 });
+		Object.defineProperty(document.documentElement, 'clientHeight', { configurable: true, value: 400 });
 		mockRect(surface, { width: 300, height: 250 });
 		controller.scheduleRender();
 

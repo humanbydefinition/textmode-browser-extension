@@ -32,6 +32,7 @@ export class OverlayPanelView {
 	private readonly removeButton: HTMLButtonElement;
 	private overlayCard: OverlayCardView | null = null;
 	private overlayId: string | null = null;
+	private picking = false;
 
 	public constructor(private readonly options: OverlayPanelViewOptions) {
 		const mode = options.mode ?? 'popup';
@@ -99,7 +100,9 @@ export class OverlayPanelView {
 		this.selectButtonLabel = document.createTextNode('select media');
 		this.selectButton = createButton('tm-button tm-button--default tm-button--default-size tm-select-button');
 		this.selectButton.append(icon('mouse-pointer'), this.selectButtonLabel);
-		this.selectButton.addEventListener('click', options.onStartPicking);
+		this.selectButton.addEventListener('click', () => {
+			if (!this.picking) options.onStartPicking();
+		});
 		this.overlayList = h('section', { className: 'tm-overlay-list', attributes: { 'aria-live': 'polite' } });
 
 		this.removeButton = createButton('tm-button tm-button--danger tm-button--default-size tm-remove-button');
@@ -155,7 +158,7 @@ export class OverlayPanelView {
 	): void {
 		const overlay = overlays[0];
 		this.overlayId = overlay?.id ?? null;
-		this.selectButtonLabel.textContent = overlay ? 'replace media' : 'select media';
+		this.updateSelectButtonLabel();
 		this.removeButton.disabled = !overlay;
 
 		if (!overlay) {
@@ -186,7 +189,22 @@ export class OverlayPanelView {
 		this.overlayCard.update(overlay, customFonts);
 	}
 
+	public setPicking(picking: boolean): void {
+		this.picking = picking;
+		this.selectButton.setAttribute('aria-pressed', String(picking));
+		this.selectButton.setAttribute('aria-disabled', String(picking));
+		this.updateSelectButtonLabel();
+	}
+
 	public dispose(): void {
 		this.overlayCard?.dispose();
+	}
+
+	private updateSelectButtonLabel(): void {
+		this.selectButtonLabel.textContent = this.picking
+			? 'selecting…'
+			: this.overlayId
+				? 'replace media'
+				: 'select media';
 	}
 }

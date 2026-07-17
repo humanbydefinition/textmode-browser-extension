@@ -143,14 +143,17 @@ export class PageRuntime {
 		this.picker = new ElementPicker({
 			onPick: (element) => {
 				this.picker = undefined;
+				this.controlPanel?.updatePickingState(false);
 				void this.createOverlay(element);
 			},
 			onCancel: () => {
 				this.picker = undefined;
+				this.controlPanel?.updatePickingState(false);
 				broadcastPickingCancelled();
 			},
 		});
 		this.picker.start();
+		this.controlPanel?.updatePickingState(true);
 		broadcastPickingStarted();
 	}
 

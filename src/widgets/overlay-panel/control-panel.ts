@@ -144,6 +144,10 @@ export class ControlPanel {
 		this.render();
 	}
 
+	public updatePickingState(picking: boolean): void {
+		this.view.setPicking(picking);
+	}
+
 	private render(): void {
 		this.view.update(this.overlays);
 		this.placementController.scheduleRender();

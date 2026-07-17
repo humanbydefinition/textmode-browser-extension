@@ -145,6 +145,7 @@ export class TopFrameCoordinator {
 				if (event.pickSessionId === this.activePickSessionId && !this.pickResolved) {
 					this.activePickSessionId = undefined;
 					await this.broadcastFrameCommand({ type: 'FRAME_END_PICKING', pickSessionId: event.pickSessionId });
+					this.controlPanel?.updatePickingState(false);
 					broadcastPickingCancelled();
 				}
 				break;
@@ -190,6 +191,7 @@ export class TopFrameCoordinator {
 			pickSessionId: this.activePickSessionId,
 		});
 		if (!response.ok) throw new Error(response.error ?? 'Unable to start media selection.');
+		this.controlPanel?.updatePickingState(true);
 		broadcastPickingStarted();
 	}
 
@@ -220,10 +222,12 @@ export class TopFrameCoordinator {
 				throw new Error(response.error ?? 'Unable to create an overlay in the selected iframe.');
 			}
 			this.activeOverlay = { owner, descriptor: markEmbedded(response.overlays[0], frameId) };
+			this.controlPanel?.updatePickingState(false);
 			this.saveActiveOverlayPreset();
 			this.sync();
 		} catch (error) {
 			this.activeOverlay = undefined;
+			this.controlPanel?.updatePickingState(false);
 			broadcastError(toUserMessage(error));
 			this.sync();
 		}

@@ -75,7 +75,7 @@
 		"uuid": "11.1.1"
 	},
 	"devDependencies": {
-		"@commitlint/cli": "^21.1.0",
+		"@commitlint/cli": "^21.2.1",
 		"@playwright/test": "^1.61.1",
 		"@textmode/commitlint-config": "^0.1.0",
 		"@textmode/eslint-config": "^0.1.0",

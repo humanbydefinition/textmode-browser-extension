@@ -46,6 +46,15 @@ test('Chrome extension can select a canvas and create an overlay', async () => {
 		await expect(page.locator('#textmode-ascii-overlay-control-panel-root')).toBeAttached();
 		const panelHost = page.locator('#textmode-ascii-overlay-control-panel-root');
 		const initialPanelRect = await panelHost.boundingBox();
+		const initialViewport = await page.evaluate(() => ({
+			clientWidth: document.documentElement.clientWidth,
+			clientHeight: document.documentElement.clientHeight,
+			scrollHeight: document.documentElement.scrollHeight,
+		}));
+		if (!initialPanelRect) throw new Error('Expected the default panel to have visible bounds.');
+		expect(initialViewport.scrollHeight).toBeGreaterThan(initialViewport.clientHeight);
+		expect(initialPanelRect.y).toBeGreaterThanOrEqual(9);
+		expect(initialViewport.clientWidth - (initialPanelRect.x + initialPanelRect.width)).toBeGreaterThanOrEqual(9);
 		const moveHandle = page.getByRole('button', { name: /move panel/i });
 		const moveHandleRect = await moveHandle.boundingBox();
 		if (!initialPanelRect || !moveHandleRect) {
@@ -135,6 +144,23 @@ test('Chrome extension can select a canvas and create an overlay', async () => {
 
 		await expect(page.getByText('canvas selected')).toBeVisible();
 		await expect(page.locator('canvas[data-textmode-ascii-extension-ui="true"]')).toHaveCount(1);
+		const opacitySlider = page.locator('.tm-field--range', { hasText: 'opacity' });
+		const opacityFieldBounds = await opacitySlider.boundingBox();
+		const opacityThumbBounds = await opacitySlider.locator('[data-slot="slider-thumb"]').boundingBox();
+		if (!opacityFieldBounds || !opacityThumbBounds) {
+			throw new Error('Expected the maximum-value opacity slider and thumb to have visible bounds.');
+		}
+		expect(opacityThumbBounds.x + opacityThumbBounds.width).toBeLessThanOrEqual(
+			opacityFieldBounds.x + opacityFieldBounds.width
+		);
+		const opacityThumb = opacitySlider.locator('[data-slot="slider-thumb"]');
+		await opacityThumb.press('Home');
+		const minimumOpacityThumbBounds = await opacityThumb.boundingBox();
+		if (!minimumOpacityThumbBounds) {
+			throw new Error('Expected the minimum-value opacity thumb to have visible bounds.');
+		}
+		expect(minimumOpacityThumbBounds.x).toBeGreaterThanOrEqual(opacityFieldBounds.x);
+		await opacityThumb.press('End');
 		await expect(page.getByRole('tab', { name: 'export' })).toBeVisible();
 		await expect(page.getByRole('button', { name: /TXT/i })).toBeVisible();
 		await expect(page.getByRole('button', { name: /SVG/i })).toBeVisible();

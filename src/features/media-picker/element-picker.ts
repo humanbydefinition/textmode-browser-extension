@@ -1,40 +1,36 @@
-import type { ElementKind } from '../../domain/overlay/overlay-settings';
+import { PickerTargetRegistry, type PickerTarget, type SelectableElement } from './picker-target-registry';
+import { PickerOverlayLayer } from './picker-overlay-layer';
 
-export type SelectableElement = HTMLCanvasElement | HTMLVideoElement;
-
-export interface CandidateInfo {
-	element: SelectableElement;
-	kind: ElementKind;
-	label: string;
-}
+export type { CandidateInfo, SelectableElement } from './picker-target-registry';
+export { describeElement, getSelectableElements, isSelectableElement } from './picker-target-registry';
 
 export interface ElementPickerOptions {
 	onPick: (element: SelectableElement) => void;
 	onCancel: () => void;
 	onUnavailableFrame?: (reason: string) => void;
+	showStatus?: boolean;
+	restoreFocus?: boolean;
 }
 
-const PICKER_CLASS = 'textmode-ascii-overlay-picker';
-const PICKER_HIGHLIGHT_Z_INDEX = '2147483645';
-const PICKER_BLOCKER_Z_INDEX = '2147483644';
-const IFRAME_BLOCKER_CLASS = 'textmode-ascii-overlay-iframe-blocker';
-
 export class ElementPicker {
-	private readonly highlight = document.createElement('div');
+	private readonly registry = new PickerTargetRegistry();
+	private readonly overlay: PickerOverlayLayer;
+	private readonly targets = new Map<string, PickerTarget>();
 	private active = false;
 	private previousCursor = '';
-	private readonly iframeBlockers = new Map<HTMLIFrameElement, HTMLDivElement>();
+	private previousFocus?: HTMLElement;
+	private activeTargetId?: string;
+	private lastPointer?: { x: number; y: number };
+	private mutationObserver?: MutationObserver;
+	private resizeObserver?: ResizeObserver;
+	private animationFrame?: number;
+	private readonly observedTargets = new Set<Element>();
+	private readonly frameLoadListeners = new Map<HTMLIFrameElement, EventListener>();
 
 	public constructor(private readonly options: ElementPickerOptions) {
-		this.highlight.className = PICKER_CLASS;
-		Object.assign(this.highlight.style, {
-			position: 'fixed',
-			zIndex: PICKER_HIGHLIGHT_Z_INDEX,
-			pointerEvents: 'none',
-			borderRadius: '4px',
-			boxShadow: 'inset 0 0 0 2px #38bdf8',
-			background: 'rgba(56, 189, 248, 0.06)',
-			display: 'none',
+		this.overlay = new PickerOverlayLayer({
+			showStatus: options.showStatus ?? window === window.top,
+			onActivate: (targetId) => this.activateTarget(targetId),
 		});
 	}
 
@@ -42,194 +38,211 @@ export class ElementPicker {
 		if (this.active) return;
 		this.active = true;
 		this.previousCursor = document.documentElement.style.cursor;
+		this.previousFocus = getDeepActiveElement();
 		document.documentElement.style.cursor = 'crosshair';
-		document.documentElement.append(this.highlight);
-		this.mountUnavailableFrameBlockers();
+		this.overlay.mount();
+		this.refreshTargets();
+		this.mountObservers();
 		window.addEventListener('pointermove', this.onPointerMove, true);
 		window.addEventListener('click', this.onClick, true);
 		window.addEventListener('keydown', this.onKeyDown, true);
 		window.addEventListener('scroll', this.onViewportChange, true);
 		window.addEventListener('resize', this.onViewportChange, true);
+		window.visualViewport?.addEventListener('resize', this.onViewportChange);
+		window.visualViewport?.addEventListener('scroll', this.onViewportChange);
+		this.scheduleGeometryUpdate();
 	}
 
 	public stop(cancelled = true): void {
 		if (!this.active) return;
 		this.active = false;
 		document.documentElement.style.cursor = this.previousCursor;
-		this.highlight.remove();
-		this.removeUnavailableFrameBlockers();
+		this.disconnectObservers();
+		this.overlay.unmount();
 		window.removeEventListener('pointermove', this.onPointerMove, true);
 		window.removeEventListener('click', this.onClick, true);
 		window.removeEventListener('keydown', this.onKeyDown, true);
 		window.removeEventListener('scroll', this.onViewportChange, true);
 		window.removeEventListener('resize', this.onViewportChange, true);
-		if (cancelled) {
-			this.options.onCancel();
+		window.visualViewport?.removeEventListener('resize', this.onViewportChange);
+		window.visualViewport?.removeEventListener('scroll', this.onViewportChange);
+		if (this.animationFrame !== undefined) cancelAnimationFrame(this.animationFrame);
+		this.animationFrame = undefined;
+		this.targets.clear();
+		if ((this.options.restoreFocus ?? window === window.top) && this.previousFocus?.isConnected) {
+			this.previousFocus.focus({ preventScroll: true });
+		}
+		this.previousFocus = undefined;
+		if (cancelled) this.options.onCancel();
+	}
+
+	public activateTarget(targetId: string): void {
+		if (!this.active) return;
+		const target = this.targets.get(targetId);
+		if (!target) return;
+		if (target.availability === 'blocked') {
+			const reason = target.reasonText ?? 'This iframe is unavailable.';
+			this.options.onUnavailableFrame?.(reason);
+			return;
+		}
+		if (target.element instanceof HTMLCanvasElement || target.element instanceof HTMLVideoElement) {
+			this.stop(false);
+			this.options.onPick(target.element);
 		}
 	}
 
 	private readonly onPointerMove = (event: PointerEvent): void => {
-		const candidate = findCandidateAtPoint(event.clientX, event.clientY);
-		if (!candidate) {
-			this.highlight.style.display = 'none';
-			return;
-		}
-
-		const rect = candidate.getBoundingClientRect();
-		Object.assign(this.highlight.style, {
-			display: 'block',
-			left: `${rect.left}px`,
-			top: `${rect.top}px`,
-			width: `${rect.width}px`,
-			height: `${rect.height}px`,
-		});
+		this.lastPointer = { x: event.clientX, y: event.clientY };
+		this.updatePointerTarget();
 	};
 
 	private readonly onClick = (event: MouseEvent): void => {
-		const blocker = findUnavailableFrameBlocker(event.target);
-		if (blocker) {
+		const markerTargetId = findMarkerTargetId(event);
+		if (markerTargetId) {
 			event.preventDefault();
 			event.stopPropagation();
-			this.options.onUnavailableFrame?.(
-				blocker.dataset.textmodeUnavailableReason ??
-					'This iframe is unavailable because it does not share the page origin.'
-			);
+			this.activateTarget(markerTargetId);
 			return;
 		}
-		const candidate = findCandidateAtPoint(event.clientX, event.clientY);
-		if (!candidate) return;
+		const target = this.findTargetAtPoint(event.clientX, event.clientY);
+		if (!target) return;
 		event.preventDefault();
 		event.stopPropagation();
-		this.stop(false);
-		this.options.onPick(candidate);
+		this.activateTarget(target.id);
 	};
 
 	private readonly onKeyDown = (event: KeyboardEvent): void => {
-		if (event.key !== 'Escape') return;
-		event.preventDefault();
-		event.stopPropagation();
-		this.stop(true);
+		if (event.key === 'Escape') {
+			event.preventDefault();
+			event.stopPropagation();
+			this.stop(true);
+			return;
+		}
 	};
 
 	private readonly onViewportChange = (): void => {
-		this.syncUnavailableFrameBlockers();
+		this.scheduleGeometryUpdate();
 	};
 
-	private mountUnavailableFrameBlockers(): void {
-		for (const iframe of document.querySelectorAll('iframe')) {
-			if (iframe.closest('[data-textmode-ascii-extension-ui="true"]') || isSameOriginFrame(iframe)) continue;
-			const blocker = document.createElement('div');
-			blocker.className = IFRAME_BLOCKER_CLASS;
-			blocker.dataset.textmodeAsciiExtensionUi = 'true';
-			blocker.dataset.textmodeUnavailableReason =
-				'This iframe is cross-origin or sandboxed. Textmode Overlay is limited to same-origin frames.';
-			blocker.title = blocker.dataset.textmodeUnavailableReason;
-			blocker.textContent = 'iframe unavailable';
-			Object.assign(blocker.style, {
-				position: 'fixed',
-				zIndex: PICKER_BLOCKER_Z_INDEX,
-				boxSizing: 'border-box',
-				cursor: 'not-allowed',
-				pointerEvents: 'auto',
-				border: '2px dashed rgba(248, 113, 113, 0.9)',
-				borderRadius: '4px',
-				background: 'rgba(127, 29, 29, 0.16)',
-				color: '#fecaca',
-				font: '600 11px/1.2 system-ui, sans-serif',
-				padding: '6px',
-			});
-			document.documentElement.append(blocker);
-			this.iframeBlockers.set(iframe, blocker);
-		}
-		this.syncUnavailableFrameBlockers();
+	private refreshTargets(): void {
+		if (!this.active) return;
+		const discovered = this.registry.discover();
+		this.targets.clear();
+		for (const target of discovered) this.targets.set(target.id, target);
+		this.overlay.updateTargets(discovered);
+		this.overlay.updateStatus(
+			discovered.filter((target) => target.availability === 'ready').length,
+			discovered.filter((target) => target.availability === 'blocked').length
+		);
+		this.syncResizeObserver(discovered);
+		this.syncFrameLoadListeners();
+		this.scheduleGeometryUpdate();
 	}
 
-	private syncUnavailableFrameBlockers(): void {
-		for (const [iframe, blocker] of this.iframeBlockers) {
-			if (!iframe.isConnected) {
-				blocker.remove();
-				this.iframeBlockers.delete(iframe);
-				continue;
-			}
-			const rect = iframe.getBoundingClientRect();
-			Object.assign(blocker.style, {
-				display: rect.width > 0 && rect.height > 0 ? 'block' : 'none',
-				left: `${rect.left}px`,
-				top: `${rect.top}px`,
-				width: `${rect.width}px`,
-				height: `${rect.height}px`,
+	private mountObservers(): void {
+		if (typeof MutationObserver !== 'undefined') {
+			this.mutationObserver = new MutationObserver(() => this.refreshTargets());
+			this.mutationObserver.observe(document.documentElement, {
+				attributes: true,
+				attributeFilter: ['class', 'hidden', 'src', 'srcdoc', 'sandbox', 'style'],
+				childList: true,
+				subtree: true,
 			});
 		}
-	}
-
-	private removeUnavailableFrameBlockers(): void {
-		for (const blocker of this.iframeBlockers.values()) blocker.remove();
-		this.iframeBlockers.clear();
-	}
-}
-
-export function getSelectableElements(root: ParentNode = document): SelectableElement[] {
-	return Array.from(root.querySelectorAll('canvas, video')).filter(isSelectableElement);
-}
-
-export function isSelectableElement(element: Element): element is SelectableElement {
-	if (!(element instanceof HTMLCanvasElement) && !(element instanceof HTMLVideoElement)) {
-		return false;
-	}
-
-	if (!element.isConnected || element.closest('[data-textmode-ascii-extension-ui="true"]')) {
-		return false;
-	}
-
-	const rect = element.getBoundingClientRect();
-	if (rect.width < 8 || rect.height < 8) {
-		return false;
-	}
-
-	const styles = window.getComputedStyle(element);
-	return (
-		styles.display !== 'none' &&
-		styles.visibility !== 'hidden' &&
-		(styles.opacity === '' || Number(styles.opacity) > 0)
-	);
-}
-
-export function describeElement(element: SelectableElement): CandidateInfo {
-	return {
-		element,
-		kind: element instanceof HTMLVideoElement ? 'video' : 'canvas',
-		label: createElementLabel(element),
-	};
-}
-
-function findCandidateAtPoint(clientX: number, clientY: number): SelectableElement | undefined {
-	for (const element of document.elementsFromPoint(clientX, clientY)) {
-		if (isSelectableElement(element)) {
-			return element;
+		if (typeof ResizeObserver !== 'undefined') {
+			this.resizeObserver = new ResizeObserver(() => this.scheduleGeometryUpdate());
+			this.syncResizeObserver([...this.targets.values()]);
 		}
+	}
+
+	private disconnectObservers(): void {
+		this.mutationObserver?.disconnect();
+		this.mutationObserver = undefined;
+		this.resizeObserver?.disconnect();
+		this.resizeObserver = undefined;
+		this.observedTargets.clear();
+		for (const [iframe, listener] of this.frameLoadListeners) iframe.removeEventListener('load', listener);
+		this.frameLoadListeners.clear();
+	}
+
+	private syncResizeObserver(targets: readonly PickerTarget[]): void {
+		if (!this.resizeObserver) return;
+		const current = new Set<Element>(targets.map((target) => target.element));
+		for (const element of this.observedTargets) {
+			if (current.has(element)) continue;
+			this.resizeObserver.unobserve(element);
+			this.observedTargets.delete(element);
+		}
+		for (const element of current) {
+			if (this.observedTargets.has(element)) continue;
+			this.resizeObserver.observe(element);
+			this.observedTargets.add(element);
+		}
+	}
+
+	private syncFrameLoadListeners(): void {
+		const current = new Set(document.querySelectorAll('iframe'));
+		for (const [iframe, listener] of this.frameLoadListeners) {
+			if (current.has(iframe)) continue;
+			iframe.removeEventListener('load', listener);
+			this.frameLoadListeners.delete(iframe);
+		}
+		for (const iframe of current) {
+			if (this.frameLoadListeners.has(iframe)) continue;
+			const listener = () => this.refreshTargets();
+			iframe.addEventListener('load', listener);
+			this.frameLoadListeners.set(iframe, listener);
+		}
+	}
+
+	private scheduleGeometryUpdate(): void {
+		if (!this.active || this.animationFrame !== undefined) return;
+		this.animationFrame = requestAnimationFrame(() => {
+			this.animationFrame = undefined;
+			this.updateGeometry();
+		});
+	}
+
+	private updateGeometry(): void {
+		for (const target of this.targets.values()) {
+			const rect = target.element.getBoundingClientRect();
+			this.overlay.setGeometry(target.id, rect);
+		}
+		this.updatePointerTarget();
+	}
+
+	private updatePointerTarget(): void {
+		if (!this.lastPointer) return;
+		const target = this.findTargetAtPoint(this.lastPointer.x, this.lastPointer.y);
+		this.setActiveTarget(target?.id);
+	}
+
+	private findTargetAtPoint(clientX: number, clientY: number): PickerTarget | undefined {
+		for (const element of document.elementsFromPoint(clientX, clientY)) {
+			const target = [...this.targets.values()].find(
+				(item) => item.availability === 'ready' && item.element === element
+			);
+			if (target) return target;
+		}
+		return undefined;
+	}
+
+	private setActiveTarget(targetId: string | undefined): void {
+		if (this.activeTargetId === targetId) return;
+		this.activeTargetId = targetId;
+		this.overlay.setActive(targetId);
+	}
+}
+
+function findMarkerTargetId(event: Event): string | undefined {
+	for (const item of event.composedPath()) {
+		if (item instanceof HTMLElement && item.dataset.pickerTargetId) return item.dataset.pickerTargetId;
 	}
 	return undefined;
 }
 
-function isSameOriginFrame(iframe: HTMLIFrameElement): boolean {
-	try {
-		return Boolean(iframe.contentDocument?.documentElement);
-	} catch {
-		return false;
-	}
-}
-
-function findUnavailableFrameBlocker(target: EventTarget | null): HTMLElement | null {
-	return target instanceof Element ? target.closest<HTMLElement>(`.${IFRAME_BLOCKER_CLASS}`) : null;
-}
-
-function createElementLabel(element: SelectableElement): string {
-	const id = element.id ? `#${element.id}` : '';
-	const classes = [...element.classList]
-		.slice(0, 2)
-		.map((value) => `.${value}`)
-		.join('');
-	const rect = element.getBoundingClientRect();
-	const size = `${Math.round(rect.width)}x${Math.round(rect.height)}`;
-	return `${element.tagName.toLowerCase()}${id}${classes} ${size}`.trim();
+function getDeepActiveElement(): HTMLElement | undefined {
+	let active: Element | null = document.activeElement;
+	while (active?.shadowRoot?.activeElement) active = active.shadowRoot.activeElement;
+	return active instanceof HTMLElement ? active : undefined;
 }

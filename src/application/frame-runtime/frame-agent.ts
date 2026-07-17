@@ -73,6 +73,7 @@ export class FrameAgent {
 		this.pendingTarget = undefined;
 		this.activePickSessionId = pickSessionId;
 		this.picker = new ElementPicker({
+			restoreFocus: window === window.top,
 			onPick: (element) => {
 				if (this.activePickSessionId !== pickSessionId) return;
 				const targetToken = createRuntimeId();

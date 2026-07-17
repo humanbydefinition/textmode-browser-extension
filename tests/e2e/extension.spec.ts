@@ -101,6 +101,36 @@ test('Chrome extension can select a canvas and create an overlay', async () => {
 		expect(reopenedPanelRect?.y).toBeCloseTo(movedPanelRect.y, 0);
 
 		await page.getByRole('button', { name: /select media/i }).click();
+		const pickerStatus = page.locator('.tm-picker-status');
+		await expect(page.getByText('2 selectable elements')).toBeVisible();
+		await expect(page.getByText('1 non-selectable element')).toBeVisible();
+		await expect(page.locator('.tm-picker-status code', { hasText: '<canvas>' })).toBeVisible();
+		await expect(page.locator('.tm-picker-status code', { hasText: '<video>' })).toBeVisible();
+		await expect(page.locator('.tm-picker-status code', { hasText: '2' })).toBeVisible();
+		await expect(page.locator('.tm-picker-status code', { hasText: '1' })).toBeVisible();
+		await expect(page.locator('.tm-picker-status code', { hasText: 'Esc' })).toBeVisible();
+		await page.setViewportSize({ width: 320, height: 720 });
+		const statusRect = await pickerStatus.boundingBox();
+		expect(statusRect).not.toBeNull();
+		expect(statusRect?.x).toBeGreaterThanOrEqual(12);
+		expect((statusRect?.x ?? 0) + (statusRect?.width ?? 0)).toBeLessThanOrEqual(308);
+		await page.setViewportSize({ width: 800, height: 720 });
+		const readyMarker = page.locator('.tm-picker-marker[data-availability="ready"]').first();
+		await expect(readyMarker).toBeVisible();
+		await expect(readyMarker).toHaveCSS('border-radius', '0px');
+		const stackingOrder = await page.evaluate(() => {
+			const host = document.querySelector('.textmode-ascii-overlay-picker');
+			const status = host?.shadowRoot?.querySelector<HTMLElement>('.tm-picker-status');
+			const marker = host?.shadowRoot?.querySelector<HTMLElement>('.tm-picker-marker');
+			return {
+				status: Number(status ? getComputedStyle(status).zIndex : 0),
+				marker: Number(marker ? getComputedStyle(marker).zIndex : 0),
+			};
+		});
+		expect(stackingOrder.status).toBeGreaterThan(stackingOrder.marker);
+		expect(await readyMarker.evaluate((element) => getComputedStyle(element).backgroundImage)).toContain(
+			'repeating-linear-gradient'
+		);
 		await page.locator('canvas#demo-canvas').click({ position: { x: 24, y: 24 } });
 
 		await expect(page.getByText('canvas selected')).toBeVisible();
@@ -287,10 +317,9 @@ test('Chrome extension can select media in same-origin, nested, srcdoc, and newl
 
 		await test.step('mark a cross-origin iframe as unavailable', async () => {
 			await page.getByRole('button', { name: /(?:select|replace) media/i }).click();
-			const blocker = page.locator('.textmode-ascii-overlay-iframe-blocker', {
-				hasText: 'iframe unavailable',
-			});
+			const blocker = page.locator('.textmode-ascii-overlay-iframe-blocker');
 			await expect(blocker).toBeVisible();
+			await expect(blocker).toHaveAttribute('aria-label', /share the page origin/i);
 			await blocker.click();
 			await expect(blocker).toBeVisible();
 			await page.keyboard.press('Escape');

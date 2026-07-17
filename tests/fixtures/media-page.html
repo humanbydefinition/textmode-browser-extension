@@ -19,9 +19,19 @@
 				background: #020617;
 				border: 0;
 			}
+			.ambient-canvas {
+				position: fixed;
+				inset: -120px;
+				width: calc(100vw + 240px);
+				height: calc(100vh + 240px);
+				background: transparent;
+				pointer-events: none;
+			}
 		</style>
 	</head>
 	<body>
+		<canvas class="ambient-canvas" width="110" height="75"></canvas>
+		<canvas class="ambient-canvas" width="110" height="75"></canvas>
 		<canvas id="demo-canvas" width="320" height="180"></canvas>
 		<video id="demo-video" width="320" height="180" muted playsinline></video>
 		<iframe id="same-origin-frame" src="/iframe-media" title="same-origin media"></iframe>

@@ -10,6 +10,8 @@ import { broadcastError, broadcastOverlayList, broadcastPickingCancelled, broadc
 import { createRuntimeActionHandler, type RuntimeActionHandler } from './runtime-actions';
 import type { ControlPanel } from '../../widgets/overlay-panel/control-panel';
 import { createSitePresetStore, type SitePresetStore } from './site-preset-store';
+import type { PanelPlacement } from '../../domain/presets/panel-placement';
+import { createPanelPlacementStore, type PanelPlacementStore } from './panel-placement-store';
 
 declare global {
 	interface Window {
@@ -20,6 +22,7 @@ declare global {
 export interface PageRuntimeOptions {
 	pageUrl?: URL;
 	presetStore?: SitePresetStore;
+	panelPlacementStore?: PanelPlacementStore;
 }
 
 export class PageRuntime {
@@ -30,16 +33,21 @@ export class PageRuntime {
 	private readonly actions: RuntimeActionHandler;
 	private readonly pageUrl: URL;
 	private readonly presetStore: SitePresetStore;
+	private readonly panelPlacementStore: PanelPlacementStore;
 	private readonly runtimeReady: Promise<void>;
 	private sitePreset: OverlaySettings | null = null;
+	private panelPlacement: PanelPlacement | null = null;
 
 	public constructor(options: PageRuntimeOptions = {}) {
 		this.manager = new OverlayManager(() => this.sync());
 		this.pageUrl = options.pageUrl ?? new URL(window.location.href);
 		this.presetStore = options.presetStore ?? createSitePresetStore();
-		this.runtimeReady = Promise.all([runtimeFontRegistry.initialize(), this.loadSitePreset()]).then(
-			() => undefined
-		);
+		this.panelPlacementStore = options.panelPlacementStore ?? createPanelPlacementStore();
+		this.runtimeReady = Promise.all([
+			runtimeFontRegistry.initialize(),
+			this.loadSitePreset(),
+			this.loadPanelPlacement(),
+		]).then(() => undefined);
 		runtimeFontRegistry.subscribe((change) => {
 			if (change.removedIds.length > 0) {
 				void this.handleRemovedCustomFonts(change.removedIds).catch((error) => {
@@ -78,10 +86,6 @@ export class PageRuntime {
 			return { ok: false, error: 'Unsupported extension message.' };
 		}
 
-		if (message.type === 'PING') {
-			return { ok: true };
-		}
-
 		if (!isPopupToContentMessage(message)) {
 			return { ok: false, error: 'Unsupported page-to-popup message received by content runtime.' };
 		}
@@ -97,6 +101,7 @@ export class PageRuntime {
 			const { ControlPanel } = await import('../../widgets/overlay-panel/control-panel');
 			this.controlPanel = new ControlPanel({
 				headerFontUrl: this.headerFontUrl,
+				initialPlacement: this.panelPlacement,
 				allowCustomFontUpload: true,
 				onStartPicking: () => this.startPicking(),
 				onUpdateOverlay: (id, settings) => {
@@ -118,6 +123,8 @@ export class PageRuntime {
 					this.sync();
 				},
 				onClose: () => this.destroyControlPanel(),
+				onPlacementCommit: (placement) => this.savePanelPlacement(placement),
+				onPlacementReset: () => this.resetPanelPlacement(),
 			});
 			this.controlPanel.mount();
 			this.controlPanel.updateState(this.manager.list());
@@ -136,14 +143,17 @@ export class PageRuntime {
 		this.picker = new ElementPicker({
 			onPick: (element) => {
 				this.picker = undefined;
+				this.controlPanel?.updatePickingState(false);
 				void this.createOverlay(element);
 			},
 			onCancel: () => {
 				this.picker = undefined;
+				this.controlPanel?.updatePickingState(false);
 				broadcastPickingCancelled();
 			},
 		});
 		this.picker.start();
+		this.controlPanel?.updatePickingState(true);
 		broadcastPickingStarted();
 	}
 
@@ -195,6 +205,32 @@ export class PageRuntime {
 	private async loadSitePreset(): Promise<void> {
 		try {
 			this.sitePreset = await this.presetStore.loadForUrl(this.pageUrl);
+		} catch (error) {
+			broadcastError(toUserMessage(error));
+		}
+	}
+
+	private async loadPanelPlacement(): Promise<void> {
+		try {
+			this.panelPlacement = await this.panelPlacementStore.loadForUrl(this.pageUrl);
+		} catch (error) {
+			broadcastError(toUserMessage(error));
+		}
+	}
+
+	private async savePanelPlacement(placement: PanelPlacement): Promise<void> {
+		this.panelPlacement = placement;
+		try {
+			await this.panelPlacementStore.saveForUrl(this.pageUrl, placement);
+		} catch (error) {
+			broadcastError(toUserMessage(error));
+		}
+	}
+
+	private async resetPanelPlacement(): Promise<void> {
+		this.panelPlacement = null;
+		try {
+			await this.panelPlacementStore.removeForUrl(this.pageUrl);
 		} catch (error) {
 			broadcastError(toUserMessage(error));
 		}

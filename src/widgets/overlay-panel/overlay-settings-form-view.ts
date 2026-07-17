@@ -11,6 +11,7 @@ import { toUserMessage } from '../../shared/errors/errors';
 import { h } from './dom';
 import { icon } from './icons';
 import { TabsView } from './components/tabs-view';
+import { ConverterTabsView } from './components/converter-tabs-view';
 import { FontComboboxView, type FontEntry } from './font-combobox/font-combobox-view';
 import { ColorModeFieldView } from './settings/color-mode-field-view';
 import { createExportGrid } from './settings/export-grid-view';
@@ -19,6 +20,7 @@ import { GlyphRampFieldView } from './settings/glyph-ramp-field-view';
 import { RangeFieldView } from './settings/range-field-view';
 import { formatPercent, formatPixels, overlaySettingLimits } from './overlay-ui-model';
 import { PostFxPanelView } from './post-fx-panel-view';
+import { ContourPanelView } from './contour-panel-view';
 
 interface OverlaySettingsFormViewOptions {
 	settings: OverlaySettings;
@@ -43,6 +45,8 @@ export class OverlaySettingsFormView {
 	private readonly glyphRampField: GlyphRampFieldView;
 	private readonly fontCombobox: FontComboboxView;
 	private readonly postFxPanel: PostFxPanelView;
+	private readonly contourPanel: ContourPanelView;
+	private readonly converterTabs: ConverterTabsView;
 	private readonly tabs: TabsView;
 	private readonly resetButton: HTMLButtonElement;
 	private availableFonts: readonly FontEntry[];
@@ -54,7 +58,7 @@ export class OverlaySettingsFormView {
 		this.overlayToggle = createToggleInput((enabled) => this.options.onChange({ enabled }));
 		this.overlayToggle.setAttribute('aria-label', 'overlay');
 		this.resetButton = createButton(
-			'tm-button tm-button--ghost tm-settings-reset',
+			'tm-button tm-button--ghost tm-button--subtle tm-settings-reset',
 			'reset all settings to defaults'
 		);
 		this.resetButton.append(icon('rotate-ccw'), 'reset');
@@ -126,24 +130,43 @@ export class OverlaySettingsFormView {
 			onUploadFont: options.onUploadFont ? (file) => this.uploadFont(file) : undefined,
 			onRemoveCustomFont: options.onRemoveCustomFont ? (id) => this.removeCustomFont(id) : undefined,
 		});
-		const advancedControls = h(
+		const fontField = h(
 			'div',
-			{ className: 'tm-control-group' },
+			{ className: 'tm-field tm-main-font-field' },
+			h(
+				'div',
+				{ className: 'tm-field__label' },
+				h('span', { textContent: 'font' }),
+				this.fontCombobox.cycleControls
+			),
+			this.fontCombobox.element
+		);
+		quickControls.append(fontField);
+		const brightnessControls = h(
+			'div',
+			{ className: 'tm-control-group tm-converter-controls tm-brightness-controls' },
 			createToggleField('invert', this.invertToggle),
 			this.charColorModeField.element,
 			this.cellColorModeField.element,
-			this.glyphRampField.element,
-			h(
-				'div',
-				{ className: 'tm-field' },
-				h(
-					'div',
-					{ className: 'tm-field__label' },
-					h('span', { textContent: 'font' }),
-					this.fontCombobox.cycleControls
-				),
-				this.fontCombobox.element
-			)
+			this.glyphRampField.element
+		);
+		this.contourPanel = new ContourPanelView({
+			settings: options.settings,
+			portalContainer: options.portalContainer,
+			onChange: (settings) => this.options.onChange(settings),
+		});
+		this.converterTabs = new ConverterTabsView({
+			brightnessContent: brightnessControls,
+			contoursContent: this.contourPanel.element,
+			brightnessEnabled: options.settings.brightnessEnabled,
+			contoursEnabled: options.settings.contour.enabled,
+			onBrightnessEnabledChange: (brightnessEnabled) => this.options.onChange({ brightnessEnabled }),
+			onContoursEnabledChange: (enabled) => this.contourPanel.setEnabled(enabled),
+		});
+		const advancedControls = h(
+			'div',
+			{ className: 'tm-control-group tm-advanced-controls' },
+			this.converterTabs.element
 		);
 		this.tabs.advancedContent.append(advancedControls);
 		this.postFxPanel = new PostFxPanelView({
@@ -178,6 +201,8 @@ export class OverlaySettingsFormView {
 		this.glyphRampField.update(glyphRampFontId, settings.glyphRamp);
 		this.fontCombobox.update(activeFontId, customFont?.displayName ?? selectedFont?.displayName ?? 'Custom font');
 		this.postFxPanel.update(settings);
+		this.contourPanel.update(settings);
+		this.converterTabs.update(settings.brightnessEnabled, settings.contour.enabled);
 
 		if (resolvedFontId && resolvedFontId !== settings.fontId) {
 			this.options.onChange({ fontId: resolvedFontId });
@@ -189,6 +214,8 @@ export class OverlaySettingsFormView {
 		this.cellColorModeField.dispose();
 		this.fontCombobox.dispose();
 		this.postFxPanel.dispose();
+		this.contourPanel.dispose();
+		this.converterTabs.dispose();
 		this.tabs.dispose();
 	}
 

@@ -13,6 +13,10 @@ vi.mock('textmode.filters.js', () => ({
 	FiltersPlugin: { name: 'textmode.filters' },
 }));
 
+vi.mock('textmode.contour.js', () => ({
+	ContourConversionPlugin: { name: 'textmode.contour.js' },
+}));
+
 describe('textmodeOverlayRenderer', () => {
 	it('creates textmode overlays with the extension rendering contract', () => {
 		const canvas = document.createElement('canvas');
@@ -32,6 +36,7 @@ describe('textmodeOverlayRenderer', () => {
 				fontSource: '/fonts/Bescii-Mono.ttf',
 				loadingScreen: { transition: 'none' },
 				plugins: [
+					expect.objectContaining({ name: 'textmode.contour.js' }),
 					expect.objectContaining({ name: 'textmode.filters' }),
 					expect.objectContaining({ name: 'textmode.export' }),
 				],

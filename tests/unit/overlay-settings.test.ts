@@ -18,6 +18,7 @@ describe('mergeOverlaySettings', () => {
 
 		expect(settings.fontSize).toBe(12);
 		expect(settings.glyphRamp).toBe('abc');
+		expect(settings.brightnessEnabled).toBe(true);
 	});
 
 	it('clamps numeric values into supported ranges', () => {
@@ -28,6 +29,38 @@ describe('mergeOverlaySettings', () => {
 
 		expect(settings.opacity).toBe(1);
 		expect(settings.fontSize).toBe(64);
+	});
+
+	it('defaults and normalizes contour settings', () => {
+		expect(DEFAULT_OVERLAY_SETTINGS.contour).toEqual({
+			enabled: false,
+			invert: false,
+			threshold: 0.12,
+			colorSensitivity: 0.75,
+			charColorMode: 'sampled',
+			charColor: '#ffffff',
+			cellColorMode: 'fixed',
+			cellColor: '#000000',
+		});
+
+		const settings = mergeOverlaySettings(DEFAULT_OVERLAY_SETTINGS, {
+			contour: {
+				...DEFAULT_OVERLAY_SETTINGS.contour,
+				enabled: true,
+				threshold: 3,
+				colorSensitivity: -1,
+				charColor: 'white',
+				cellColorMode: 'sampled',
+			},
+		});
+
+		expect(settings.contour).toEqual({
+			...DEFAULT_OVERLAY_SETTINGS.contour,
+			enabled: true,
+			threshold: 1,
+			colorSensitivity: 0,
+			cellColorMode: 'sampled',
+		});
 	});
 
 	it('repairs invalid glyph ramps and colors', () => {
@@ -85,6 +118,7 @@ describe('mergeOverlaySettings', () => {
 		expect(first).toEqual(DEFAULT_OVERLAY_SETTINGS);
 		expect(first.postFx).not.toBe(second.postFx);
 		expect(first.postFx[0]).not.toBe(second.postFx[0]);
+		expect(first.contour).not.toBe(second.contour);
 	});
 
 	it('normalizes post-fx chains to one item per known filter while preserving order', () => {

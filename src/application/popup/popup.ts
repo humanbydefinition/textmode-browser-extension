@@ -29,7 +29,12 @@ addRuntimeMessageListener((message: ContentToPopupMessage) => {
 	if (message.type === 'OVERLAY_LIST_CHANGED') {
 		overlays = message.overlays;
 		customFonts = message.customFonts ?? [];
+		view.setPicking(false);
 		render();
+	} else if (message.type === 'PICKING_STARTED') {
+		view.setPicking(true);
+	} else if (message.type === 'PICKING_CANCELLED') {
+		view.setPicking(false);
 	}
 });
 

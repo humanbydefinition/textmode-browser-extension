@@ -42,12 +42,13 @@ export class OverlayManager {
 
 	public async createOverlay(
 		element: SelectableElement,
-		initialSettings: Partial<OverlaySettings> = {}
+		initialSettings: Partial<OverlaySettings> = {},
+		requestedId?: string
 	): Promise<OverlayDescriptor> {
 		assertCanCreateOverlay(element);
 		this.clearOverlays();
 
-		const id = `overlay-${Date.now().toString(36)}-${++this.idCounter}`;
+		const id = requestedId ?? `overlay-${Date.now().toString(36)}-${++this.idCounter}`;
 		let settings = this.normalizeSettings(mergeOverlaySettings(DEFAULT_OVERLAY_SETTINGS, initialSettings));
 		let fontAssetUrl: string | null = null;
 		try {

@@ -9,6 +9,7 @@ import { rateExtensionUrl as defaultRateExtensionUrl } from '../../shared/config
 
 export interface OverlayPanelViewOptions {
 	portalContainer: HTMLElement;
+	mode?: 'popup' | 'in-page';
 	customFonts?: readonly CustomFontSummary[];
 	allowCustomFontUpload?: boolean;
 	onStartPicking: () => void;
@@ -24,14 +25,17 @@ export interface OverlayPanelViewOptions {
 
 export class OverlayPanelView {
 	public readonly element: HTMLElement;
+	public readonly moveHandleElement: HTMLButtonElement | null;
 	private readonly selectButton: HTMLButtonElement;
 	private readonly selectButtonLabel: Text;
 	private readonly overlayList: HTMLElement;
 	private readonly removeButton: HTMLButtonElement;
 	private overlayCard: OverlayCardView | null = null;
 	private overlayId: string | null = null;
+	private picking = false;
 
 	public constructor(private readonly options: OverlayPanelViewOptions) {
+		const mode = options.mode ?? 'popup';
 		const title = h(
 			'div',
 			{ className: 'tm-panel__title' },
@@ -42,23 +46,38 @@ export class OverlayPanelView {
 				h('span', {}, 'overlay', h('span', { className: 'tm-panel__title-char', textContent: '' }))
 			)
 		);
+		this.moveHandleElement =
+			mode === 'in-page'
+				? createButton('tm-button--subtle tm-panel__header-action tm-panel__move-handle', 'move panel')
+				: null;
+		if (this.moveHandleElement) {
+			const moveInstructions = 'Move panel. Drag to move or double-click to reset its position.';
+			this.moveHandleElement.setAttribute('aria-label', moveInstructions);
+			this.moveHandleElement.setAttribute('title', moveInstructions);
+			this.moveHandleElement.append(icon('grip-vertical'));
+		}
 		const supportLink = h(
 			'a',
 			{
-				className: 'tm-button tm-button--ghost tm-support-link',
+				className:
+					mode === 'in-page'
+						? 'tm-button tm-button--ghost tm-button--subtle tm-button--icon tm-panel__header-action tm-support-link'
+						: 'tm-button tm-button--ghost tm-button--subtle tm-panel__header-action tm-support-link',
 				attributes: {
 					href: 'https://ko-fi.com/humanbydefinition',
 					target: '_blank',
 					rel: 'noreferrer',
+					...(mode === 'in-page' ? { title: 'Support textmode', 'aria-label': 'Support textmode' } : {}),
 				},
 			},
 			icon('heart-handshake'),
-			'support'
+			mode === 'popup' ? 'support' : null
 		);
 		const githubLink = h(
 			'a',
 			{
-				className: 'tm-button tm-button--ghost tm-button--icon tm-github-link',
+				className:
+					'tm-button tm-button--ghost tm-button--subtle tm-button--icon tm-panel__header-action tm-github-link',
 				attributes: {
 					href: 'https://github.com/humanbydefinition/textmode-browser-extension',
 					target: '_blank',
@@ -69,9 +88,12 @@ export class OverlayPanelView {
 			},
 			icon('github')
 		);
-		const actions = h('div', { className: 'tm-panel__actions' }, supportLink, githubLink);
+		const actions = h('div', { className: 'tm-panel__actions' }, supportLink, githubLink, this.moveHandleElement);
 		if (options.onClose) {
-			const closeButton = createButton('tm-button tm-button--ghost tm-button--icon', 'close panel');
+			const closeButton = createButton(
+				'tm-button tm-button--ghost tm-button--subtle tm-button--icon tm-panel__header-action',
+				'close panel'
+			);
 			closeButton.append(icon('x'));
 			closeButton.addEventListener('click', options.onClose);
 			actions.append(closeButton);
@@ -81,7 +103,9 @@ export class OverlayPanelView {
 		this.selectButtonLabel = document.createTextNode('select media');
 		this.selectButton = createButton('tm-button tm-button--default tm-button--default-size tm-select-button');
 		this.selectButton.append(icon('mouse-pointer'), this.selectButtonLabel);
-		this.selectButton.addEventListener('click', options.onStartPicking);
+		this.selectButton.addEventListener('click', () => {
+			if (!this.picking) options.onStartPicking();
+		});
 		this.overlayList = h('section', { className: 'tm-overlay-list', attributes: { 'aria-live': 'polite' } });
 
 		this.removeButton = createButton('tm-button tm-button--danger tm-button--default-size tm-remove-button');
@@ -119,7 +143,11 @@ export class OverlayPanelView {
 
 		this.element = h(
 			'main',
-			{ className: 'tm-panel', attributes: { 'data-testid': 'overlay-panel' } },
+			{
+				className: 'tm-panel',
+				attributes: { 'data-testid': 'overlay-panel' },
+				dataset: { mode },
+			},
 			header,
 			this.selectButton,
 			this.overlayList,
@@ -133,7 +161,7 @@ export class OverlayPanelView {
 	): void {
 		const overlay = overlays[0];
 		this.overlayId = overlay?.id ?? null;
-		this.selectButtonLabel.textContent = overlay ? 'replace media' : 'select media';
+		this.updateSelectButtonLabel();
 		this.removeButton.disabled = !overlay;
 
 		if (!overlay) {
@@ -164,7 +192,22 @@ export class OverlayPanelView {
 		this.overlayCard.update(overlay, customFonts);
 	}
 
+	public setPicking(picking: boolean): void {
+		this.picking = picking;
+		this.selectButton.setAttribute('aria-pressed', String(picking));
+		this.selectButton.setAttribute('aria-disabled', String(picking));
+		this.updateSelectButtonLabel();
+	}
+
 	public dispose(): void {
 		this.overlayCard?.dispose();
+	}
+
+	private updateSelectButtonLabel(): void {
+		this.selectButtonLabel.textContent = this.picking
+			? 'selecting…'
+			: this.overlayId
+				? 'replace media'
+				: 'select media';
 	}
 }

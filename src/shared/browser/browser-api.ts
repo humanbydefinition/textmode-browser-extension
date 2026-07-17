@@ -2,6 +2,7 @@ import { browser, type Browser } from 'wxt/browser';
 import type { RuntimeMessage } from '../messaging/messages';
 
 const CONTENT_SCRIPT_FILE = '/content-runtime.js';
+const OVERLAY_HOST_FILE = '/overlay-host.js';
 
 export type RuntimeMessageListener = Parameters<typeof browser.runtime.onMessage.addListener>[0];
 export type ActionClickedListener = Parameters<typeof browser.action.onClicked.addListener>[0];
@@ -17,7 +18,10 @@ export interface BrowserPort {
 	getActiveTab(): Promise<Browser.tabs.Tab | undefined>;
 	getExtensionAssetUrl(path: string): string;
 	injectContentRuntime(tabId: number): Promise<void>;
+	injectOverlayHost(tabId: number, frameId: number): Promise<void>;
 	sendMessageToTab<TResponse>(tabId: number, message: RuntimeMessage): Promise<TResponse>;
+	sendMessageToFrame<TResponse>(tabId: number, frameId: number, message: RuntimeMessage): Promise<TResponse>;
+	broadcastMessageToTab(tabId: number, message: RuntimeMessage): Promise<void>;
 	sendMessageToRuntime<TResponse>(message: RuntimeMessage): Promise<TResponse>;
 	addRuntimeMessageListener(listener: RuntimeMessageListener): void;
 	addInstalledListener(listener: () => void): void;
@@ -58,13 +62,24 @@ export const browserPort: BrowserPort = {
 		return chrome.runtime.getURL(path);
 	},
 	async injectContentRuntime(tabId) {
-		await browser.scripting.executeScript({
-			target: { tabId },
-			files: [CONTENT_SCRIPT_FILE],
-		});
+		await executeScriptFile(tabId, CONTENT_SCRIPT_FILE, { allFrames: true });
+	},
+	async injectOverlayHost(tabId, frameId) {
+		await executeScriptFile(tabId, OVERLAY_HOST_FILE, { frameId });
 	},
 	async sendMessageToTab<TResponse>(tabId: number, message: RuntimeMessage) {
-		return browser.tabs.sendMessage(tabId, message) as Promise<TResponse>;
+		return browser.tabs.sendMessage(tabId, message, { frameId: 0 }) as Promise<TResponse>;
+	},
+	async sendMessageToFrame<TResponse>(tabId: number, frameId: number, message: RuntimeMessage) {
+		return browser.tabs.sendMessage(tabId, message, { frameId }) as Promise<TResponse>;
+	},
+	async broadcastMessageToTab(tabId, message) {
+		await browser.tabs.sendMessage(tabId, message).then(
+			() => undefined,
+			(error: unknown) => {
+				if (!isMissingReceiverError(error)) throw error;
+			}
+		);
 	},
 	async sendMessageToRuntime<TResponse>(message: RuntimeMessage) {
 		return browser.runtime.sendMessage(message) as Promise<TResponse>;
@@ -107,7 +122,10 @@ export function resolveToolbarActionApi(api: BrowserWithOptionalToolbarApis): To
 export const getActiveTab = browserPort.getActiveTab;
 export const getExtensionAssetUrl = browserPort.getExtensionAssetUrl;
 export const injectContentRuntime = browserPort.injectContentRuntime;
+export const injectOverlayHost = browserPort.injectOverlayHost;
 export const sendMessageToTab = browserPort.sendMessageToTab;
+export const sendMessageToFrame = browserPort.sendMessageToFrame;
+export const broadcastMessageToTab = browserPort.broadcastMessageToTab;
 export const sendMessageToRuntime = browserPort.sendMessageToRuntime;
 export const addRuntimeMessageListener = browserPort.addRuntimeMessageListener;
 export const addInstalledListener = browserPort.addInstalledListener;
@@ -117,3 +135,43 @@ export const storageLocalGetAll = browserPort.storageLocalGetAll;
 export const storageLocalSet = browserPort.storageLocalSet;
 export const storageLocalRemove = browserPort.storageLocalRemove;
 export const addStorageChangedListener = browserPort.addStorageChangedListener;
+
+interface ScriptTarget {
+	allFrames?: boolean;
+	frameId?: number;
+}
+
+type LegacyTabsApi = typeof browser.tabs & {
+	executeScript?: (
+		tabId: number,
+		details: { file: string; allFrames?: boolean; frameId?: number }
+	) => Promise<unknown>;
+};
+
+async function executeScriptFile(tabId: number, file: string, target: ScriptTarget): Promise<void> {
+	if (browser.scripting?.executeScript) {
+		if (target.allFrames) {
+			await browser.scripting.executeScript({ target: { tabId, allFrames: true }, files: [file] });
+		} else {
+			await browser.scripting.executeScript({
+				target: { tabId, ...(target.frameId !== undefined ? { frameIds: [target.frameId] } : {}) },
+				files: [file],
+			});
+		}
+		return;
+	}
+
+	const legacyTabs = browser.tabs as LegacyTabsApi;
+	if (!legacyTabs.executeScript) {
+		throw new Error('This browser does not support frame script injection.');
+	}
+	await legacyTabs.executeScript(tabId, {
+		file,
+		...(target.allFrames ? { allFrames: true } : {}),
+		...(target.frameId !== undefined ? { frameId: target.frameId } : {}),
+	});
+}
+
+function isMissingReceiverError(error: unknown): boolean {
+	return error instanceof Error && error.message.includes('Receiving end does not exist');
+}

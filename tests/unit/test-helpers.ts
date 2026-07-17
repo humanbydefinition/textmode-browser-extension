@@ -37,6 +37,7 @@ export function createMockSource(methods: readonly string[] = DEFAULT_SOURCE_MET
 const DEFAULT_SOURCE_METHODS = [
 	'characters',
 	'conversionMode',
+	'conversions',
 	'invert',
 	'brightnessRange',
 	'charColorMode',

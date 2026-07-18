@@ -104,7 +104,7 @@ See the [Imprint](https://legal.textmode.art/projects/extension.textmode.art/en/
 6. Export the result when you want a static artifact.
 
 > [!NOTE]
-> Some media cannot be sampled. Cross-origin, tainted, DRM-protected, or otherwise restricted media may fail when the browser blocks WebGL or canvas pixel access. The extension should report those failures without breaking the page.
+> Some media cannot be sampled. Cross-origin, tainted, DRM-protected, or otherwise restricted media may fail when the browser blocks WebGL or canvas pixel access.
 
 ### Uploading Fonts
 

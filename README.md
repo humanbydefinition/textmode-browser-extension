@@ -80,29 +80,6 @@ Load the extension in Chrome:
 3. Click **Load unpacked**.
 4. Select `.output/chrome-mv3`.
 
-## Firefox Reviewer Build Instructions
-
-The submitted Firefox source package includes all files needed to reproduce the review build locally.
-
-Environment requirements:
-
-- [Node.js](https://nodejs.org/en/download) 20.8.1 or newer
-- npm
-
-Build steps:
-
-```sh
-npm ci
-npm run zip:firefox
-```
-
-Expected outputs:
-
-- Unpacked Firefox build: `.output/firefox-mv3`
-- Firefox submission archive: `.output/textmode-ascii-overlay-extension-1.2.0-firefox.zip`
-
-The build runs entirely locally with open-source tooling from `package.json`. No remote code loading or web-based build service is required to produce the submitted Firefox package.
-
 ## Custom Font Persistence
 
 Uploaded TrueType fonts are stored locally in the current browser profile and are never synced or uploaded to a remote service. The library supports up to 10 fonts, 10 MB per font, and 50 MB of raw font data in total. Removing the extension also removes its browser-managed font storage.

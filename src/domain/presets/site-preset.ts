@@ -4,6 +4,7 @@ import {
 	mergeOverlaySettings,
 	type OverlaySettings,
 } from '../overlay/overlay-settings';
+import { resolveSiteKey } from './site-key';
 
 export const SITE_PRESET_VERSION = 1;
 export const SITE_PRESET_STORAGE_PREFIX = 'site-preset:v1:';
@@ -15,12 +16,7 @@ export interface StoredSitePreset {
 }
 
 export function resolveSitePresetKey(url: URL): string | null {
-	if (url.protocol !== 'http:' && url.protocol !== 'https:') {
-		return null;
-	}
-
-	const hostname = normalizeHostname(url.hostname);
-	return hostname || null;
+	return resolveSiteKey(url);
 }
 
 export function createSitePresetStorageKey(siteKey: string): string {
@@ -49,6 +45,10 @@ export function normalizeOverlaySettings(value: Partial<OverlaySettings>): Overl
 	return {
 		...normalized,
 		enabled: typeof value.enabled === 'boolean' ? normalized.enabled : DEFAULT_OVERLAY_SETTINGS.enabled,
+		brightnessEnabled:
+			typeof value.brightnessEnabled === 'boolean'
+				? normalized.brightnessEnabled
+				: DEFAULT_OVERLAY_SETTINGS.brightnessEnabled,
 		invert: typeof value.invert === 'boolean' ? normalized.invert : DEFAULT_OVERLAY_SETTINGS.invert,
 		charColorMode: isSourceColorMode(value.charColorMode)
 			? normalized.charColorMode
@@ -57,10 +57,6 @@ export function normalizeOverlaySettings(value: Partial<OverlaySettings>): Overl
 			? normalized.cellColorMode
 			: DEFAULT_OVERLAY_SETTINGS.cellColorMode,
 	};
-}
-
-function normalizeHostname(hostname: string): string {
-	return hostname.trim().toLowerCase().replace(/\.$/, '');
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

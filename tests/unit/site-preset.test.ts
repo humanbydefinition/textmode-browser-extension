@@ -66,6 +66,20 @@ describe('site overlay presets', () => {
 		});
 	});
 
+	it('adds default converter settings to older presets', () => {
+		const legacySettings: Partial<typeof DEFAULT_OVERLAY_SETTINGS> = { ...DEFAULT_OVERLAY_SETTINGS };
+		delete legacySettings.contour;
+		delete legacySettings.brightnessEnabled;
+		const preset = normalizeStoredSitePreset({
+			version: SITE_PRESET_VERSION,
+			updatedAt: 123,
+			settings: legacySettings,
+		});
+
+		expect(preset?.settings.contour).toEqual(DEFAULT_OVERLAY_SETTINGS.contour);
+		expect(preset?.settings.brightnessEnabled).toBe(true);
+	});
+
 	it('ignores malformed or future-version payloads', () => {
 		expect(normalizeStoredSitePreset(null)).toBeNull();
 		expect(normalizeStoredSitePreset({ version: SITE_PRESET_VERSION })).toBeNull();

@@ -19,7 +19,7 @@ describe('ensureContentRuntime', () => {
 		await ensureContentRuntime(42, { attempts: 3, delayMs: 0 });
 
 		expect(injectContentRuntime).toHaveBeenCalledWith(42);
-		expect(sendMessageToTab).toHaveBeenCalledWith(42, { type: 'PING' });
+		expect(sendMessageToTab).toHaveBeenCalledWith(42, { type: 'FRAME_PING' });
 		expect(sendMessageToTab).toHaveBeenCalledTimes(2);
 	});
 
@@ -27,10 +27,18 @@ describe('ensureContentRuntime', () => {
 		vi.mocked(sendMessageToTab).mockResolvedValue({ ok: false });
 
 		await expect(ensureContentRuntime(42, { attempts: 2, delayMs: 0 })).rejects.toThrow(
-			'Timed out while starting the page runtime.'
+			'Timed out while starting the page runtime. Last failure: The frame runtime returned an invalid readiness response.'
 		);
 
 		expect(injectContentRuntime).toHaveBeenCalledWith(42);
 		expect(sendMessageToTab).toHaveBeenCalledTimes(2);
+	});
+
+	it('includes the final messaging failure in the startup error', async () => {
+		vi.mocked(sendMessageToTab).mockRejectedValue(new Error('Receiving end does not exist'));
+
+		await expect(ensureContentRuntime(42, { attempts: 2, delayMs: 0 })).rejects.toThrow(
+			'Last failure: Receiving end does not exist'
+		);
 	});
 });

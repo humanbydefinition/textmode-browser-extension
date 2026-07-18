@@ -1,8 +1,11 @@
 import { defineUnlistedScript } from 'wxt/utils/define-unlisted-script';
-import { startPageRuntime } from '../application/page-runtime/page-runtime';
+import { startFrameAgent } from '../application/frame-runtime/frame-agent';
+import { startTopFrameCoordinator } from '../application/page-runtime/top-frame-coordinator';
 
 export default defineUnlistedScript({
+	globalName: false,
 	main() {
-		startPageRuntime();
+		startFrameAgent();
+		startTopFrameCoordinator();
 	},
 });

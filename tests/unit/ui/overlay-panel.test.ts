@@ -3,9 +3,11 @@ import {
 	DEFAULT_FONT_ID,
 	DEFAULT_OVERLAY_SETTINGS,
 	OVERLAY_POST_FX_FILTER_IDS,
+	createDefaultOverlaySettings,
 	type OverlayDescriptor,
 } from '../../../src/domain/overlay/overlay-settings';
 import { getAdjacentGlyphRampPreset } from '../../../src/domain/overlay/glyph-ramp-registry';
+import { getAvailableFonts } from '../../../src/shared/fonts/runtime-font-registry';
 import { OverlayPanelView } from '../../../src/widgets/overlay-panel/overlay-panel-view';
 
 describe('OverlayPanelView', () => {
@@ -34,6 +36,40 @@ describe('OverlayPanelView', () => {
 		expect(host.querySelector<HTMLButtonElement>('.tm-remove-button')?.disabled).toBe(true);
 		host.querySelector<HTMLButtonElement>('.tm-select-button')?.click();
 		expect(onStartPicking).toHaveBeenCalledTimes(1);
+	});
+
+	it('keeps the popup header unchanged and compacts only the in-page header', () => {
+		const popupView = createView();
+		popupView.update([]);
+		host.append(popupView.element);
+
+		expect(popupView.moveHandleElement).toBeNull();
+		expect(popupView.element.dataset.mode).toBe('popup');
+		expect(popupView.element.querySelector('.tm-support-link')?.textContent).toContain('support');
+
+		const inPageView = createView({ mode: 'in-page', onClose: vi.fn() });
+		inPageView.update([]);
+		host.append(inPageView.element);
+
+		expect(inPageView.moveHandleElement).not.toBeNull();
+		expect(inPageView.element.dataset.mode).toBe('in-page');
+		expect(
+			inPageView.element
+				.querySelector('.tm-panel__header')
+				?.firstElementChild?.classList.contains('tm-panel__title')
+		).toBe(true);
+		const headerActions = [...inPageView.element.querySelectorAll('.tm-panel__actions > *')];
+		expect(headerActions.at(-2)).toBe(inPageView.moveHandleElement);
+		expect(headerActions.at(-1)?.getAttribute('aria-label')).toBe('close panel');
+		expect(inPageView.moveHandleElement?.getAttribute('aria-keyshortcuts')).toBeNull();
+		expect(inPageView.moveHandleElement?.getAttribute('title')).toContain('double-click');
+		expect(inPageView.moveHandleElement?.classList.contains('tm-button')).toBe(false);
+		expect(headerActions.every((action) => action.classList.contains('tm-panel__header-action'))).toBe(true);
+		expect(headerActions.every((action) => action.classList.contains('tm-button--subtle'))).toBe(true);
+		expect(inPageView.element.querySelector('.tm-support-link')?.textContent).not.toContain('support');
+		expect(inPageView.element.querySelector('.tm-support-link')?.getAttribute('aria-label')).toBe(
+			'Support textmode'
+		);
 	});
 
 	it('renders the store rating link when a rating URL is available', () => {
@@ -125,6 +161,135 @@ describe('OverlayPanelView', () => {
 		nextGlyphRampButton!.click();
 
 		expect(onUpdateOverlay).toHaveBeenCalledWith('overlay-1', { glyphRamp: expectedPreset.glyphRamp });
+	});
+
+	it('cycles fonts from the advanced controls', () => {
+		const onUpdateOverlay = vi.fn();
+		const overlay = createOverlay();
+		const fonts = getAvailableFonts();
+		const currentIndex = fonts.findIndex((font) => font.id === overlay.settings.fontId);
+		const expectedFontId = fonts[(currentIndex + 1) % fonts.length]!.id;
+		const view = createView({ onUpdateOverlay });
+		view.update([overlay]);
+		host.append(view.element);
+
+		const nextFontButton = host.querySelector<HTMLButtonElement>('button[aria-label="next font"]');
+		expect(nextFontButton).not.toBeNull();
+		nextFontButton!.click();
+
+		expect(onUpdateOverlay).toHaveBeenCalledWith('overlay-1', { fontId: expectedFontId });
+	});
+
+	it('groups converter settings into brightness and contour tabs after the font selector', () => {
+		const onUpdateOverlay = vi.fn();
+		const overlay = createOverlay();
+		const view = createView({ onUpdateOverlay });
+		view.update([overlay]);
+		host.append(view.element);
+
+		host.querySelectorAll<HTMLButtonElement>('button[role="tab"]')[1]?.click();
+		const advanced = host.querySelector<HTMLElement>('.tm-advanced-controls');
+		const converterTabs = advanced?.querySelector<HTMLElement>('.tm-converter-tabs');
+		const quickControls = host.querySelector<HTMLElement>('.tm-settings-form > .tm-control-group');
+		expect(quickControls?.children[0]).toBe(host.querySelector('.tm-overlay-toggle-row'));
+		expect(quickControls?.children[1]?.textContent).toContain('opacity');
+		expect(quickControls?.children[2]?.textContent).toContain('font size');
+		expect(quickControls?.children[3]).toBe(host.querySelector('.tm-main-font-field'));
+		expect(advanced?.firstElementChild).toBe(converterTabs);
+		expect(
+			converterTabs?.querySelector('.tm-converter-tabs-list')?.closest('[data-slot="scroll-area"]')
+		).toBeNull();
+
+		const brightnessControls = converterTabs?.querySelector<HTMLElement>('.tm-brightness-controls');
+		expect(brightnessControls?.closest('[data-slot="scroll-area"]')).not.toBeNull();
+		expect(brightnessControls?.hidden).toBe(false);
+		expect(brightnessControls?.children[0]?.textContent).toContain('invert');
+		expect(brightnessControls?.children[1]?.textContent).toContain('characters');
+		expect(brightnessControls?.children[2]?.textContent).toContain('cells');
+		expect(brightnessControls?.children[3]?.textContent).toContain('glyph ramp');
+
+		const brightnessEnabledInput = converterTabs?.querySelector<HTMLInputElement>(
+			'input[aria-label="brightness on"]'
+		);
+		expect(brightnessEnabledInput?.closest<HTMLElement>('.tm-converter-tab-header')?.dataset.state).toBe('active');
+		brightnessEnabledInput?.click();
+		expect(onUpdateOverlay).toHaveBeenLastCalledWith('overlay-1', { brightnessEnabled: false });
+
+		const contoursTrigger = [...(converterTabs?.querySelectorAll<HTMLButtonElement>('[role="tab"]') ?? [])].find(
+			(button) => button.textContent === 'contour'
+		);
+		contoursTrigger?.click();
+		expect(
+			converterTabs
+				?.querySelector<HTMLInputElement>('input[aria-label="contour on"]')
+				?.closest<HTMLElement>('.tm-converter-tab-header')?.dataset.state
+		).toBe('active');
+		const contourControls = converterTabs?.querySelector<HTMLElement>('.tm-contour-controls');
+		expect(contourControls?.closest('[data-slot="scroll-area"]')).not.toBeNull();
+		expect(contourControls?.hidden).toBe(false);
+		expect(contourControls?.children[0]?.textContent).toContain('invert');
+		expect(contourControls?.children[1]?.textContent).toContain('characters');
+		expect(contourControls?.children[2]?.textContent).toContain('cells');
+		expect(contourControls?.children[3]?.textContent).toContain('threshold');
+		expect(contourControls?.children[4]?.textContent).toContain('color sensitivity');
+		expect(contourControls?.querySelector('button[aria-label="next glyph ramp"]')).toBeNull();
+
+		converterTabs?.querySelector<HTMLInputElement>('input[aria-label="contour on"]')?.click();
+		expect(onUpdateOverlay).toHaveBeenLastCalledWith('overlay-1', {
+			contour: { ...overlay.settings.contour, enabled: true },
+		});
+
+		const invertToggle = [...(contourControls?.querySelectorAll<HTMLLabelElement>('.tm-toggle-row') ?? [])]
+			.find((field) => field.textContent?.includes('invert'))
+			?.querySelector<HTMLInputElement>('input');
+		invertToggle?.click();
+		expect(onUpdateOverlay).toHaveBeenLastCalledWith('overlay-1', {
+			contour: { ...overlay.settings.contour, invert: true },
+		});
+
+		const thresholdField = [...(contourControls?.querySelectorAll<HTMLElement>('.tm-field') ?? [])].find((field) =>
+			field.textContent?.includes('threshold')
+		);
+		thresholdField
+			?.querySelector<HTMLElement>('[data-slot="slider-thumb"]')
+			?.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }));
+		expect(onUpdateOverlay).toHaveBeenLastCalledWith('overlay-1', {
+			contour: { ...overlay.settings.contour, threshold: 0.13 },
+		});
+	});
+
+	it('resets all overlay settings without removing persisted custom fonts', () => {
+		const onUpdateOverlay = vi.fn();
+		const onRemoveCustomFont = vi.fn();
+		const customFontId = 'custom:123e4567-e89b-12d3-a456-426614174000' as const;
+		const overlay = createOverlay({
+			...DEFAULT_OVERLAY_SETTINGS,
+			opacity: 0.25,
+			fontSize: 24,
+			fontId: customFontId,
+			invert: true,
+			postFx: DEFAULT_OVERLAY_SETTINGS.postFx.map((item, index) => ({
+				...item,
+				enabled: index === 0,
+			})),
+		});
+		const view = createView({
+			onUpdateOverlay,
+			onRemoveCustomFont,
+			customFonts: [{ id: customFontId, displayName: 'Stored Grid' }],
+		});
+		view.update([overlay], [{ id: customFontId, displayName: 'Stored Grid' }]);
+		host.append(view.element);
+
+		const resetButton = host.querySelector<HTMLButtonElement>('.tm-settings-reset');
+		expect(resetButton?.textContent).toContain('reset');
+		expect(resetButton?.classList.contains('tm-button--subtle')).toBe(true);
+		expect(resetButton?.closest('.tm-overlay-toggle-row')).not.toBeNull();
+		expect(host.querySelector('.tm-settings-form > .tm-settings-reset-row')).toBeNull();
+		resetButton?.click();
+
+		expect(onUpdateOverlay).toHaveBeenCalledWith('overlay-1', createDefaultOverlaySettings());
+		expect(onRemoveCustomFont).not.toHaveBeenCalled();
 	});
 
 	it('renders fixed post-fx accordion rows and toggles filters', () => {

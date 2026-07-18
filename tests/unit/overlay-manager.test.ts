@@ -72,15 +72,15 @@ describe('OverlayManager', () => {
 		});
 	});
 
-	it('replaces the existing overlay when a new element is selected', () => {
+	it('replaces the existing overlay when a new element is selected', async () => {
 		const first = createCanvas('first');
 		const second = createCanvas('second');
 		document.body.append(first, second);
 		const onChange = vi.fn();
 		const manager = new OverlayManager(onChange);
 
-		manager.createOverlay(first);
-		manager.createOverlay(second);
+		await manager.createOverlay(first);
+		await manager.createOverlay(second);
 
 		expect(manager.list()).toHaveLength(1);
 		expect(manager.list()[0]?.elementLabel).toContain('#second');
@@ -88,12 +88,12 @@ describe('OverlayManager', () => {
 		expect(instances[1]?.destroy).not.toHaveBeenCalled();
 	});
 
-	it('initializes overlay canvas chrome for managed instances', () => {
+	it('initializes overlay canvas chrome for managed instances', async () => {
 		const canvas = createCanvas('source');
 		document.body.append(canvas);
 		const manager = new OverlayManager(vi.fn());
 
-		manager.createOverlay(canvas, { fontSize: 16 });
+		await manager.createOverlay(canvas, { fontSize: 16 });
 
 		expect(instances[0]?.canvas.style.pointerEvents).toBe('none');
 		expect(instances[0]?.canvas.style.mixBlendMode).toBe('normal');
@@ -105,7 +105,7 @@ describe('OverlayManager', () => {
 		const onChange = vi.fn();
 		const manager = new OverlayManager(onChange);
 
-		const overlay = manager.createOverlay(canvas);
+		const overlay = await manager.createOverlay(canvas);
 		instances[0]?.saveSVG.mockImplementation(() => {
 			throw new Error('SVG export failed.');
 		});
@@ -119,12 +119,12 @@ describe('OverlayManager', () => {
 		expect(onChange).toHaveBeenCalled();
 	});
 
-	it('clears and skips image rendering when a video has no current frame', () => {
+	it('clears and skips image rendering when a video has no current frame', async () => {
 		const video = createVideo('source');
 		document.body.append(video);
 		const manager = new OverlayManager(vi.fn());
 
-		manager.createOverlay(video);
+		await manager.createOverlay(video);
 		Object.defineProperty(video, 'readyState', { value: video.HAVE_METADATA, configurable: true });
 		Object.defineProperty(video, 'videoWidth', { value: 0, configurable: true });
 

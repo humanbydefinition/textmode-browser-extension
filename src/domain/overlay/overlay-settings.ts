@@ -11,7 +11,20 @@ export const SOURCE_COLOR_MODES = ['sampled', 'fixed'] as const;
 export const OVERLAY_SETTING_LIMITS = {
 	opacity: { min: 0, max: 1, step: 0.05 },
 	fontSize: { min: 1, max: 64, step: 1 },
+	contourThreshold: { min: 0, max: 1, step: 0.01 },
+	contourColorSensitivity: { min: 0, max: 1, step: 0.01 },
 } as const;
+
+export interface OverlayContourSettings {
+	enabled: boolean;
+	invert: boolean;
+	threshold: number;
+	colorSensitivity: number;
+	charColorMode: SourceColorMode;
+	charColor: string;
+	cellColorMode: SourceColorMode;
+	cellColor: string;
+}
 
 export interface OverlaySettings {
 	enabled: boolean;
@@ -19,11 +32,13 @@ export interface OverlaySettings {
 	fontSize: number;
 	fontId: FontId;
 	glyphRamp: string;
+	brightnessEnabled: boolean;
 	invert: boolean;
 	charColorMode: SourceColorMode;
 	charColor: string;
 	cellColorMode: SourceColorMode;
 	cellColor: string;
+	contour: OverlayContourSettings;
 	postFx: OverlayPostFxItem[];
 }
 
@@ -44,24 +59,44 @@ export interface OverlayDescriptor {
 	latestError?: string;
 }
 
-export const DEFAULT_OVERLAY_SETTINGS: OverlaySettings = {
-	enabled: true,
-	opacity: 1,
-	fontSize: 8,
-	fontId: DEFAULT_FONT_ID,
-	glyphRamp: ' .:-=+*#%@',
-	invert: false,
-	charColorMode: 'sampled',
-	charColor: '#ffffff',
-	cellColorMode: 'fixed',
-	cellColor: '#000000',
-	postFx: createDefaultOverlayPostFxItems(),
-};
+export function createDefaultOverlaySettings(): OverlaySettings {
+	return {
+		enabled: true,
+		opacity: 1,
+		fontSize: 8,
+		fontId: DEFAULT_FONT_ID,
+		glyphRamp: ' .:-=+*#%@',
+		brightnessEnabled: true,
+		invert: false,
+		charColorMode: 'sampled',
+		charColor: '#ffffff',
+		cellColorMode: 'fixed',
+		cellColor: '#000000',
+		contour: createDefaultOverlayContourSettings(),
+		postFx: createDefaultOverlayPostFxItems(),
+	};
+}
+
+export function createDefaultOverlayContourSettings(): OverlayContourSettings {
+	return {
+		enabled: false,
+		invert: false,
+		threshold: 0.12,
+		colorSensitivity: 0.75,
+		charColorMode: 'sampled',
+		charColor: '#ffffff',
+		cellColorMode: 'fixed',
+		cellColor: '#000000',
+	};
+}
+
+export const DEFAULT_OVERLAY_SETTINGS: OverlaySettings = createDefaultOverlaySettings();
 
 export function mergeOverlaySettings(base: OverlaySettings, patch: Partial<OverlaySettings>): OverlaySettings {
 	const next: OverlaySettings = {
 		...base,
 		...patch,
+		contour: normalizeOverlayContourSettings(patch.contour, base.contour),
 	};
 
 	next.opacity = clamp(next.opacity, OVERLAY_SETTING_LIMITS.opacity.min, OVERLAY_SETTING_LIMITS.opacity.max);
@@ -90,6 +125,33 @@ export function mergeOverlaySettings(base: OverlaySettings, patch: Partial<Overl
 	return next;
 }
 
+export function normalizeOverlayContourSettings(
+	value: unknown,
+	fallback: OverlayContourSettings = createDefaultOverlayContourSettings()
+): OverlayContourSettings {
+	const contour = isRecord(value) ? value : {};
+	return {
+		enabled: typeof contour.enabled === 'boolean' ? contour.enabled : fallback.enabled,
+		invert: typeof contour.invert === 'boolean' ? contour.invert : fallback.invert,
+		threshold: clampNumber(
+			contour.threshold,
+			fallback.threshold,
+			OVERLAY_SETTING_LIMITS.contourThreshold.min,
+			OVERLAY_SETTING_LIMITS.contourThreshold.max
+		),
+		colorSensitivity: clampNumber(
+			contour.colorSensitivity,
+			fallback.colorSensitivity,
+			OVERLAY_SETTING_LIMITS.contourColorSensitivity.min,
+			OVERLAY_SETTING_LIMITS.contourColorSensitivity.max
+		),
+		charColorMode: isSourceColorMode(contour.charColorMode) ? contour.charColorMode : fallback.charColorMode,
+		charColor: isOverlayRgbColor(contour.charColor) ? contour.charColor : fallback.charColor,
+		cellColorMode: isSourceColorMode(contour.cellColorMode) ? contour.cellColorMode : fallback.cellColorMode,
+		cellColor: isOverlayRgbColor(contour.cellColor) ? contour.cellColor : fallback.cellColor,
+	};
+}
+
 export function getElementBounds(element: Element): ElementBounds {
 	const rect = element.getBoundingClientRect();
 	return {
@@ -107,8 +169,24 @@ function clamp(value: number, min: number, max: number): number {
 	return Math.min(max, Math.max(min, value));
 }
 
-function isOverlayColor(value: string): boolean {
-	return /^#[0-9a-f]{6}(?:[0-9a-f]{2})?$/i.test(value);
+function clampNumber(value: unknown, fallback: number, min: number, max: number): number {
+	return typeof value === 'number' && Number.isFinite(value) ? clamp(value, min, max) : fallback;
+}
+
+function isOverlayColor(value: unknown): value is string {
+	return typeof value === 'string' && /^#[0-9a-f]{6}(?:[0-9a-f]{2})?$/i.test(value);
+}
+
+function isOverlayRgbColor(value: unknown): value is string {
+	return typeof value === 'string' && /^#[0-9a-f]{6}$/i.test(value);
+}
+
+function isSourceColorMode(value: unknown): value is SourceColorMode {
+	return typeof value === 'string' && SOURCE_COLOR_MODES.includes(value as SourceColorMode);
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+	return typeof value === 'object' && value !== null;
 }
 
 export { BUNDLED_FONT_IDS, DEFAULT_FONT_ID };

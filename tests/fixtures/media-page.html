@@ -12,16 +12,40 @@
 				background: #111827;
 			}
 			canvas,
-			video {
+			video,
+			iframe {
 				width: 320px;
 				height: 180px;
 				background: #020617;
+				border: 0;
+			}
+			.ambient-canvas {
+				position: fixed;
+				inset: -120px;
+				width: calc(100vw + 240px);
+				height: calc(100vh + 240px);
+				background: transparent;
+				pointer-events: none;
 			}
 		</style>
 	</head>
 	<body>
+		<canvas class="ambient-canvas" width="110" height="75"></canvas>
+		<canvas class="ambient-canvas" width="110" height="75"></canvas>
 		<canvas id="demo-canvas" width="320" height="180"></canvas>
 		<video id="demo-video" width="320" height="180" muted playsinline></video>
+		<iframe id="same-origin-frame" src="/iframe-media" title="same-origin media"></iframe>
+		<iframe id="nested-root-frame" src="/iframe-nested-root" title="nested same-origin media"></iframe>
+		<iframe
+			id="cross-origin-frame"
+			src="http://localhost:__SERVER_PORT__/iframe-dynamic"
+			title="cross-origin media"
+		></iframe>
+		<iframe
+			id="srcdoc-frame"
+			title="srcdoc media"
+			srcdoc="<!doctype html><style>html,body{margin:0;background:#020617}canvas{width:320px;height:180px}</style><canvas id='srcdoc-canvas' width='320' height='180'></canvas>"
+		></iframe>
 		<script>
 			const canvas = document.querySelector('#demo-canvas');
 			const ctx = canvas.getContext('2d');

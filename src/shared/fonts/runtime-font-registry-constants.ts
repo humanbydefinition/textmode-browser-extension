@@ -1,0 +1,1 @@
+export const CUSTOM_FONT_MAX_BYTES = 10 * 1024 * 1024;

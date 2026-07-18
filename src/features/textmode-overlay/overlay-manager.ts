@@ -8,12 +8,17 @@ import {
 	type OverlayExportFormat,
 	type OverlaySettings,
 } from '../../domain/overlay/overlay-settings';
-import { resolveFontId } from '../../shared/fonts/runtime-font-registry';
+import { resolveFontAssetUrl, resolveFontId } from '../../shared/fonts/runtime-font-registry';
 import type { SelectableElement } from '../media-picker/element-picker';
 import { textmodeOverlayRenderer, type OverlayRendererPort } from './overlay-renderer';
 import { toOverlayDescriptor } from './overlay-descriptor';
 import { exportTextmodeOverlay } from './overlay-export-service';
-import { applyControllerSettings, createOverlayInstance, syncControllerCanvasStyle } from './overlay-instance-adapter';
+import {
+	applyControllerSettings,
+	createOverlayInstance,
+	loadControllerFont,
+	syncControllerCanvasStyle,
+} from './overlay-instance-adapter';
 import {
 	assertCanCreateOverlay,
 	createOverlayController,
@@ -29,27 +34,39 @@ export class OverlayManager {
 
 	public constructor(
 		private readonly onChange: () => void,
-		private readonly renderer: OverlayRendererPort = textmodeOverlayRenderer
+		private readonly renderer: OverlayRendererPort = textmodeOverlayRenderer,
+		private readonly resolveFontUrl: (fontId: FontId) => Promise<string | null> = resolveFontAssetUrl
 	) {
 		this.mutationObserver.observe(document.documentElement, { childList: true, subtree: true });
 	}
 
-	public createOverlay(
+	public async createOverlay(
 		element: SelectableElement,
-		initialSettings: Partial<OverlaySettings> = {}
-	): OverlayDescriptor {
+		initialSettings: Partial<OverlaySettings> = {},
+		requestedId?: string
+	): Promise<OverlayDescriptor> {
 		assertCanCreateOverlay(element);
 		this.clearOverlays();
 
-		const id = `overlay-${Date.now().toString(36)}-${++this.idCounter}`;
-		const settings = this.normalizeSettings(mergeOverlaySettings(DEFAULT_OVERLAY_SETTINGS, initialSettings));
+		const id = requestedId ?? `overlay-${Date.now().toString(36)}-${++this.idCounter}`;
+		let settings = this.normalizeSettings(mergeOverlaySettings(DEFAULT_OVERLAY_SETTINGS, initialSettings));
+		let fontAssetUrl: string | null = null;
+		try {
+			fontAssetUrl = await this.resolveFontUrl(settings.fontId);
+		} catch {
+			settings = { ...settings, fontId: DEFAULT_FONT_ID };
+		}
+		if (!fontAssetUrl) {
+			settings = { ...settings, fontId: DEFAULT_FONT_ID };
+			fontAssetUrl = await this.resolveFontUrl(DEFAULT_FONT_ID);
+		}
 		const controller = createOverlayController(id, element, settings);
 
 		this.overlays.set(id, controller);
 		this.resizeObserver.observe(element);
 
 		try {
-			createOverlayInstance(controller, this.renderer);
+			createOverlayInstance(controller, this.renderer, { fontAssetUrl });
 		} catch (error) {
 			this.markError(controller, error);
 		}
@@ -62,16 +79,30 @@ export class OverlayManager {
 		return [...this.overlays.values()].map(toOverlayDescriptor);
 	}
 
-	public updateOverlay(id: string, patch: Partial<OverlaySettings>): OverlayDescriptor[] {
+	public async updateOverlay(id: string, patch: Partial<OverlaySettings>): Promise<OverlayDescriptor[]> {
 		const controller = this.getController(id);
-
-		controller.settings = this.normalizeSettings(mergeOverlaySettings(controller.settings, patch));
+		const previousSettings = controller.settings;
+		let nextSettings = this.normalizeSettings(mergeOverlaySettings(controller.settings, patch));
 		try {
+			if (nextSettings.fontId !== previousSettings.fontId) {
+				let fontUrl = await this.resolveFontUrl(nextSettings.fontId);
+				if (!fontUrl) {
+					nextSettings = { ...nextSettings, fontId: DEFAULT_FONT_ID };
+					fontUrl = await this.resolveFontUrl(DEFAULT_FONT_ID);
+				}
+				if (!fontUrl) throw new Error('The selected font is unavailable.');
+				controller.settings = nextSettings;
+				await loadControllerFont(controller, fontUrl);
+			}
+			controller.settings = nextSettings;
 			applyControllerSettings(controller);
 			controller.latestError = undefined;
 			controller.status = controller.settings.enabled ? 'active' : 'paused';
 		} catch (error) {
+			controller.settings = previousSettings;
 			this.markError(controller, error);
+			this.onChange();
+			throw error;
 		}
 
 		this.onChange();
@@ -127,14 +158,16 @@ export class OverlayManager {
 		return [];
 	}
 
-	public revertOverlaysUsingFont(fontId: FontId): OverlayDescriptor[] {
+	public async revertOverlaysUsingFont(fontId: FontId): Promise<OverlayDescriptor[]> {
 		let changed = false;
+		const fallbackUrl = await this.resolveFontUrl(DEFAULT_FONT_ID);
 		for (const controller of this.overlays.values()) {
 			if (controller.settings.fontId !== fontId) continue;
 			controller.settings = this.normalizeSettings(
 				mergeOverlaySettings(controller.settings, { fontId: DEFAULT_FONT_ID })
 			);
 			try {
+				if (fallbackUrl) await loadControllerFont(controller, fallbackUrl);
 				applyControllerSettings(controller);
 				controller.latestError = undefined;
 				controller.status = controller.settings.enabled ? 'active' : 'paused';

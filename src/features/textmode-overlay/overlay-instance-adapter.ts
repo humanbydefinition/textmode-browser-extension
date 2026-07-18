@@ -1,4 +1,5 @@
 import type { FontId } from '../../domain/overlay/overlay-settings';
+import { CONTOUR_DEFAULT_CHARACTERS } from 'textmode.contour.js';
 import { getFontAssetUrl } from '../../shared/fonts/runtime-font-registry';
 import type { SelectableElement } from '../media-picker/element-picker';
 import type { OverlayController } from './overlay-session';
@@ -7,6 +8,7 @@ import { applyPostFxFilters, waitForPostFxFilterRegistration } from './post-fx-r
 
 export interface OverlayInstanceAdapterOptions {
 	resolveFontAssetUrl?: (fontId: FontId) => string | null;
+	fontAssetUrl?: string | null;
 }
 
 export function createOverlayInstance(
@@ -15,7 +17,7 @@ export function createOverlayInstance(
 	options: OverlayInstanceAdapterOptions = {}
 ): void {
 	const resolveFontAssetUrl = options.resolveFontAssetUrl ?? getFontAssetUrl;
-	const fontSource = resolveFontAssetUrl(controller.settings.fontId);
+	const fontSource = options.fontAssetUrl ?? resolveFontAssetUrl(controller.settings.fontId);
 	const instance = renderer.create(controller.element, controller.settings, fontSource ? { fontSource } : undefined);
 	controller.instance = instance;
 	controller.loadedFontId = controller.settings.fontId;
@@ -34,6 +36,7 @@ export function createOverlayInstance(
 		if (!controller.settings.enabled || !instance.overlay) return;
 		if (!canRenderElement(controller.element)) return;
 		configureSource(controller);
+		if (!controller.settings.brightnessEnabled && !controller.settings.contour.enabled) return;
 		const grid = instance.grid;
 		if (!grid) return;
 		instance.image(instance.overlay, grid.cols, grid.rows);
@@ -43,6 +46,12 @@ export function createOverlayInstance(
 	});
 
 	applyControllerSettings(controller, { resolveFontAssetUrl });
+}
+
+export async function loadControllerFont(controller: OverlayController, fontUrl: string): Promise<void> {
+	if (!controller.instance) return;
+	await controller.instance.loadFont(fontUrl);
+	controller.loadedFontId = controller.settings.fontId;
 }
 
 export function applyControllerSettings(
@@ -103,6 +112,44 @@ function configureSource(controller: OverlayController): void {
 		.cellColorMode(settings.cellColorMode)
 		.cellColor(settings.cellColor)
 		.background(settings.cellColor);
+
+	if (settings.brightnessEnabled && !settings.contour.enabled) {
+		source.conversionMode('brightness');
+		return;
+	}
+
+	const conversions = [];
+	if (settings.brightnessEnabled) {
+		conversions.push({
+			mode: 'brightness',
+			characters: settings.glyphRamp,
+			charColorMode: settings.charColorMode,
+			charColor: settings.charColor,
+			cellColorMode: settings.cellColorMode,
+			cellColor: settings.cellColor,
+		});
+	}
+	if (settings.contour.enabled) {
+		conversions.push({
+			mode: 'contour',
+			characters: CONTOUR_DEFAULT_CHARACTERS,
+			invert: settings.contour.invert,
+			charColorMode: settings.contour.charColorMode,
+			charColor: settings.contour.charColor,
+			cellColorMode: settings.contour.cellColorMode,
+			cellColor: settings.contour.cellColor,
+			options: {
+				threshold: settings.contour.threshold,
+				colorSensitivity: settings.contour.colorSensitivity,
+			},
+		});
+	}
+
+	if (conversions.length > 0) {
+		source.conversions(conversions);
+	} else {
+		source.conversionMode('brightness');
+	}
 }
 
 function canRenderElement(element: SelectableElement): boolean {

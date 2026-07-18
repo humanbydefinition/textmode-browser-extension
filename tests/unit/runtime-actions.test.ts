@@ -24,7 +24,7 @@ describe('createRuntimeActionHandler', () => {
 			toggleControlPanel: vi.fn(),
 			startPicking: vi.fn(),
 			listOverlays: vi.fn(() => overlays),
-			updateOverlay: vi.fn(() => overlays),
+			updateOverlay: vi.fn(async () => overlays),
 			exportOverlay: vi.fn(async () => overlays),
 			removeOverlay: vi.fn(() => []),
 			pauseAll: vi.fn(() => overlays),
@@ -70,7 +70,7 @@ describe('createRuntimeActionHandler', () => {
 	});
 
 	it('broadcasts user-readable errors without throwing', async () => {
-		vi.mocked(deps.updateOverlay).mockImplementation(() => {
+		vi.mocked(deps.updateOverlay).mockImplementation(async () => {
 			throw new Error('Overlay overlay-1 no longer exists.');
 		});
 		const handler = createRuntimeActionHandler(deps);

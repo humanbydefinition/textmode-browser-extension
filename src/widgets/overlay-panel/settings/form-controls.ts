@@ -27,12 +27,12 @@ export function createSettingField(
 	label: string,
 	child: HTMLElement,
 	className?: string,
-	output?: HTMLOutputElement
+	labelActions?: Node | string | null
 ): HTMLLabelElement {
 	return h(
 		'label',
 		{ className: classNames('tm-field', className) },
-		h('span', { className: 'tm-field__label' }, h('span', { textContent: label }), output ?? null),
+		h('span', { className: 'tm-field__label' }, h('span', { textContent: label }), labelActions ?? null),
 		child
 	);
 }

@@ -4,6 +4,7 @@ import { applyControllerSettings, createOverlayInstance } from '@/features/textm
 import type { OverlayController } from '@/features/textmode-overlay/overlay-session';
 import type { ExportableTextmodeInstance } from '@/features/textmode-overlay/overlay-renderer';
 import { createMockSource } from './test-helpers';
+import { CONTOUR_DEFAULT_CHARACTERS } from 'textmode.contour.js';
 
 type MockTextmodeInstance = {
 	canvas: HTMLCanvasElement;
@@ -89,7 +90,110 @@ describe('overlay instance adapter', () => {
 		expect(instance.filter).toHaveBeenNthCalledWith(1, 'brightness', { amount: 1.2 });
 		expect(instance.filter).toHaveBeenNthCalledWith(2, 'invert', undefined);
 	});
+
+	it('uses single-pass brightness rendering while contours are disabled', () => {
+		const instance = createTextmodeInstance();
+		const controller = createController(instance);
+
+		applyControllerSettings(controller);
+
+		expect(instance.overlay.conversionMode).toHaveBeenCalledWith('brightness');
+		expect(instance.overlay.conversions).not.toHaveBeenCalled();
+	});
+
+	it('layers configured contours over the brightness pass', () => {
+		const instance = createTextmodeInstance();
+		const controller = createController(instance, {
+			contour: {
+				...DEFAULT_OVERLAY_SETTINGS.contour,
+				enabled: true,
+				invert: true,
+				threshold: 0.24,
+				colorSensitivity: 0.6,
+				charColor: '#ff8800',
+				cellColor: '#000000',
+			},
+		});
+
+		applyControllerSettings(controller);
+
+		expect(instance.overlay.conversions).toHaveBeenCalledWith([
+			{
+				mode: 'brightness',
+				characters: DEFAULT_OVERLAY_SETTINGS.glyphRamp,
+				charColorMode: DEFAULT_OVERLAY_SETTINGS.charColorMode,
+				charColor: DEFAULT_OVERLAY_SETTINGS.charColor,
+				cellColorMode: DEFAULT_OVERLAY_SETTINGS.cellColorMode,
+				cellColor: DEFAULT_OVERLAY_SETTINGS.cellColor,
+			},
+			{
+				mode: 'contour',
+				characters: CONTOUR_DEFAULT_CHARACTERS,
+				invert: true,
+				charColorMode: 'sampled',
+				charColor: '#ff8800',
+				cellColorMode: 'fixed',
+				cellColor: '#000000',
+				options: { threshold: 0.24, colorSensitivity: 0.6 },
+			},
+		]);
+
+		controller.settings = { ...controller.settings, contour: { ...controller.settings.contour, enabled: false } };
+		applyControllerSettings(controller);
+		expect(instance.overlay.conversionMode).toHaveBeenLastCalledWith('brightness');
+	});
+
+	it('renders contours without a brightness pass when brightness is disabled', () => {
+		const instance = createTextmodeInstance();
+		const controller = createController(instance, {
+			brightnessEnabled: false,
+			contour: { ...DEFAULT_OVERLAY_SETTINGS.contour, enabled: true },
+		});
+
+		applyControllerSettings(controller);
+
+		expect(instance.overlay.conversions).toHaveBeenCalledWith([
+			expect.objectContaining({ mode: 'contour', characters: CONTOUR_DEFAULT_CHARACTERS }),
+		]);
+	});
+
+	it('skips source drawing when both converters are disabled', () => {
+		let drawCallback: (() => void) | null = null;
+		const instance = createTextmodeInstance({
+			draw: vi.fn((callback: () => void) => {
+				drawCallback = callback;
+			}),
+		});
+		const controller = createController(instance, {
+			brightnessEnabled: false,
+			contour: { ...DEFAULT_OVERLAY_SETTINGS.contour, enabled: false },
+		});
+
+		createOverlayInstance(
+			controller,
+			{ create: vi.fn(() => instance as unknown as ExportableTextmodeInstance) },
+			{ resolveFontAssetUrl: () => null }
+		);
+		(drawCallback as unknown as () => void)();
+
+		expect(instance.image).not.toHaveBeenCalled();
+	});
 });
+
+function createController(
+	instance: MockTextmodeInstance,
+	settings: Partial<OverlayController['settings']> = {}
+): OverlayController {
+	return {
+		id: 'overlay-1',
+		element: document.createElement('canvas'),
+		settings: { ...DEFAULT_OVERLAY_SETTINGS, ...settings },
+		instance: instance as unknown as ExportableTextmodeInstance,
+		status: 'active',
+		previousInlineOpacity: '',
+		loadedFontId: DEFAULT_OVERLAY_SETTINGS.fontId,
+	};
+}
 
 function createTextmodeInstance(overrides: Partial<MockTextmodeInstance> = {}): MockTextmodeInstance {
 	const source = createMockSource();

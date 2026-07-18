@@ -1,6 +1,6 @@
 {
 	"name": "textmode-ascii-overlay-extension",
-	"version": "1.1.0",
+	"version": "1.2.0",
 	"description": "Browser extension for overlaying real-time textmode.js ASCII conversion on page canvas and video elements.",
 	"type": "module",
 	"license": "MIT",
@@ -63,9 +63,10 @@
 		]
 	},
 	"dependencies": {
-		"textmode.export.js": "^1.5.1",
-		"textmode.filters.js": "^1.2.1",
-		"textmode.js": "0.17.0-beta.1"
+		"textmode.contour.js": "^0.1.0",
+		"textmode.export.js": "^1.5.2",
+		"textmode.filters.js": "^1.2.2",
+		"textmode.js": "0.17.0"
 	},
 	"overrides": {
 		"esbuild": "0.28.1",
@@ -74,25 +75,25 @@
 		"uuid": "11.1.1"
 	},
 	"devDependencies": {
-		"@commitlint/cli": "^21.1.0",
-		"@playwright/test": "^1.57.0",
-		"@textmode/commitlint-config": "^0.1.0",
+		"@commitlint/cli": "^21.2.1",
+		"@playwright/test": "^1.61.1",
+		"@textmode/commitlint-config": "^0.1.1",
 		"@textmode/eslint-config": "^0.1.0",
 		"@textmode/prettier-config": "^0.1.0",
 		"@textmode/tooling-scripts": "^0.2.0",
 		"@types/chrome": "^0.1.34",
 		"@types/node": "^24.0.13",
 		"eslint": "^9.39.2",
-		"globals": "^17.5.0",
+		"globals": "^17.7.0",
 		"husky": "^9.1.7",
 		"jsdom": "^27.4.0",
 		"lint-staged": "^17.0.8",
-		"prettier": "^3.8.3",
+		"prettier": "^3.9.4",
 		"typescript": "^5.9.2",
 		"typescript-eslint": "^8.59.2",
-		"vite": "^8.0.16",
+		"vite": "^8.1.3",
 		"vitest": "^4.1.9",
 		"web-ext": "^10.4.0",
-		"wxt": "^0.20.26"
+		"wxt": "^0.20.27"
 	}
 }

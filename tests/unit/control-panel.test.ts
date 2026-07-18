@@ -42,9 +42,36 @@ describe('ControlPanel', () => {
 		expect(host?.dataset.textmodeAsciiExtensionUi).toBe('true');
 		expect(host?.shadowRoot?.querySelector('[data-testid="overlay-panel"]')).not.toBeNull();
 		expect(document.querySelector('[data-testid="overlay-panel"]')).toBeNull();
+		expect(host?.shadowRoot?.querySelector('.tm-panel__move-handle')).not.toBeNull();
+		expect(host?.shadowRoot?.querySelector('.tm-panel')?.getAttribute('data-mode')).toBe('in-page');
+		expect(host?.shadowRoot?.querySelector('.tm-support-link')?.textContent).not.toContain('support');
 
 		panel.unmount();
 		expect(document.querySelector('#textmode-ascii-overlay-control-panel-root')).toBeNull();
+	});
+
+	it('casts the outer shadow from the rounded panel instead of the rectangular host', () => {
+		const panel = new ControlPanel({
+			headerFontUrl: HEADER_FONT_URL,
+			onStartPicking: vi.fn(),
+			onUpdateOverlay: vi.fn(),
+			onExportOverlay: vi.fn(),
+			onRemoveOverlay: vi.fn(),
+			onClose: vi.fn(),
+		});
+		panel.mount();
+
+		const host = document.querySelector<HTMLElement>('#textmode-ascii-overlay-control-panel-root');
+		const isolatedStyles = host?.shadowRoot?.querySelector('style')?.textContent ?? '';
+		expect(isolatedStyles).toContain('background: transparent');
+		expect(isolatedStyles).toContain('background-clip: padding-box');
+		expect(isolatedStyles).toContain('0 18px 42px rgb(0 0 0 / 0.42)');
+		expect(isolatedStyles).toMatch(
+			/:host \.tm-panel \{[^}]*box-shadow:[^}]*0 18px 42px rgb\(0 0 0 \/ 0\.42\);[^}]*\}/
+		);
+		expect(isolatedStyles).not.toMatch(/:host \{[^}]*box-shadow:[^}]*0 18px 42px/);
+
+		panel.unmount();
 	});
 
 	it('registers the header font from binary data', async () => {

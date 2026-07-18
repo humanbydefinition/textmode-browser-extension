@@ -55,12 +55,13 @@ export class TabsView {
 			viewportClassName: 'tm-tabs-scroll-area__viewport',
 			contentClassName: 'tm-tabs-scroll-area__content',
 		});
-		this.scrollArea.content.append(this.exportContent, this.advancedContent, this.postFxContent);
+		this.scrollArea.content.append(this.exportContent, this.postFxContent);
+		const contentHost = h('div', { className: 'tm-tabs-body' }, this.scrollArea.element, this.advancedContent);
 		this.element = h(
 			'div',
 			{ className: 'tm-settings-tabs', attributes: { 'data-slot': 'tabs' } },
 			list,
-			this.scrollArea.element
+			contentHost
 		);
 
 		this.exportTrigger.addEventListener('click', () => this.setValue('export'));
@@ -82,6 +83,7 @@ export class TabsView {
 		updateTab(this.exportTrigger, this.exportContent, this.value === 'export');
 		updateTab(this.advancedTrigger, this.advancedContent, this.value === 'advanced');
 		updateTab(this.postFxTrigger, this.postFxContent, this.value === 'postFx');
+		this.scrollArea.element.hidden = this.value === 'advanced';
 		this.scrollArea.update();
 	}
 }

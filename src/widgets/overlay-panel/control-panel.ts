@@ -1,19 +1,24 @@
 import type { OverlayDescriptor, OverlayExportFormat, OverlaySettings } from '../../domain/overlay/overlay-settings';
 import type { CustomFontId } from '../../domain/overlay/overlay-settings';
+import type { PanelPlacement } from '../../domain/presets/panel-placement';
 import { OverlayPanelView } from './overlay-panel-view';
+import { PanelPlacementController } from './panel-placement-controller';
 import panelStyles from './popup.css?inline';
 
 export interface ControlPanelOptions {
 	headerFontUrl?: string | null;
 	allowCustomFontUpload?: boolean;
 	onStartPicking: () => void;
-	onUpdateOverlay: (id: string, settings: Partial<OverlaySettings>) => void;
+	onUpdateOverlay: (id: string, settings: Partial<OverlaySettings>) => Promise<void> | void;
 	onExportOverlay: (id: string, format: OverlayExportFormat) => void;
 	onRemoveOverlay: (id: string) => void;
 	onUploadFont?: (file: File) => Promise<{ id: CustomFontId; displayName: string }>;
 	onRemoveCustomFont?: (id: CustomFontId) => Promise<void> | void;
 	onError?: (message: string) => void;
 	onClose: () => void;
+	initialPlacement?: PanelPlacement | null;
+	onPlacementCommit?: (placement: PanelPlacement) => Promise<void> | void;
+	onPlacementReset?: () => Promise<void> | void;
 }
 
 const PANEL_HOST_ID = 'textmode-ascii-overlay-control-panel-root';
@@ -25,6 +30,7 @@ export class ControlPanel {
 	private readonly mountPoint: HTMLDivElement;
 	private readonly portalRoot: HTMLDivElement;
 	private readonly view: OverlayPanelView;
+	private readonly placementController: PanelPlacementController;
 	private overlays: OverlayDescriptor[] = [];
 	private readonly onShadowKeyDown: EventListener;
 
@@ -38,10 +44,10 @@ export class ControlPanel {
 		Object.assign(this.container.style, {
 			position: 'fixed',
 			top: '10px',
-			right: '10px',
+			left: '10px',
 			zIndex: '2147483646',
-			width: '300px',
-			maxWidth: 'calc(100vw - 32px)',
+			width: 'min(300px, calc(100vw - 20px))',
+			maxWidth: '300px',
 		});
 
 		this.shadowRoot = this.container.attachShadow({ mode: 'open' });
@@ -62,15 +68,18 @@ export class ControlPanel {
 			:host {
 				all: initial;
 				display: block;
-				width: min(300px, calc(100vw - 32px));
+				width: min(300px, calc(100vw - 20px));
+				background: transparent;
 				color-scheme: dark;
-				box-shadow: 0 18px 42px rgb(0 0 0 / 0.42);
 			}
 
 			:host .tm-panel {
 				border: 1px solid var(--tm-neutral-26);
 				border-radius: 8px;
-				box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.04);
+				background-clip: padding-box;
+				box-shadow:
+					inset 0 1px 0 rgb(255 255 255 / 0.04),
+					0 18px 42px rgb(0 0 0 / 0.42);
 			}
 
 			${panelStyles}
@@ -88,6 +97,7 @@ export class ControlPanel {
 
 		this.view = new OverlayPanelView({
 			portalContainer: this.portalRoot,
+			mode: 'in-page',
 			allowCustomFontUpload: this.options.allowCustomFontUpload,
 			onStartPicking: this.options.onStartPicking,
 			onUpdateOverlay: this.options.onUpdateOverlay,
@@ -99,6 +109,17 @@ export class ControlPanel {
 			onClose: this.options.onClose,
 		});
 		this.mountPoint.append(this.view.element);
+		if (!this.view.moveHandleElement) {
+			throw new Error('The in-page panel requires a move handle.');
+		}
+		this.placementController = new PanelPlacementController({
+			host: this.container,
+			surface: this.view.element,
+			handle: this.view.moveHandleElement,
+			initialPlacement: options.initialPlacement,
+			onCommit: options.onPlacementCommit,
+			onReset: options.onPlacementReset,
+		});
 		this.render();
 	}
 
@@ -106,12 +127,14 @@ export class ControlPanel {
 		if (!this.container.isConnected) {
 			document.documentElement.appendChild(this.container);
 		}
+		this.placementController.mount();
 		this.shadowRoot.addEventListener('keydown', this.onShadowKeyDown, true);
 		this.render();
 	}
 
 	public unmount(): void {
 		this.shadowRoot.removeEventListener('keydown', this.onShadowKeyDown, true);
+		this.placementController.dispose();
 		this.view.dispose();
 		this.container.remove();
 	}
@@ -121,8 +144,13 @@ export class ControlPanel {
 		this.render();
 	}
 
+	public updatePickingState(picking: boolean): void {
+		this.view.setPicking(picking);
+	}
+
 	private render(): void {
 		this.view.update(this.overlays);
+		this.placementController.scheduleRender();
 	}
 }
 

@@ -105,8 +105,6 @@ See the [Imprint](https://legal.textmode.art/projects/extension.textmode.art/en/
 
 > [!NOTE]
 > Some media cannot be sampled. Cross-origin, tainted, DRM-protected, or otherwise restricted media may fail when the browser blocks WebGL or canvas pixel access. The extension should report those failures without breaking the page.
->
-> The extension keeps its action-triggered `activeTab` permission model. Iframes that do not share the top page's origin, including opaque sandboxed frames, are marked as unavailable while selecting media.
 
 ### Uploading Fonts
 

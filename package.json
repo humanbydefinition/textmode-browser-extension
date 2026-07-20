@@ -51,7 +51,7 @@
 		"check:boundaries": "node ./scripts/check-boundaries.mjs",
 		"check": "npm run check:format && npm run lint && npm run check:boundaries && npm run typecheck && npm run test && npm run build:chrome && npm run lint:firefox",
 		"e2e": "npm run build:e2e:chrome && playwright test",
-		"prepare": "husky && install-husky"
+		"prepare": "install-git-hooks"
 	},
 	"lint-staged": {
 		"*": "prettier --ignore-unknown --write"
@@ -85,7 +85,6 @@
 		"@types/node": "^26.1.1",
 		"eslint": "^9.39.2",
 		"globals": "^17.7.0",
-		"husky": "^9.1.7",
 		"jsdom": "^29.1.1",
 		"lint-staged": "^17.0.8",
 		"prettier": "^3.9.4",

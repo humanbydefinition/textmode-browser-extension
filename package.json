@@ -81,7 +81,7 @@
 		"@textmode/eslint-config": "^0.1.0",
 		"@textmode/prettier-config": "^0.1.0",
 		"@textmode/tooling-scripts": "^0.3.4",
-		"@types/chrome": "^0.1.34",
+		"@types/chrome": "^0.2.2",
 		"@types/node": "^26.1.1",
 		"eslint": "^9.39.2",
 		"globals": "^17.7.0",

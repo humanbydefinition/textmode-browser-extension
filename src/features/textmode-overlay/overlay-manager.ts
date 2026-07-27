@@ -130,7 +130,7 @@ export class OverlayManager {
 		} catch (error) {
 			this.markError(controller, error);
 			this.onChange();
-			throw new Error(controller.latestError ?? toUserMessage(error));
+			throw new Error(controller.latestError ?? toUserMessage(error), { cause: error });
 		}
 	}
 

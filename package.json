@@ -78,7 +78,7 @@
 		"@commitlint/cli": "^21.2.1",
 		"@playwright/test": "^1.61.1",
 		"@textmode/commitlint-config": "^0.1.1",
-		"@textmode/eslint-config": "^0.1.0",
+		"@textmode/eslint-config": "^0.2.0",
 		"@textmode/prettier-config": "^0.1.0",
 		"@textmode/tooling-scripts": "^0.3.4",
 		"@types/chrome": "^0.2.2",

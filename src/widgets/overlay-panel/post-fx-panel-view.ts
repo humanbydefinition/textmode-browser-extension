@@ -56,8 +56,10 @@ export class PostFxPanelView {
 	private canUpdateInPlace(prev: readonly OverlayPostFxItem[], next: readonly OverlayPostFxItem[]): boolean {
 		if (prev.length !== next.length) return false;
 		for (let i = 0; i < prev.length; i++) {
-			if (prev[i].id !== next[i].id) return false;
-			if (prev[i].enabled !== next[i].enabled) return false;
+			const prevItem = prev[i]!;
+			const nextItem = next[i]!;
+			if (prevItem.id !== nextItem.id) return false;
+			if (prevItem.enabled !== nextItem.enabled) return false;
 		}
 		return true;
 	}
@@ -67,10 +69,9 @@ export class PostFxPanelView {
 			const definition = getOverlayPostFxDefinition(item.filter);
 			const fields = this.rowFieldsByItemId.get(item.id);
 			if (!definition || !fields) continue;
-			for (let i = 0; i < definition.params.length; i++) {
-				const paramDef = definition.params[i];
-				fields[i]?.update(item.params[paramDef.id]);
-			}
+			definition.params.forEach((paramDef, i) => {
+				fields[i]?.update(item.params[paramDef.id] ?? paramDef.defaultValue);
+			});
 		}
 	}
 
@@ -162,7 +163,7 @@ export class PostFxPanelView {
 	private createParamField(item: OverlayPostFxItem, paramDefinition: OverlayPostFxParamDefinition): RangeFieldView {
 		return new RangeFieldView({
 			label: paramDefinition.label,
-			value: item.params[paramDefinition.id],
+			value: item.params[paramDefinition.id] ?? paramDefinition.defaultValue,
 			limits: {
 				min: paramDefinition.min,
 				max: paramDefinition.max,
@@ -260,7 +261,8 @@ export class PostFxPanelView {
 		const toIndex = this.postFx.findIndex((item) => item.id === overId);
 		if (fromIndex < 0 || toIndex < 0) return;
 		const next = [...this.postFx];
-		const [moved] = next.splice(fromIndex, 1);
+		const moved = next.splice(fromIndex, 1)[0];
+		if (!moved) return;
 		next.splice(toIndex, 0, moved);
 		this.emit(next);
 	}

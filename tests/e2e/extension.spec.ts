@@ -31,7 +31,7 @@ test('Chrome extension can select a canvas and create an overlay', async () => {
 		const serviceWorker = context.serviceWorkers()[0] ?? (await context.waitForEvent('serviceworker'));
 		await serviceWorker.evaluate(async () => {
 			const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-			if (!tab.id) {
+			if (!tab?.id) {
 				throw new Error('Missing active tab for extension E2E.');
 			}
 			await chrome.scripting.executeScript({
@@ -101,7 +101,7 @@ test('Chrome extension can select a canvas and create an overlay', async () => {
 		await expect(panelHost).toHaveCount(0);
 		await serviceWorker.evaluate(async () => {
 			const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-			if (!tab.id) throw new Error('Missing active tab while reopening panel.');
+			if (!tab?.id) throw new Error('Missing active tab while reopening panel.');
 			await chrome.tabs.sendMessage(tab.id, { type: 'TOGGLE_OVERLAY' }, { frameId: 0 });
 		});
 		await expect(panelHost).toBeAttached();
@@ -239,7 +239,7 @@ test('Chrome extension can select a canvas and create an overlay', async () => {
 		await page.reload();
 		await serviceWorker.evaluate(async () => {
 			const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-			if (!tab.id) throw new Error('Missing active tab after reload.');
+			if (!tab?.id) throw new Error('Missing active tab after reload.');
 			await chrome.scripting.executeScript({
 				target: { tabId: tab.id, allFrames: true },
 				files: ['/content-runtime.js'],
@@ -282,7 +282,7 @@ test('Chrome extension can select media in same-origin, nested, srcdoc, and newl
 		const serviceWorker = context.serviceWorkers()[0] ?? (await context.waitForEvent('serviceworker'));
 		await serviceWorker.evaluate(async () => {
 			const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-			if (!tab.id) throw new Error('Missing active tab for iframe E2E.');
+			if (!tab?.id) throw new Error('Missing active tab for iframe E2E.');
 			await chrome.scripting.executeScript({
 				target: { tabId: tab.id, allFrames: true },
 				files: ['/content-runtime.js'],
@@ -302,7 +302,7 @@ test('Chrome extension can select media in same-origin, nested, srcdoc, and newl
 				.poll(() =>
 					serviceWorker.evaluate(async () => {
 						const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-						if (!tab.id) return '';
+						if (!tab?.id) return '';
 						const response = await chrome.tabs.sendMessage(
 							tab.id,
 							{ type: 'LIST_OVERLAYS' },

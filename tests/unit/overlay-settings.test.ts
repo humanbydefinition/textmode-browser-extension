@@ -130,7 +130,7 @@ describe('mergeOverlaySettings', () => {
 
 		expect(settings.postFx).toHaveLength(OVERLAY_POST_FX_FILTER_IDS.length);
 		expect(settings.postFx[0]).toMatchObject({ id: first.id, filter: 'brightness', enabled: true });
-		expect(settings.postFx[0].params.amount).toBe(3);
+		expect(settings.postFx[0]!.params.amount).toBe(3);
 		expect(settings.postFx.filter((item) => item.filter === 'brightness')).toHaveLength(1);
 		expect(settings.postFx.slice(1).map((item) => item.filter)).toEqual(
 			OVERLAY_POST_FX_FILTER_IDS.filter((filter) => filter !== 'brightness')

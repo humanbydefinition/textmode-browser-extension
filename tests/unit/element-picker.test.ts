@@ -76,8 +76,8 @@ describe('element-picker', () => {
 		await vi.waitFor(() => expect(getMarkers()).toHaveLength(2));
 		const markers = getMarkers();
 		expect(markers.map((marker) => marker.dataset.availability)).toEqual(['ready', 'ready']);
-		await vi.waitFor(() => expect(markers[0].style.getPropertyValue('--tm-picker-x')).toBe('12px'));
-		expect(markers[0].textContent).toBe('');
+		await vi.waitFor(() => expect(markers[0]!.style.getPropertyValue('--tm-picker-x')).toBe('12px'));
+		expect(markers[0]!.textContent).toBe('');
 		const status = getPickerHost().shadowRoot?.querySelector('.tm-picker-status');
 		expect(status?.textContent).toContain('Select a <canvas> or <video> element');
 		expect(status?.textContent).toContain('2 selectable elements');
@@ -162,7 +162,7 @@ describe('element-picker', () => {
 		document.body.append(iframe);
 
 		await vi.waitFor(() => expect(getMarkers()).toHaveLength(1));
-		expect(getMarkers()[0].dataset.availability).toBe('blocked');
+		expect(getMarkers()[0]!.dataset.availability).toBe('blocked');
 	});
 
 	it('keeps Tab untouched and cancels with Escape while restoring focus', () => {

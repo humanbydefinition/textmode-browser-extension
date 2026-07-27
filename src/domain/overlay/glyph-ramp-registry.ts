@@ -53,7 +53,7 @@ export function getAdjacentGlyphRampPreset(
 				: presets.length - 1
 			: (currentIndex + direction + presets.length) % presets.length;
 
-	return presets[nextIndex] ?? GLOBAL_GLYPH_RAMP_PRESETS[0];
+	return presets[nextIndex] ?? GLOBAL_GLYPH_RAMP_PRESETS[0]!;
 }
 
 function getMatchingGlyphRampPreset(fontId: BundledFontId, glyphRamp: string): GlyphRampPreset | undefined {

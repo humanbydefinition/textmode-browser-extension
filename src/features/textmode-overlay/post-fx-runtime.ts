@@ -77,28 +77,28 @@ function resolvePostFxParams(
 			return undefined;
 		case 'chromaticAberration':
 			return {
-				amount: item.params.amount,
-				direction: [item.params.directionX, item.params.directionY],
+				amount: item.params.amount!,
+				direction: [item.params.directionX!, item.params.directionY!],
 			};
 		case 'crtMattias':
 			return {
-				curvature: item.params.curvature,
-				scanSpeed: item.params.scanSpeed,
+				curvature: item.params.curvature!,
+				scanSpeed: item.params.scanSpeed!,
 				time: getRuntimeSeconds(instance),
 			};
 		case 'scanlines':
 			return {
-				count: item.params.count,
-				lineWidth: item.params.lineWidth,
-				intensity: item.params.intensity,
-				speed: item.params.speed,
+				count: item.params.count!,
+				lineWidth: item.params.lineWidth!,
+				intensity: item.params.intensity!,
+				speed: item.params.speed!,
 				time: getRuntimeSeconds(instance),
 			};
 		case 'filmGrain':
 			return {
-				intensity: item.params.intensity,
-				size: item.params.size,
-				speed: item.params.speed,
+				intensity: item.params.intensity!,
+				size: item.params.size!,
+				speed: item.params.speed!,
 				time: getRuntimeSeconds(instance),
 			};
 		default:
@@ -110,7 +110,7 @@ function resolvePlainParams(item: OverlayPostFxItem): Record<string, number> {
 	const definition = getOverlayPostFxDefinition(item.filter);
 	const params: Record<string, number> = {};
 	for (const param of definition?.params ?? []) {
-		params[param.id] = item.params[param.id];
+		params[param.id] = item.params[param.id]!;
 	}
 	return params;
 }

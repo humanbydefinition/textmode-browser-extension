@@ -84,7 +84,7 @@
 		"@types/chrome": "^0.2.2",
 		"@types/node": "^26.1.1",
 		"eslint": "^9.39.2",
-		"globals": "^17.7.0",
+		"globals": "^17.8.0",
 		"jsdom": "^29.1.1",
 		"lint-staged": "^17.0.8",
 		"prettier": "^3.9.4",

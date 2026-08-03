@@ -82,7 +82,7 @@
 		"@textmode/prettier-config": "^0.1.0",
 		"@textmode/tooling-scripts": "^0.3.9",
 		"@types/chrome": "^0.2.2",
-		"@types/node": "^26.1.1",
+		"@types/node": "^26.1.2",
 		"eslint": "^10.4.3",
 		"globals": "^17.8.0",
 		"jsdom": "^30.0.1",

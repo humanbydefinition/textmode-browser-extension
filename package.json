@@ -76,7 +76,7 @@
 	},
 	"devDependencies": {
 		"@commitlint/cli": "^21.2.1",
-		"@playwright/test": "^1.61.1",
+		"@playwright/test": "^1.62.1",
 		"@textmode/commitlint-config": "^0.1.1",
 		"@textmode/eslint-config": "^0.2.0",
 		"@textmode/prettier-config": "^0.1.0",

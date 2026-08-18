@@ -1,7 +1,11 @@
 dist
+.output
+.wxt
 node_modules
 coverage
 test-results
 .agents
 skills-lock.json
 .github/CODEOWNERS
+package-lock.json
+**/*.md

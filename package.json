@@ -42,24 +42,22 @@
 		"zip:edge": "wxt zip -b edge --mv3",
 		"zip:firefox": "wxt zip -b firefox --mv3",
 		"lint:firefox": "npm run build:firefox && web-ext lint --source-dir .output/firefox-mv3 --self-hosted",
-		"test": "vitest run",
-		"test:watch": "vitest",
+		"test": "textmode-build test",
+		"test:watch": "textmode-build test:watch",
 		"typecheck": "tsc --noEmit",
-		"lint": "eslint .",
-		"format": "prettier --write .",
-		"check:format": "prettier --check .",
+		"lint": "textmode-lint lint .",
+		"lint:markdown": "textmode-lint lint:markdown",
+		"format": "textmode-lint format",
+		"format:check": "textmode-lint format:check",
 		"check:boundaries": "node ./scripts/check-boundaries.mjs",
-		"check": "npm run check:format && npm run lint && npm run check:boundaries && npm run typecheck && npm run test && npm run build:chrome && npm run lint:firefox",
+		"check": "npm run format:check && npm run lint && npm run lint:markdown && npm run check:boundaries && npm run typecheck && npm run test && npm run build:chrome && npm run lint:firefox",
 		"e2e": "npm run build:e2e:chrome && playwright test",
-		"prepare": "install-git-hooks"
+		"prepare": "textmode-release hooks"
 	},
-	"lint-staged": {
-		"*": "prettier --ignore-unknown --write"
-	},
-	"prettier": "@textmode/prettier-config",
+	"prettier": "@textmode/lint/prettier",
 	"commitlint": {
 		"extends": [
-			"@textmode/commitlint-config"
+			"@textmode/release/commitlint"
 		]
 	},
 	"dependencies": {
@@ -75,23 +73,17 @@
 		"uuid": "11.1.1"
 	},
 	"devDependencies": {
-		"@commitlint/cli": "^21.2.1",
 		"@playwright/test": "^1.62.1",
-		"@textmode/commitlint-config": "^0.1.1",
-		"@textmode/eslint-config": "^0.2.0",
-		"@textmode/prettier-config": "^0.1.0",
-		"@textmode/tooling-scripts": "^0.3.9",
+		"@textmode/build": "^0.1.0",
+		"@textmode/lint": "^0.1.1",
+		"@textmode/release": "^0.2.1",
 		"@types/chrome": "^0.2.2",
-		"@types/node": "^26.1.2",
-		"eslint": "^10.4.3",
+		"@types/node": "^26.2.0",
 		"globals": "^17.9.0",
 		"jsdom": "^30.0.1",
-		"lint-staged": "^17.3.0",
-		"prettier": "^3.9.6",
-		"typescript": "^5.9.2",
+		"typescript": "^6.0.3",
 		"typescript-eslint": "^8.66.0",
 		"vite": "^8.1.3",
-		"vitest": "^4.1.10",
 		"web-ext": "^10.5.0",
 		"wxt": "^0.21.2"
 	}

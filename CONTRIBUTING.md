@@ -14,7 +14,7 @@ This repository uses a structured branch promotion flow for review and integrati
 - **`beta`**: The browser-testing branch for changes promoted from `dev`.
 - **`main`**: The stable branch for changes promoted after beta validation.
 
-_Note: Direct local pushes to `dev`, `beta`, and `main` are blocked by git hooks. Changes must be proposed via pull requests._
+*Note: Direct local pushes to `dev`, `beta`, and `main` are blocked by git hooks. Changes must be proposed via pull requests.*
 
 ---
 
@@ -46,17 +46,22 @@ Example: `feat: add font selection dropdown`
 
 1. Fork and clone the repository.
 2. Install dependencies:
-    ```bash
-    npm install
-    ```
+
+   ```bash
+   npm install
+   ```
+
 3. Start WXT development mode:
-    ```bash
-    npm run dev
-    ```
+
+   ```bash
+   npm run dev
+   ```
+
 4. Run project checks before proposing changes (runs Prettier, ESLint, TypeScript, unit tests, and builds):
-    ```bash
-    npm run check
-    ```
+
+   ```bash
+   npm run check
+   ```
 
 ### Running End-to-End Tests
 

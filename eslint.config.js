@@ -1,18 +1,22 @@
-import { defineConfig } from 'eslint/config';
+import textmodeLint from '@textmode/lint';
 import globals from 'globals';
-import tseslint from 'typescript-eslint';
-import textmodeEslintConfig from '@textmode/eslint-config';
 
-export default defineConfig(
-	textmodeEslintConfig,
+export default [
 	{
 		ignores: ['dist', '.output', '.wxt', 'node_modules', 'coverage', '.agents', 'api', 'docs'],
 	},
+	...textmodeLint.map((config) => {
+		if (config.files) {
+			return {
+				...config,
+				files: ['**/*.{ts,js,mjs}'],
+			};
+		}
+		return config;
+	}),
 	{
-		files: ['tests/**/*.{ts,js}', 'scripts/**/*.{ts,js,mjs}', '*.{ts,js,mjs}'],
-		extends: [...tseslint.configs.recommended],
+		files: ['**/*.{ts,js,mjs}'],
 		languageOptions: {
-			ecmaVersion: 2022,
 			globals: {
 				...globals.browser,
 				...globals.node,
@@ -24,5 +28,5 @@ export default defineConfig(
 			'@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
 			'@typescript-eslint/no-require-imports': 'off',
 		},
-	}
-);
+	},
+];

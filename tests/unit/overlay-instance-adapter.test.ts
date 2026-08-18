@@ -85,7 +85,7 @@ describe('overlay instance adapter', () => {
 		callback();
 
 		expect(vi.mocked(instance.image).mock.invocationCallOrder[0]).toBeLessThan(
-			vi.mocked(instance.filter).mock.invocationCallOrder[0]
+			vi.mocked(instance.filter).mock.invocationCallOrder[0]!
 		);
 		expect(instance.filter).toHaveBeenNthCalledWith(1, 'brightness', { amount: 1.2 });
 		expect(instance.filter).toHaveBeenNthCalledWith(2, 'invert', undefined);

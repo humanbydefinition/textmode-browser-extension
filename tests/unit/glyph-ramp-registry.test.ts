@@ -18,7 +18,7 @@ describe('glyph ramp registry', () => {
 		expect(getGlyphRampPresetName('bescii', DEFAULT_OVERLAY_SETTINGS.glyphRamp)).toBe('classic');
 	});
 
-	/** 
+	/*
 	it('adds font-specific ramps after the global presets', () => {
 		const besciiPresets = getGlyphRampPresets('bescii');
 		const atasciiPresets = getGlyphRampPresets('atascii');

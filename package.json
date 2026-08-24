@@ -64,7 +64,7 @@
 		"textmode.contour.js": "^0.1.0",
 		"textmode.export.js": "^1.5.2",
 		"textmode.filters.js": "^1.2.2",
-		"textmode.js": "0.17.0"
+		"textmode.js": "0.17.2"
 	},
 	"overrides": {
 		"esbuild": "0.28.1",

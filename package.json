@@ -77,7 +77,7 @@
 		"@textmode/build": "^0.1.0",
 		"@textmode/lint": "^0.1.1",
 		"@textmode/release": "^0.2.1",
-		"@types/chrome": "^0.2.2",
+		"@types/chrome": "^0.2.6",
 		"@types/node": "^26.2.0",
 		"globals": "^17.9.0",
 		"jsdom": "^30.0.1",

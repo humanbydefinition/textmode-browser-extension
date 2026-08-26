@@ -9,12 +9,20 @@ vi.mock('textmode.js', () => ({
 	},
 }));
 
+vi.mock('textmode.overlay.js', () => ({
+	OverlayPlugin: { name: 'textmode.overlay.js' },
+}));
+
 vi.mock('textmode.filters.js', () => ({
 	FiltersPlugin: { name: 'textmode.filters' },
 }));
 
 vi.mock('textmode.contour.js', () => ({
 	ContourConversionPlugin: { name: 'textmode.contour.js' },
+}));
+
+vi.mock('textmode.export.js', () => ({
+	ExportPlugin: { name: 'textmode.export.js' },
 }));
 
 describe('textmodeOverlayRenderer', () => {
@@ -29,16 +37,15 @@ describe('textmodeOverlayRenderer', () => {
 
 		expect(textmode.create).toHaveBeenCalledWith(
 			expect.objectContaining({
-				canvas,
-				overlay: true,
 				pixelDensity: 1,
 				fontSize: 16,
 				fontSource: '/fonts/Bescii-Mono.ttf',
 				loadingScreen: { transition: 'none' },
 				plugins: [
+					expect.objectContaining({ name: 'textmode.overlay.js' }),
 					expect.objectContaining({ name: 'textmode.contour.js' }),
 					expect.objectContaining({ name: 'textmode.filters' }),
-					expect.objectContaining({ name: 'textmode.export' }),
+					expect.objectContaining({ name: 'textmode.export.js' }),
 				],
 			})
 		);

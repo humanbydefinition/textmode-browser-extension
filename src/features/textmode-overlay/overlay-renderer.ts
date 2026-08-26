@@ -1,5 +1,6 @@
 import { textmode } from 'textmode.js';
-import { createTextmodeExportPlugin } from 'textmode.export.js';
+import { OverlayPlugin } from 'textmode.overlay.js';
+import { ExportPlugin } from 'textmode.export.js';
 import { FiltersPlugin } from 'textmode.filters.js';
 import { ContourConversionPlugin } from 'textmode.contour.js';
 import type { TextmodeExportAPI } from 'textmode.export.js';
@@ -22,15 +23,13 @@ export interface OverlayRendererPort {
 }
 
 export const textmodeOverlayRenderer: OverlayRendererPort = {
-	create(element, settings, options = {}) {
+	create(_element, settings, options = {}) {
 		return textmode.create({
-			canvas: element,
-			overlay: true,
 			pixelDensity: 1,
 			fontSize: settings.fontSize,
 			...(options.fontSource ? { fontSource: options.fontSource } : {}),
 			loadingScreen: { transition: 'none' },
-			plugins: [ContourConversionPlugin, FiltersPlugin, createTextmodeExportPlugin({ overlay: false })],
+			plugins: [OverlayPlugin, ContourConversionPlugin, FiltersPlugin, ExportPlugin],
 		});
 	},
 };

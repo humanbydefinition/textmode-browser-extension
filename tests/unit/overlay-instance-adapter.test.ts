@@ -3,7 +3,7 @@ import { DEFAULT_OVERLAY_SETTINGS } from '@/domain/overlay/overlay-settings';
 import { applyControllerSettings, createOverlayInstance } from '@/features/textmode-overlay/overlay-instance-adapter';
 import type { OverlayController } from '@/features/textmode-overlay/overlay-session';
 import type { ExportableTextmodeInstance } from '@/features/textmode-overlay/overlay-renderer';
-import { createMockSource } from './test-helpers';
+import { createMockOverlayController } from './test-helpers';
 import { CONTOUR_DEFAULT_CHARACTERS } from 'textmode.contour.js';
 
 type MockTextmodeInstance = {
@@ -20,7 +20,19 @@ type MockTextmodeInstance = {
 	loop: ReturnType<typeof vi.fn>;
 	fontSize: ReturnType<typeof vi.fn>;
 	loadFont: ReturnType<typeof vi.fn>;
-	readonly overlay: Record<string, () => unknown>;
+	readonly overlay: {
+		source: Record<string, () => unknown>;
+		target?: unknown;
+		setTarget: ReturnType<typeof vi.fn>;
+		clearTarget: ReturnType<typeof vi.fn>;
+		show: ReturnType<typeof vi.fn>;
+		hide: ReturnType<typeof vi.fn>;
+		toggle: ReturnType<typeof vi.fn>;
+		isVisible: ReturnType<typeof vi.fn>;
+	};
+	exportOverlay?: {
+		hide: ReturnType<typeof vi.fn>;
+	};
 };
 
 describe('overlay instance adapter', () => {
@@ -42,7 +54,7 @@ describe('overlay instance adapter', () => {
 
 		expect(canvas.style.opacity).toBe('0.25');
 		expect(instance.canvas.style.opacity).toBe('0.4');
-		expect(instance.canvas.style.display).toBe('none');
+		expect(instance.overlay.hide).toHaveBeenCalled();
 		expect(instance.noLoop).toHaveBeenCalled();
 		expect(instance.fontSize).toHaveBeenCalledWith(12);
 		expect(controller.status).toBe('paused');
@@ -97,8 +109,8 @@ describe('overlay instance adapter', () => {
 
 		applyControllerSettings(controller);
 
-		expect(instance.overlay.conversionMode).toHaveBeenCalledWith('brightness');
-		expect(instance.overlay.conversions).not.toHaveBeenCalled();
+		expect(instance.overlay.source.conversionMode).toHaveBeenCalledWith('brightness');
+		expect(instance.overlay.source.conversions).not.toHaveBeenCalled();
 	});
 
 	it('layers configured contours over the brightness pass', () => {
@@ -117,7 +129,7 @@ describe('overlay instance adapter', () => {
 
 		applyControllerSettings(controller);
 
-		expect(instance.overlay.conversions).toHaveBeenCalledWith([
+		expect(instance.overlay.source.conversions).toHaveBeenCalledWith([
 			{
 				mode: 'brightness',
 				characters: DEFAULT_OVERLAY_SETTINGS.glyphRamp,
@@ -140,7 +152,7 @@ describe('overlay instance adapter', () => {
 
 		controller.settings = { ...controller.settings, contour: { ...controller.settings.contour, enabled: false } };
 		applyControllerSettings(controller);
-		expect(instance.overlay.conversionMode).toHaveBeenLastCalledWith('brightness');
+		expect(instance.overlay.source.conversionMode).toHaveBeenLastCalledWith('brightness');
 	});
 
 	it('renders contours without a brightness pass when brightness is disabled', () => {
@@ -152,7 +164,7 @@ describe('overlay instance adapter', () => {
 
 		applyControllerSettings(controller);
 
-		expect(instance.overlay.conversions).toHaveBeenCalledWith([
+		expect(instance.overlay.source.conversions).toHaveBeenCalledWith([
 			expect.objectContaining({ mode: 'contour', characters: CONTOUR_DEFAULT_CHARACTERS }),
 		]);
 	});
@@ -196,10 +208,12 @@ function createController(
 }
 
 function createTextmodeInstance(overrides: Partial<MockTextmodeInstance> = {}): MockTextmodeInstance {
-	const source = createMockSource();
+	const overlayController = createMockOverlayController();
 	return {
 		canvas: document.createElement('canvas'),
-		setup: vi.fn(),
+		setup: vi.fn((callback?: () => void | Promise<void>) => {
+			if (callback) void callback();
+		}),
 		draw: vi.fn(),
 		clear: vi.fn(),
 		image: vi.fn(),
@@ -212,7 +226,10 @@ function createTextmodeInstance(overrides: Partial<MockTextmodeInstance> = {}): 
 		fontSize: vi.fn((value?: number) => (value === undefined ? 8 : undefined)),
 		loadFont: vi.fn(async () => undefined),
 		get overlay() {
-			return source;
+			return overlayController;
+		},
+		exportOverlay: {
+			hide: vi.fn(),
 		},
 		...overrides,
 	} as unknown as MockTextmodeInstance;

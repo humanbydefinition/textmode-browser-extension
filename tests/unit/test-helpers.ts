@@ -34,6 +34,20 @@ export function createMockSource(methods: readonly string[] = DEFAULT_SOURCE_MET
 	return source;
 }
 
+export function createMockOverlayController(source?: Record<string, () => unknown>) {
+	const mockSource = source ?? createMockSource();
+	return {
+		source: mockSource,
+		target: undefined as unknown,
+		setTarget: vi.fn((_target: unknown) => mockSource),
+		clearTarget: vi.fn(),
+		show: vi.fn(),
+		hide: vi.fn(),
+		toggle: vi.fn(),
+		isVisible: vi.fn(() => true),
+	};
+}
+
 const DEFAULT_SOURCE_METHODS = [
 	'characters',
 	'conversionMode',

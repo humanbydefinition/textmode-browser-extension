@@ -79,7 +79,7 @@
 		"@textmode/lint": "^0.1.1",
 		"@textmode/release": "^0.2.1",
 		"@types/chrome": "^0.2.6",
-		"@types/node": "^26.2.0",
+		"@types/node": "^26.4.0",
 		"globals": "^17.9.0",
 		"jsdom": "^30.0.1",
 		"typescript": "^6.0.3",

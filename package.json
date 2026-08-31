@@ -4,7 +4,7 @@
 	"description": "Browser extension for overlaying real-time textmode.js ASCII conversion on page canvas and video elements.",
 	"type": "module",
 	"license": "MIT",
-	"author": "humanbydefinition",
+	"author": "humanbydefinition <hello@textmode.art> (https://code.textmode.art)",
 	"homepage": "https://code.textmode.art",
 	"repository": {
 		"type": "git",

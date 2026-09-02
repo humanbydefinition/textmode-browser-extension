@@ -100,6 +100,14 @@ export class TopFrameCoordinator {
 				case 'TOGGLE_OVERLAY':
 					await this.toggleControlPanel();
 					break;
+				case 'APPLY_CONTEXT_TARGET':
+					await this.applyContextTarget(message);
+					break;
+				case 'SHOW_CONTEXT_TARGET_ERROR':
+					await this.runtimeReady;
+					await this.ensureControlPanel();
+					this.controlPanel?.setNotice(message.message);
+					break;
 				case 'START_PICKING':
 					await this.startPicking();
 					break;
@@ -204,33 +212,54 @@ export class TopFrameCoordinator {
 		try {
 			await this.broadcastFrameCommand({ type: 'FRAME_END_PICKING', pickSessionId });
 			this.activePickSessionId = undefined;
-			await this.broadcastFrameCommand({ type: 'FRAME_REMOVE_ALL' });
-			const overlayId = createId('overlay');
-			const owner = { frameId, runtimeId };
-			const response = await this.route({
-				type: 'PREPARE_FRAME_OVERLAY',
-				frameId,
-				command: {
-					type: 'FRAME_CREATE_OVERLAY',
-					runtimeId,
-					targetToken,
-					overlayId,
-					settings: this.sitePreset ?? {},
-				},
-			});
-			if (!response.ok || !response.overlays?.[0]) {
-				throw new Error(response.error ?? 'Unable to create an overlay in the selected iframe.');
-			}
-			this.activeOverlay = { owner, descriptor: markEmbedded(response.overlays[0], frameId) };
+			await this.createOverlayForTarget(frameId, runtimeId, targetToken);
 			this.controlPanel?.updatePickingState(false);
-			this.saveActiveOverlayPreset();
-			this.sync();
 		} catch (error) {
-			this.activeOverlay = undefined;
 			this.controlPanel?.updatePickingState(false);
-			broadcastError(toUserMessage(error));
-			this.sync();
+			this.reportTargetError(error);
 		}
+	}
+
+	private async applyContextTarget(
+		message: Extract<PopupToContentMessage, { type: 'APPLY_CONTEXT_TARGET' }>
+	): Promise<void> {
+		await this.runtimeReady;
+		if (this.activePickSessionId) {
+			await this.broadcastFrameCommand({ type: 'FRAME_END_PICKING', pickSessionId: this.activePickSessionId });
+			this.activePickSessionId = undefined;
+		}
+		try {
+			await this.createOverlayForTarget(message.frameId, message.runtimeId, message.targetToken);
+			await this.ensureControlPanel();
+			this.controlPanel?.setNotice(undefined);
+		} catch (error) {
+			await this.ensureControlPanel();
+			this.reportTargetError(error);
+		}
+	}
+
+	private async createOverlayForTarget(frameId: number, runtimeId: string, targetToken: string): Promise<void> {
+		await this.broadcastFrameCommand({ type: 'FRAME_REMOVE_ALL' });
+		this.activeOverlay = undefined;
+		const overlayId = createId('overlay');
+		const owner = { frameId, runtimeId };
+		const response = await this.route({
+			type: 'PREPARE_FRAME_OVERLAY',
+			frameId,
+			command: {
+				type: 'FRAME_CREATE_OVERLAY',
+				runtimeId,
+				targetToken,
+				overlayId,
+				settings: this.sitePreset ?? {},
+			},
+		});
+		if (!response.ok || !response.overlays?.[0]) {
+			throw new Error(response.error ?? 'Unable to create an overlay in the selected frame.');
+		}
+		this.activeOverlay = { owner, descriptor: markEmbedded(response.overlays[0], frameId) };
+		this.saveActiveOverlayPreset();
+		this.sync();
 	}
 
 	private async updateOverlay(id: string, settings: Partial<OverlaySettings>): Promise<void> {
@@ -316,6 +345,11 @@ export class TopFrameCoordinator {
 			this.destroyControlPanel();
 			return;
 		}
+		await this.ensureControlPanel();
+	}
+
+	private async ensureControlPanel(): Promise<void> {
+		if (this.controlPanel) return;
 		const { ControlPanel } = await import('../../widgets/overlay-panel/control-panel');
 		this.controlPanel = new ControlPanel({
 			headerFontUrl: this.headerFontUrl,
@@ -335,6 +369,14 @@ export class TopFrameCoordinator {
 		});
 		this.controlPanel.mount();
 		this.controlPanel.updateState(this.list());
+	}
+
+	private reportTargetError(error: unknown): void {
+		const message = toUserMessage(error);
+		this.activeOverlay = undefined;
+		broadcastError(message);
+		this.controlPanel?.setNotice(message);
+		this.sync();
 	}
 
 	private destroyControlPanel(): void {

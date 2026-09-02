@@ -1,4 +1,5 @@
 import { ElementPicker, type SelectableElement } from '../../features/media-picker/element-picker';
+import { getContextTargetRegistry } from '../../features/media-picker/context-target-registry';
 import { addRuntimeMessageListener, sendMessageToRuntime } from '../../shared/browser/browser-api';
 import { isFrameCommand, type FrameCommand, type FrameEvent, type RuntimeAck } from '../../shared/messaging/messages';
 import type { FrameOverlayPort } from './frame-overlay-port';
@@ -32,10 +33,12 @@ export class FrameAgent {
 	}
 
 	public consumePendingTarget(token: string): SelectableElement | undefined {
-		if (this.pendingTarget?.token !== token) return undefined;
-		const element = this.pendingTarget.element;
-		this.pendingTarget = undefined;
-		return element;
+		if (this.pendingTarget?.token === token) {
+			const element = this.pendingTarget.element;
+			this.pendingTarget = undefined;
+			return element;
+		}
+		return getContextTargetRegistry().consume(token);
 	}
 
 	public emitOverlayState(overlays = this.overlayHost?.list() ?? []): void {
@@ -53,7 +56,7 @@ export class FrameAgent {
 
 		switch (command.type) {
 			case 'FRAME_PING':
-				return { ok: true };
+				return { ok: true, runtimeId: this.runtimeId };
 			case 'FRAME_BEGIN_PICKING':
 				this.beginPicking(command.pickSessionId);
 				return { ok: true };

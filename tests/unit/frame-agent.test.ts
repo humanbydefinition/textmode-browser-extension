@@ -59,10 +59,10 @@ describe('frame agent', () => {
 	});
 
 	it('acknowledges the readiness probe used by toolbar startup', async () => {
-		new FrameAgent();
+		const agent = new FrameAgent();
 		const response = vi.fn();
 		listener({ type: 'FRAME_PING' }, {}, response);
 
-		await vi.waitFor(() => expect(response).toHaveBeenCalledWith({ ok: true }));
+		await vi.waitFor(() => expect(response).toHaveBeenCalledWith({ ok: true, runtimeId: agent.runtimeId }));
 	});
 });

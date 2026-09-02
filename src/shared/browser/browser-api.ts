@@ -6,8 +6,19 @@ const OVERLAY_HOST_FILE = '/overlay-host.js';
 
 export type RuntimeMessageListener = Parameters<typeof browser.runtime.onMessage.addListener>[0];
 export type ActionClickedListener = Parameters<typeof browser.action.onClicked.addListener>[0];
+export interface ContextMenuCreateProperties {
+	id: string;
+	title: string;
+	contexts: ['page', 'video'];
+}
+export interface ContextMenuClickData {
+	menuItemId: string | number;
+	frameId?: number;
+}
+export type ContextMenuClickedListener = (info: ContextMenuClickData, tab?: Browser.tabs.Tab) => void;
 type ToolbarActionApi = typeof browser.action | typeof browser.browserAction;
 type StorageLocalApi = Pick<typeof browser.storage.local, 'get' | 'set' | 'remove'>;
+type ContextMenusApi = Pick<typeof browser.contextMenus, 'create' | 'removeAll' | 'onClicked'> | undefined;
 export type StorageChangedListener = Parameters<typeof browser.storage.onChanged.addListener>[0];
 type BrowserWithOptionalToolbarApis = typeof browser & {
 	action?: typeof browser.action;
@@ -26,6 +37,8 @@ export interface BrowserPort {
 	addRuntimeMessageListener(listener: RuntimeMessageListener): void;
 	addInstalledListener(listener: () => void): void;
 	addActionClickedListener(listener: ActionClickedListener): void;
+	replaceContextMenu(item: ContextMenuCreateProperties): Promise<void>;
+	addContextMenuClickedListener(listener: ContextMenuClickedListener): void;
 	storageLocalGet<TValue>(key: string): Promise<TValue | undefined>;
 	storageLocalGetAll(): Promise<Record<string, unknown>>;
 	storageLocalSet(record: Record<string, unknown>): Promise<void>;
@@ -49,6 +62,21 @@ export function createStorageLocalPort(
 		},
 		async storageLocalRemove(key) {
 			await storageArea.remove(key);
+		},
+	};
+}
+
+export function createContextMenuPort(
+	contextMenus: ContextMenusApi
+): Pick<BrowserPort, 'replaceContextMenu' | 'addContextMenuClickedListener'> {
+	return {
+		async replaceContextMenu(item) {
+			if (!contextMenus) return;
+			await contextMenus.removeAll();
+			contextMenus.create(item);
+		},
+		addContextMenuClickedListener(listener) {
+			contextMenus?.onClicked.addListener(listener as never);
 		},
 	};
 }
@@ -93,6 +121,12 @@ export const browserPort: BrowserPort = {
 	addActionClickedListener(listener) {
 		resolveToolbarActionApi(browser).onClicked.addListener(listener);
 	},
+	async replaceContextMenu(item) {
+		await createContextMenuPort(browser.contextMenus).replaceContextMenu(item);
+	},
+	addContextMenuClickedListener(listener) {
+		createContextMenuPort(browser.contextMenus).addContextMenuClickedListener(listener);
+	},
 	storageLocalGet(key) {
 		return createStorageLocalPort(browser.storage.local).storageLocalGet(key);
 	},
@@ -130,6 +164,8 @@ export const sendMessageToRuntime = browserPort.sendMessageToRuntime;
 export const addRuntimeMessageListener = browserPort.addRuntimeMessageListener;
 export const addInstalledListener = browserPort.addInstalledListener;
 export const addActionClickedListener = browserPort.addActionClickedListener;
+export const replaceContextMenu = browserPort.replaceContextMenu;
+export const addContextMenuClickedListener = browserPort.addContextMenuClickedListener;
 export const storageLocalGet = browserPort.storageLocalGet;
 export const storageLocalGetAll = browserPort.storageLocalGetAll;
 export const storageLocalSet = browserPort.storageLocalSet;

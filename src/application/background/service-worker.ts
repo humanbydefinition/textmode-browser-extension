@@ -10,6 +10,7 @@ import {
 import { ensureContentRuntime } from './runtime-injection';
 import { attachCustomFontCoordinatorListener, createCustomFontCoordinator } from './custom-font-coordinator';
 import { attachFrameRouterListener } from './frame-router';
+import { createContextMenuController } from './context-menu-controller';
 
 export function startBackgroundServiceWorker(): void {
 	const coordinator = createCustomFontCoordinator({
@@ -19,9 +20,15 @@ export function startBackgroundServiceWorker(): void {
 	});
 	attachCustomFontCoordinatorListener(coordinator, addRuntimeMessageListener);
 	attachFrameRouterListener();
+	const contextMenu = createContextMenuController();
+	contextMenu.attach();
+	void contextMenu.install().catch((error) => console.warn('Unable to install the textmode context menu:', error));
 	void coordinator.cleanup().catch((error) => console.warn('Unable to clean custom font storage:', error));
 	addInstalledListener(() => {
 		console.info('textmode installed.');
+		void contextMenu
+			.install()
+			.catch((error) => console.warn('Unable to install the textmode context menu:', error));
 	});
 
 	addActionClickedListener((tab) => {

@@ -152,9 +152,9 @@ export function normalizeOverlayContourSettings(
 			OVERLAY_SETTING_LIMITS.contourColorSensitivity.max
 		),
 		charColorMode: isSourceColorMode(contour.charColorMode) ? contour.charColorMode : fallback.charColorMode,
-		charColor: isOverlayRgbColor(contour.charColor) ? contour.charColor : fallback.charColor,
+		charColor: isOverlayColor(contour.charColor) ? contour.charColor : fallback.charColor,
 		cellColorMode: isSourceColorMode(contour.cellColorMode) ? contour.cellColorMode : fallback.cellColorMode,
-		cellColor: isOverlayRgbColor(contour.cellColor) ? contour.cellColor : fallback.cellColor,
+		cellColor: isOverlayColor(contour.cellColor) ? contour.cellColor : fallback.cellColor,
 	};
 }
 
@@ -181,10 +181,6 @@ function clampNumber(value: unknown, fallback: number, min: number, max: number)
 
 function isOverlayColor(value: unknown): value is string {
 	return typeof value === 'string' && /^#[0-9a-f]{6}(?:[0-9a-f]{2})?$/i.test(value);
-}
-
-function isOverlayRgbColor(value: unknown): value is string {
-	return typeof value === 'string' && /^#[0-9a-f]{6}$/i.test(value);
 }
 
 function isSourceColorMode(value: unknown): value is SourceColorMode {

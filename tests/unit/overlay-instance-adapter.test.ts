@@ -74,6 +74,7 @@ describe('overlay instance adapter', () => {
 			element: canvas,
 			settings: {
 				...DEFAULT_OVERLAY_SETTINGS,
+				background: '#00000080',
 				postFx: [
 					{ id: 'fx-1', filter: 'brightness', enabled: true, params: { amount: 1.2 } },
 					{ id: 'fx-2', filter: 'invert', enabled: true, params: {} },
@@ -99,7 +100,7 @@ describe('overlay instance adapter', () => {
 		expect(vi.mocked(instance.image).mock.invocationCallOrder[0]).toBeLessThan(
 			vi.mocked(instance.filter).mock.invocationCallOrder[0]!
 		);
-		expect(instance.background).toHaveBeenCalledWith(DEFAULT_OVERLAY_SETTINGS.background);
+		expect(instance.background).toHaveBeenCalledWith('#00000080');
 		expect(vi.mocked(instance.background).mock.invocationCallOrder[0]).toBeLessThan(
 			vi.mocked(instance.image).mock.invocationCallOrder[0]!
 		);

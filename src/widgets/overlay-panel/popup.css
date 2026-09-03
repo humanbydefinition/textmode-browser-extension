@@ -1479,6 +1479,12 @@ textarea,
 	background: linear-gradient(to right, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000);
 }
 
+.tm-color-range--alpha {
+	background:
+		linear-gradient(to right, transparent, var(--tm-color-picker-alpha-color)),
+		repeating-conic-gradient(var(--tm-neutral-20) 0% 25%, var(--tm-neutral-0f) 0% 50%) 0% 50% / 8px 8px;
+}
+
 .tm-color-popover__field {
 	display: grid;
 	gap: 5px;

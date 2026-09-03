@@ -25,6 +25,8 @@ export class ColorPickerView {
 	private colorSpace!: HTMLDivElement;
 	private hueInput!: HTMLInputElement;
 	private hueOutput!: HTMLOutputElement;
+	private alphaInput!: HTMLInputElement;
+	private alphaOutput!: HTMLOutputElement;
 	private hexInput!: HTMLInputElement;
 	private readonly popover: PopoverView;
 	private color: HsvaColor;
@@ -128,6 +130,14 @@ export class ColorPickerView {
 		this.hueInput.addEventListener('input', () => {
 			this.commitColor({ ...this.color, h: Number(this.hueInput.value) });
 		});
+		this.alphaOutput = h('output');
+		this.alphaInput = h('input', {
+			className: 'tm-color-range__input tm-color-range--alpha',
+			attributes: { type: 'range', min: '0', max: '1', step: '0.01', 'aria-label': `${label} alpha` },
+		});
+		this.alphaInput.addEventListener('input', () => {
+			this.commitColor({ ...this.color, a: clamp01(Number(this.alphaInput.value)) });
+		});
 		content.append(
 			h(
 				'div',
@@ -142,6 +152,17 @@ export class ColorPickerView {
 						this.hueOutput
 					),
 					this.hueInput
+				),
+				h(
+					'label',
+					{ className: 'tm-color-range' },
+					h(
+						'span',
+						{ className: 'tm-color-range__label' },
+						h('span', { textContent: 'alpha' }),
+						this.alphaOutput
+					),
+					this.alphaInput
 				)
 			)
 		);
@@ -151,7 +172,7 @@ export class ColorPickerView {
 			className: 'tm-input tm-color-popover__input',
 			attributes: {
 				type: 'text',
-				maxlength: '7',
+				maxlength: '9',
 				'aria-label': `${label} color value`,
 				autocomplete: 'off',
 				autocapitalize: 'off',
@@ -209,11 +230,11 @@ export class ColorPickerView {
 		const hex = raw
 			.replace(/^#/, '')
 			.replace(/[^0-9a-f]/g, '')
-			.slice(0, 6);
+			.slice(0, 8);
 		const nextValue = hex ? `#${hex}` : '#';
 		this.draftValue = nextValue;
 		this.hexInput.value = nextValue;
-		if (hex.length === 3 || hex.length === 6) {
+		if (hex.length === 3 || hex.length === 6 || hex.length === 8) {
 			const normalized = normalizeHexColor(nextValue);
 			if (normalized) {
 				this.color = getHsvaFromHex(normalized);
@@ -227,7 +248,7 @@ export class ColorPickerView {
 
 	private onHexBlur(): void {
 		const hex = this.draftValue.replace(/^#/, '').replace(/[^0-9a-f]/g, '');
-		if (hex.length !== 3 && hex.length !== 6) {
+		if (hex.length !== 3 && hex.length !== 6 && hex.length !== 8) {
 			this.draftValue = this.currentHexColor();
 			this.render();
 		}
@@ -260,16 +281,27 @@ export class ColorPickerView {
 		this.hexInput.value = this.draftValue;
 		this.hueInput.value = String(this.color.h);
 		this.hueOutput.textContent = String(Math.round(this.color.h));
+		this.alphaInput.value = String(this.color.a);
+		this.alphaOutput.textContent = formatAlpha(this.color.a);
 		setStyleProperty(this.colorSpace, '--tm-color-picker-hue', `hsl(${this.color.h} 100% 50%)`);
 		setStyleProperty(this.colorSpace, '--tm-color-space-pointer-x', `${this.color.s * 100}%`);
 		setStyleProperty(this.colorSpace, '--tm-color-space-pointer-y', `${(1 - this.color.v) * 100}%`);
 		setStyleProperty(this.colorSpace, '--tm-color-space-pointer-color', currentHexColor);
+		setStyleProperty(
+			this.alphaInput,
+			'--tm-color-picker-alpha-color',
+			formatHexColor({ ...hsvaToRgba(this.color), a: 1 })
+		);
 		this.colorSpace.setAttribute(
 			'aria-valuetext',
 			`saturation ${Math.round(this.color.s * 100)}%, brightness ${Math.round(this.color.v * 100)}%`
 		);
 		this.popover.updatePosition();
 	}
+}
+
+function formatAlpha(value: number): string {
+	return `${Math.round(clamp01(value) * 100)}%`;
 }
 
 function createColorSwatch(color: string, className?: string): HTMLSpanElement {

@@ -79,10 +79,17 @@ describe('mergeOverlaySettings', () => {
 		const settings = mergeOverlaySettings(DEFAULT_OVERLAY_SETTINGS, {
 			charColor: '#ff77aa80',
 			cellColor: '#000000cc',
+			contour: {
+				...DEFAULT_OVERLAY_SETTINGS.contour,
+				charColor: '#11223380',
+				cellColor: '#445566cc',
+			},
 		});
 
 		expect(settings.charColor).toBe('#ff77aa80');
 		expect(settings.cellColor).toBe('#000000cc');
+		expect(settings.contour.charColor).toBe('#11223380');
+		expect(settings.contour.cellColor).toBe('#445566cc');
 	});
 
 	it('repairs invalid fontId by falling back to default', () => {

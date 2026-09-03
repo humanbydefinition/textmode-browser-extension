@@ -19,11 +19,13 @@ describe('color picker model', () => {
 		expect(normalizeHexColor('transparent')).toBeNull();
 	});
 
-	it('always sets alpha to 1 and rejects extended hex formats', () => {
-		expect(parseHexColor('#00000080')).toBeNull();
+	it('parses optional alpha bytes in extended hex colors', () => {
+		expect(parseHexColor('#00000080')).toEqual({ r: 0, g: 0, b: 0, a: 128 / 255 });
 		expect(parseHexColor('#000')).not.toBeNull();
 		expect(parseHexColor('#000')?.a).toBe(1);
 		expect(parseHexColor('#ff0000')?.a).toBe(1);
+		expect(normalizeHexColor('#ff000080')).toBe('#ff000080');
+		expect(normalizeHexColor('#ff0000ff')).toBe('#ff0000');
 	});
 
 	it('uses a stable display fallback for malformed stored colors', () => {

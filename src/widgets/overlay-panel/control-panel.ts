@@ -32,6 +32,7 @@ export class ControlPanel {
 	private readonly view: OverlayPanelView;
 	private readonly placementController: PanelPlacementController;
 	private overlays: OverlayDescriptor[] = [];
+	private notice?: string;
 	private readonly onShadowKeyDown: EventListener;
 
 	public constructor(private readonly options: ControlPanelOptions) {
@@ -148,8 +149,14 @@ export class ControlPanel {
 		this.view.setPicking(picking);
 	}
 
+	public setNotice(message: string | undefined): void {
+		this.notice = message;
+		this.view.setNotice(message);
+	}
+
 	private render(): void {
 		this.view.update(this.overlays);
+		this.view.setNotice(this.notice);
 		this.placementController.scheduleRender();
 	}
 }

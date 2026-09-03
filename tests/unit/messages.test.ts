@@ -4,6 +4,16 @@ import { isRuntimeMessage } from '../../src/shared/messaging/messages';
 describe('isRuntimeMessage', () => {
 	it('accepts supported messages with valid payloads', () => {
 		expect(isRuntimeMessage({ type: 'FRAME_PING' })).toBe(true);
+		expect(isRuntimeMessage({ type: 'CONTEXT_TARGET_CAPTURED', targetToken: 'context-1' })).toBe(true);
+		expect(isRuntimeMessage({ type: 'CONTEXT_TARGET_CLEARED' })).toBe(true);
+		expect(
+			isRuntimeMessage({
+				type: 'APPLY_CONTEXT_TARGET',
+				frameId: 0,
+				runtimeId: 'runtime-1',
+				targetToken: 'context-1',
+			})
+		).toBe(true);
 		expect(isRuntimeMessage({ type: 'REMOVE_OVERLAY', id: 'overlay-1' })).toBe(true);
 		expect(isRuntimeMessage({ type: 'UPDATE_OVERLAY', id: 'overlay-1', settings: { fontSize: 16 } })).toBe(true);
 		expect(
@@ -75,6 +85,8 @@ describe('isRuntimeMessage', () => {
 
 	it('rejects unknown message types', () => {
 		expect(isRuntimeMessage({ type: 'OPEN_PORTAL' })).toBe(false);
+		expect(isRuntimeMessage({ type: 'CONTEXT_TARGET_CAPTURED' })).toBe(false);
+		expect(isRuntimeMessage({ type: 'APPLY_CONTEXT_TARGET', frameId: 0, runtimeId: 'runtime-1' })).toBe(false);
 	});
 
 	it('accepts UPDATE_OVERLAY with fontId', () => {

@@ -4,11 +4,11 @@ import { createExtensionManifest } from '../../src/shared/config/extension-manif
 const TEST_FONT_RESOURCES = ['fonts/Bescii-Mono.ttf', 'fonts/UrsaFont.ttf'];
 
 describe('extension manifest', () => {
-	it('keeps the default build action-triggered and least-privilege', () => {
+	it('declares context-menu support and web access for direct target tracking', () => {
 		const manifest = createExtensionManifest({ browser: 'chrome', fontResources: TEST_FONT_RESOURCES });
 
-		expect(manifest.permissions).toEqual(['activeTab', 'scripting', 'storage', 'unlimitedStorage']);
-		expect(manifest.host_permissions).toBeUndefined();
+		expect(manifest.permissions).toEqual(['activeTab', 'contextMenus', 'scripting', 'storage', 'unlimitedStorage']);
+		expect(manifest.host_permissions).toEqual(['http://*/*', 'https://*/*']);
 		expect(manifest.action?.default_popup).toBeUndefined();
 	});
 
@@ -47,10 +47,10 @@ describe('extension manifest', () => {
 		).toBeUndefined();
 	});
 
-	it('adds host permissions only for the automated E2E build mode', () => {
+	it('uses all URLs only for the automated E2E build mode', () => {
 		expect(
 			createExtensionManifest({ browser: 'chrome', fontResources: TEST_FONT_RESOURCES }).host_permissions
-		).toBeUndefined();
+		).toEqual(['http://*/*', 'https://*/*']);
 		expect(
 			createExtensionManifest({ browser: 'chrome', mode: 'e2e', fontResources: TEST_FONT_RESOURCES })
 				.host_permissions

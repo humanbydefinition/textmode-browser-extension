@@ -39,7 +39,8 @@ export function createBaseExtensionManifest(fontResources: readonly string[]): U
 	return {
 		name: 'Textmode Overlay',
 		description: 'Turn <canvas> and <video> elements into live ASCII art.',
-		permissions: ['activeTab', 'scripting', 'storage', 'unlimitedStorage'],
+		permissions: ['activeTab', 'contextMenus', 'scripting', 'storage', 'unlimitedStorage'],
+		host_permissions: ['http://*/*', 'https://*/*'],
 		...(fontResources.length > 0
 			? {
 					web_accessible_resources: [

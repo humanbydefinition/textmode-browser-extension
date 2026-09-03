@@ -907,8 +907,7 @@ select {
 
 .tm-post-fx-grip:hover,
 .tm-post-fx-main:hover,
-.tm-post-fx-disclosure:hover,
-.tm-post-fx-row[data-state='open'] .tm-post-fx-main {
+.tm-post-fx-disclosure:hover {
 	background: var(--tm-neutral-1a);
 	color: var(--tm-neutral-fa);
 }

@@ -896,6 +896,7 @@ select {
 	align-items: center;
 	justify-content: center;
 	border: 0;
+	border-top-right-radius: calc(var(--tm-radius) - 2px);
 	background: transparent;
 	color: var(--tm-neutral-73);
 	cursor: pointer;
@@ -903,6 +904,10 @@ select {
 
 .tm-post-fx-row[data-state='open'] .tm-post-fx-disclosure svg {
 	transform: rotate(180deg);
+}
+
+.tm-post-fx-row[data-state='closed'] .tm-post-fx-disclosure {
+	border-bottom-right-radius: calc(var(--tm-radius) - 2px);
 }
 
 .tm-post-fx-grip:hover,
@@ -917,6 +922,8 @@ select {
 	gap: 8px;
 	padding: 8px;
 	min-width: 0;
+	border-bottom-right-radius: calc(var(--tm-radius) - 2px);
+	border-bottom-left-radius: calc(var(--tm-radius) - 2px);
 }
 
 .tm-post-fx-content .tm-field {

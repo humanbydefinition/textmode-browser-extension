@@ -21,25 +21,30 @@ export function createOverlayInstance(
 	const instance = renderer.create(controller.element, controller.settings, fontSource ? { fontSource } : undefined);
 	controller.instance = instance;
 	controller.loadedFontId = controller.settings.fontId;
+
+	instance.overlay?.setTarget(controller.element);
+
 	instance.canvas.dataset.textmodeAsciiExtensionUi = 'true';
 	instance.canvas.style.pointerEvents = 'none';
 	instance.canvas.style.opacity = String(controller.settings.opacity);
 	instance.canvas.style.mixBlendMode = 'normal';
 
 	instance.setup(async () => {
+		instance.exportOverlay?.hide();
 		configureSource(controller);
 		controller.postFxFiltersReady = await waitForPostFxFilterRegistration(instance);
 	});
 
 	instance.draw(() => {
-		instance.clear();
-		if (!controller.settings.enabled || !instance.overlay) return;
+		instance.background(controller.settings.background);
+		const source = instance.overlay?.source;
+		if (!controller.settings.enabled || !source) return;
 		if (!canRenderElement(controller.element)) return;
 		configureSource(controller);
 		if (!controller.settings.brightnessEnabled && !controller.settings.contour.enabled) return;
 		const grid = instance.grid;
 		if (!grid) return;
-		instance.image(instance.overlay, grid.cols, grid.rows);
+		instance.image(source, grid.cols, grid.rows);
 		if (controller.postFxFiltersReady) {
 			applyPostFxFilters(instance, controller.settings.postFx);
 		}
@@ -64,13 +69,15 @@ export function applyControllerSettings(
 
 	if (!instance) return;
 	instance.canvas.style.opacity = String(settings.opacity);
-	instance.canvas.style.display = settings.enabled ? '' : 'none';
+	instance.canvas.style.pointerEvents = 'none';
 	instance.targetFrameRate(60);
 
 	if (!settings.enabled) {
+		instance.overlay?.hide();
 		instance.noLoop();
 		controller.status = 'paused';
 	} else {
+		instance.overlay?.show();
 		instance.loop();
 		controller.status = 'active';
 	}
@@ -96,11 +103,12 @@ export function applyControllerSettings(
 export function syncControllerCanvasStyle(controller: OverlayController): void {
 	if (controller.instance) {
 		controller.instance.canvas.style.opacity = String(controller.settings.opacity);
+		controller.instance.canvas.style.pointerEvents = 'none';
 	}
 }
 
 function configureSource(controller: OverlayController): void {
-	const source = controller.instance?.overlay;
+	const source = controller.instance?.overlay?.source;
 	if (!source) return;
 
 	const { settings } = controller;

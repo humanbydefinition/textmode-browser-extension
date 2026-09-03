@@ -107,6 +107,7 @@ export interface RuntimeAck {
 	ok: boolean;
 	error?: string;
 	overlays?: OverlayDescriptor[];
+	runtimeId?: string;
 }
 
 export function isRuntimeMessage(value: unknown): value is RuntimeMessage {
@@ -304,6 +305,7 @@ function isOverlaySettingsPatch(value: unknown): value is Partial<OverlaySetting
 			case 'glyphRamp':
 			case 'charColor':
 			case 'cellColor':
+			case 'background':
 			case 'fontId':
 				return typeof patchValue === 'string';
 			case 'charColorMode':
@@ -333,9 +335,9 @@ function isOverlayContourSettings(value: unknown): value is OverlayContourSettin
 		value.colorSensitivity >= 0 &&
 		value.colorSensitivity <= 1 &&
 		isSourceColorMode(value.charColorMode) &&
-		isOverlayRgbColor(value.charColor) &&
+		isOverlayColor(value.charColor) &&
 		isSourceColorMode(value.cellColorMode) &&
-		isOverlayRgbColor(value.cellColor)
+		isOverlayColor(value.cellColor)
 	);
 }
 
@@ -355,8 +357,8 @@ function isSourceColorMode(value: unknown): value is SourceColorMode {
 	return typeof value === 'string' && SOURCE_COLOR_MODES.includes(value as SourceColorMode);
 }
 
-function isOverlayRgbColor(value: unknown): value is string {
-	return typeof value === 'string' && /^#[0-9a-f]{6}$/i.test(value);
+function isOverlayColor(value: unknown): value is string {
+	return typeof value === 'string' && /^#[0-9a-f]{6}(?:[0-9a-f]{2})?$/i.test(value);
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

@@ -6,6 +6,9 @@ describe('isRuntimeMessage', () => {
 		expect(isRuntimeMessage({ type: 'FRAME_PING' })).toBe(true);
 		expect(isRuntimeMessage({ type: 'REMOVE_OVERLAY', id: 'overlay-1' })).toBe(true);
 		expect(isRuntimeMessage({ type: 'UPDATE_OVERLAY', id: 'overlay-1', settings: { fontSize: 16 } })).toBe(true);
+		expect(isRuntimeMessage({ type: 'UPDATE_OVERLAY', id: 'overlay-1', settings: { background: '#112233' } })).toBe(
+			true
+		);
 		expect(
 			isRuntimeMessage({ type: 'UPDATE_OVERLAY', id: 'overlay-1', settings: { brightnessEnabled: false } })
 		).toBe(true);
@@ -75,6 +78,8 @@ describe('isRuntimeMessage', () => {
 
 	it('rejects unknown message types', () => {
 		expect(isRuntimeMessage({ type: 'OPEN_PORTAL' })).toBe(false);
+		expect(isRuntimeMessage({ type: 'CONTEXT_TARGET_CAPTURED' })).toBe(false);
+		expect(isRuntimeMessage({ type: 'APPLY_CONTEXT_TARGET', frameId: 0, runtimeId: 'runtime-1' })).toBe(false);
 	});
 
 	it('accepts UPDATE_OVERLAY with fontId', () => {

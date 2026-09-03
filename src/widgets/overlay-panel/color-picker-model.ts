@@ -37,12 +37,12 @@ export function parseHexColor(value: string): RgbaColor | null {
 		};
 	}
 
-	if (hex.length === 6) {
+	if (hex.length === 6 || hex.length === 8) {
 		return {
 			r: Number.parseInt(hex.slice(0, 2), 16),
 			g: Number.parseInt(hex.slice(2, 4), 16),
 			b: Number.parseInt(hex.slice(4, 6), 16),
-			a: 1,
+			a: hex.length === 8 ? Number.parseInt(hex.slice(6, 8), 16) / 255 : 1,
 		};
 	}
 
@@ -53,8 +53,9 @@ export function formatHexColor(color: RgbaColor): string {
 	const red = toHexByte(color.r);
 	const green = toHexByte(color.g);
 	const blue = toHexByte(color.b);
+	const alpha = toHexByte(clamp(color.a, 0, 1) * 255);
 
-	return `#${red}${green}${blue}`;
+	return alpha === 'ff' ? `#${red}${green}${blue}` : `#${red}${green}${blue}${alpha}`;
 }
 
 export function getDisplayColor(value: string): string {

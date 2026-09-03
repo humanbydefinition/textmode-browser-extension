@@ -30,6 +30,7 @@ export class OverlayPanelView {
 	private readonly selectButtonLabel: Text;
 	private readonly overlayList: HTMLElement;
 	private readonly removeButton: HTMLButtonElement;
+	private readonly notice: HTMLParagraphElement;
 	private overlayCard: OverlayCardView | null = null;
 	private overlayId: string | null = null;
 	private picking = false;
@@ -107,6 +108,8 @@ export class OverlayPanelView {
 			if (!this.picking) options.onStartPicking();
 		});
 		this.overlayList = h('section', { className: 'tm-overlay-list', attributes: { 'aria-live': 'polite' } });
+		this.notice = h('p', { className: 'tm-error', attributes: { role: 'alert' } });
+		this.notice.hidden = true;
 
 		this.removeButton = createButton('tm-button tm-button--danger tm-button--default-size tm-remove-button');
 		this.removeButton.append(icon('trash'), 'remove overlay');
@@ -150,6 +153,7 @@ export class OverlayPanelView {
 			},
 			header,
 			this.selectButton,
+			this.notice,
 			this.overlayList,
 			footer
 		);
@@ -197,6 +201,11 @@ export class OverlayPanelView {
 		this.selectButton.setAttribute('aria-pressed', String(picking));
 		this.selectButton.setAttribute('aria-disabled', String(picking));
 		this.updateSelectButtonLabel();
+	}
+
+	public setNotice(message: string | undefined): void {
+		this.notice.textContent = message ?? '';
+		this.notice.hidden = !message;
 	}
 
 	public dispose(): void {

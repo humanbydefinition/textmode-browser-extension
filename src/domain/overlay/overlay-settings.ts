@@ -31,6 +31,7 @@ export interface OverlaySettings {
 	opacity: number;
 	fontSize: number;
 	fontId: FontId;
+	background: string;
 	glyphRamp: string;
 	brightnessEnabled: boolean;
 	invert: boolean;
@@ -65,6 +66,7 @@ export function createDefaultOverlaySettings(): OverlaySettings {
 		opacity: 1,
 		fontSize: 8,
 		fontId: DEFAULT_FONT_ID,
+		background: '#000000',
 		glyphRamp: ' .:-=+*#%@',
 		brightnessEnabled: true,
 		invert: false,
@@ -116,6 +118,10 @@ export function mergeOverlaySettings(base: OverlaySettings, patch: Partial<Overl
 		next.cellColor = DEFAULT_OVERLAY_SETTINGS.cellColor;
 	}
 
+	if (!isOverlayColor(next.background)) {
+		next.background = DEFAULT_OVERLAY_SETTINGS.background;
+	}
+
 	if (!isFontId(next.fontId)) {
 		next.fontId = DEFAULT_FONT_ID;
 	}
@@ -146,9 +152,9 @@ export function normalizeOverlayContourSettings(
 			OVERLAY_SETTING_LIMITS.contourColorSensitivity.max
 		),
 		charColorMode: isSourceColorMode(contour.charColorMode) ? contour.charColorMode : fallback.charColorMode,
-		charColor: isOverlayRgbColor(contour.charColor) ? contour.charColor : fallback.charColor,
+		charColor: isOverlayColor(contour.charColor) ? contour.charColor : fallback.charColor,
 		cellColorMode: isSourceColorMode(contour.cellColorMode) ? contour.cellColorMode : fallback.cellColorMode,
-		cellColor: isOverlayRgbColor(contour.cellColor) ? contour.cellColor : fallback.cellColor,
+		cellColor: isOverlayColor(contour.cellColor) ? contour.cellColor : fallback.cellColor,
 	};
 }
 
@@ -175,10 +181,6 @@ function clampNumber(value: unknown, fallback: number, min: number, max: number)
 
 function isOverlayColor(value: unknown): value is string {
 	return typeof value === 'string' && /^#[0-9a-f]{6}(?:[0-9a-f]{2})?$/i.test(value);
-}
-
-function isOverlayRgbColor(value: unknown): value is string {
-	return typeof value === 'string' && /^#[0-9a-f]{6}$/i.test(value);
 }
 
 function isSourceColorMode(value: unknown): value is SourceColorMode {

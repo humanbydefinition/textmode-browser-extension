@@ -17,6 +17,8 @@ export function createExtensionManifest({
 		...createBaseExtensionManifest(fontResources),
 	};
 
+	// Playwright drives the page from the extension service worker rather than a browser user gesture.
+	// This test-only package is never submitted to an extension store.
 	if (mode === 'e2e') {
 		manifest.host_permissions = ['<all_urls>'];
 	}
@@ -39,7 +41,7 @@ export function createBaseExtensionManifest(fontResources: readonly string[]): U
 	return {
 		name: 'Textmode Overlay',
 		description: 'Turn <canvas> and <video> elements into live ASCII art.',
-		permissions: ['activeTab', 'scripting', 'storage', 'unlimitedStorage'],
+		permissions: ['activeTab', 'contextMenus', 'scripting', 'storage', 'unlimitedStorage'],
 		...(fontResources.length > 0
 			? {
 					web_accessible_resources: [

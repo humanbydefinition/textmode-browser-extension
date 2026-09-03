@@ -114,7 +114,7 @@ export class FontComboboxView {
 			trigger: this.element,
 			content,
 			portalContainer: options.portalContainer,
-			align: 'start',
+			align: 'end',
 			sideOffset: 8,
 			onOpenChange: (open) => {
 				if (!open) {

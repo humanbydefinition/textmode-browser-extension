@@ -1,10 +1,10 @@
 {
 	"name": "textmode-ascii-overlay-extension",
-	"version": "1.2.0",
+	"version": "1.3.0",
 	"description": "Browser extension for overlaying real-time textmode.js ASCII conversion on page canvas and video elements.",
 	"type": "module",
 	"license": "MIT",
-	"author": "humanbydefinition",
+	"author": "humanbydefinition <hello@textmode.art> (https://code.textmode.art)",
 	"homepage": "https://code.textmode.art",
 	"repository": {
 		"type": "git",
@@ -38,7 +38,7 @@
 		"dev:firefox": "wxt -b firefox --mv3",
 		"zip": "wxt zip",
 		"zip:chrome": "wxt zip -b chrome --mv3",
-		"zip:opera": "wxt zip -b chrome --mv3 --mode opera && mv .output/textmode-ascii-overlay-extension-$npm_package_version-chrome.zip .output/textmode-ascii-overlay-extension-$npm_package_version-opera.zip",
+		"zip:opera": "wxt zip -b chrome --mv3 --mode opera && mv .output/textmode-ascii-overlay-extension-$npm_package_version-chrome-opera.zip .output/textmode-ascii-overlay-extension-$npm_package_version-opera.zip",
 		"zip:edge": "wxt zip -b edge --mv3",
 		"zip:firefox": "wxt zip -b firefox --mv3",
 		"lint:firefox": "npm run build:firefox && web-ext lint --source-dir .output/firefox-mv3 --self-hosted",
@@ -61,10 +61,11 @@
 		]
 	},
 	"dependencies": {
-		"textmode.contour.js": "^0.1.0",
-		"textmode.export.js": "^1.5.2",
-		"textmode.filters.js": "^1.2.2",
-		"textmode.js": "0.17.0"
+		"textmode.contour.js": "^1.0.1",
+		"textmode.export.js": "^1.8.1",
+		"textmode.filters.js": "^1.2.5",
+		"textmode.js": "^0.18.0",
+		"textmode.overlay.js": "^1.0.3"
 	},
 	"overrides": {
 		"esbuild": "0.28.1",
@@ -77,13 +78,13 @@
 		"@textmode/build": "^0.1.0",
 		"@textmode/lint": "^0.1.1",
 		"@textmode/release": "^0.2.1",
-		"@types/chrome": "^0.2.2",
-		"@types/node": "^26.2.0",
+		"@types/chrome": "^0.2.7",
+		"@types/node": "^26.4.0",
 		"globals": "^17.9.0",
 		"jsdom": "^30.0.1",
 		"typescript": "^6.0.3",
-		"typescript-eslint": "^8.66.0",
-		"vite": "^8.1.3",
+		"typescript-eslint": "^8.68.0",
+		"vite": "^8.2.2",
 		"web-ext": "^10.5.0",
 		"wxt": "^0.21.2"
 	}

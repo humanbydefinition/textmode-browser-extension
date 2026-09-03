@@ -1,13 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { OverlayManager } from '../../src/features/textmode-overlay/overlay-manager';
 import { getMediaSecurityHint } from '../../src/shared/errors/errors';
-import { createMockSource, MockResizeObserver, mockRect } from './test-helpers';
+import { createMockOverlayController, MockResizeObserver, mockRect } from './test-helpers';
 
 interface MockTextmodeInstance {
 	canvas: HTMLCanvasElement;
 	setup: ReturnType<typeof vi.fn>;
 	draw: ReturnType<typeof vi.fn>;
-	clear: ReturnType<typeof vi.fn>;
+	background: ReturnType<typeof vi.fn>;
 	image: ReturnType<typeof vi.fn>;
 	targetFrameRate: ReturnType<typeof vi.fn>;
 	noLoop: ReturnType<typeof vi.fn>;
@@ -18,6 +18,7 @@ interface MockTextmodeInstance {
 	saveSVG: ReturnType<typeof vi.fn>;
 	saveStrings: ReturnType<typeof vi.fn>;
 	destroy: ReturnType<typeof vi.fn>;
+	readonly overlay: ReturnType<typeof createMockOverlayController>;
 }
 
 const instances: MockTextmodeInstance[] = [];
@@ -25,12 +26,14 @@ const instances: MockTextmodeInstance[] = [];
 vi.mock('textmode.js', () => ({
 	textmode: {
 		create: vi.fn(() => {
-			const source = createMockSource();
+			const overlayController = createMockOverlayController();
 			const instance = {
 				canvas: document.createElement('canvas'),
-				setup: vi.fn(),
+				setup: vi.fn((callback?: () => void | Promise<void>) => {
+					if (callback) void callback();
+				}),
 				draw: vi.fn(),
-				clear: vi.fn(),
+				background: vi.fn(),
 				image: vi.fn(),
 				targetFrameRate: vi.fn(),
 				noLoop: vi.fn(),
@@ -42,7 +45,10 @@ vi.mock('textmode.js', () => ({
 				saveStrings: vi.fn(),
 				destroy: vi.fn(),
 				get overlay() {
-					return source;
+					return overlayController;
+				},
+				exportOverlay: {
+					hide: vi.fn(),
 				},
 			};
 			instances.push(instance);
@@ -51,12 +57,16 @@ vi.mock('textmode.js', () => ({
 	},
 }));
 
+vi.mock('textmode.overlay.js', () => ({
+	OverlayPlugin: { name: 'textmode.overlay.js' },
+}));
+
 vi.mock('textmode.export.js', () => ({
-	createTextmodeExportPlugin: vi.fn(() => ({
-		name: 'textmode.export',
+	ExportPlugin: {
+		name: 'textmode.export.js',
 		version: 'test',
 		install: vi.fn(),
-	})),
+	},
 }));
 
 describe('OverlayManager', () => {
@@ -119,7 +129,7 @@ describe('OverlayManager', () => {
 		expect(onChange).toHaveBeenCalled();
 	});
 
-	it('clears and skips image rendering when a video has no current frame', async () => {
+	it('sets the background and skips image rendering when a video has no current frame', async () => {
 		const video = createVideo('source');
 		document.body.append(video);
 		const manager = new OverlayManager(vi.fn());
@@ -131,7 +141,7 @@ describe('OverlayManager', () => {
 		const drawCallback = instances[0]?.draw.mock.calls[0]?.[0] as (() => void) | undefined;
 		drawCallback?.();
 
-		expect(instances[0]?.clear).toHaveBeenCalledTimes(1);
+		expect(instances[0]?.background).toHaveBeenCalledWith('#000000');
 		expect(instances[0]?.image).not.toHaveBeenCalled();
 	});
 

@@ -26,16 +26,15 @@
 
 </div>
 
-`Textmode Overlay` is a free and open-source browser extension utilizing [textmode.js](https://github.com/humanbydefinition/textmode.js) to render live ASCII/textmode overlays on visible `<canvas>` and `<video>` elements. It provides an in-page control panel for adjusting overlay settings, applying real-time post-processing filters, uploading custom fonts, and exporting the result as TXT, SVG, PNG, or JPG.
+`Textmode Overlay` is a free, open-source browser extension built with [textmode.js](https://github.com/humanbydefinition/textmode.js). It turns compatible `<canvas>` and `<video>` elements into live ASCII/textmode overlays that you can style, adjust, and export.
 
 ## Features
 
-- **Live Textmode Conversion**: Real-time rendering of customizable textmode/ASCII grids over `<canvas>` and `<video>` elements.
-- **Same-Origin Iframes**: Select media inside same-origin, nested, `srcdoc`, and dynamically added iframe documents.
-- **In-Page Control Panel**: Dynamic options for adjustments to characters, fonts, glyph sizes, post-fx filters, and more.
-- **Custom Fonts**: Upload your own TrueType (`.ttf`) or OpenType (`.otf`) fonts directly in the control panel to use custom character sets.
-- **Post-FX Filters**: Stackable, real-time filters to stylize the final output.
-- **Static Exports**: Export overlays as TXT, SVG, PNG, or JPG when you want a static copy of the canvas.
+- **Live conversion**: Render a customizable ASCII grid over a compatible canvas or video.
+- **Media picker**: Select visible media in the page, including supported same-origin and nested frames.
+- **Visual controls**: Adjust brightness, contours, colors, glyph ramps, fonts, opacity, and post-processing effects.
+- **Custom fonts**: Upload local `.ttf` or `.otf` fonts for your own character style.
+- **Exports**: Save a frame as TXT, SVG, PNG, or JPG.
 
 ## Browser Support
 
@@ -80,28 +79,24 @@ Load the extension in Chrome:
 3. Click **Load unpacked**.
 4. Select `.output/chrome-mv3`.
 
-## Custom Font Persistence
+## Custom fonts
 
-Uploaded TrueType fonts are stored locally in the current browser profile and are never synced or uploaded to a remote service. The library supports up to 10 fonts, 10 MB per font, and 50 MB of raw font data in total. Removing the extension also removes its browser-managed font storage.
+Upload a local TrueType (`.ttf`) or OpenType (`.otf`) font from the in-page panel. Fonts stay in the current browser profile; they are not synced or uploaded. Files over 10 MB are rejected, and the extension supports up to 10 fonts and 50 MB of font data in total.
 
-The persistence format is versioned. `custom-fonts:catalog:v1` contains metadata only, while each Base64 payload is stored under its own `custom-font:data:v1:<uuid>` key. Uploads use a background-coordinated reserve/write/commit lifecycle so concurrent tabs cannot exceed library limits or publish incomplete files. Content runtimes subscribe to catalog revisions and load a payload only when that font is selected; generated object URLs are scoped to that runtime and revoked when the font is removed.
+## Privacy
 
-When changing the schema, add a new versioned normalizer and an explicit migration instead of rewriting unknown records. Keep catalog records JSON-compatible, avoid placing payload data in the catalog, and preserve the lazy-loading boundary in `runtime-font-registry`.
+Textmode Overlay accesses a page only after you invoke it from the toolbar or context menu. Rendering, settings, fonts, and exports stay in your browser. The extension has no backend, account synchronization, analytics, advertising, or remote telemetry, and it does not transmit page content or exports.
 
-## Privacy and Permissions
-
-Production builds declare `activeTab`, `scripting`, `storage`, and `unlimitedStorage`. Access to page media is user-triggered and processed locally; per-hostname presets, panel placement, and uploaded fonts remain in browser-managed extension storage. The extension has no backend, account synchronization, analytics, advertising, or remote telemetry, and it does not transmit selected page content or exports to textmode.art.
+The extension uses `activeTab`, `contextMenus`, `scripting`, `storage`, and `unlimitedStorage`. It does not request permanent host permissions.
 
 See the [Imprint](https://legal.textmode.art/projects/extension.textmode.art/en/imprint) and [Privacy Policy](https://legal.textmode.art/projects/extension.textmode.art/en/privacy) for the complete disclosures covering the extension and extension.textmode.art landing page.
 
 ## Usage
 
 1. Open a [page](https://www.youtube.com/watch?v=dQw4w9WgXcQ) with a visible canvas or video element.
-2. Click the textmode overlay extension action.
-3. Click **select media**.
-4. Click the target media element on the page.
-5. Adjust the overlay settings from the in-page panel.
-6. Export the result when you want a static artifact.
+2. Click the Textmode Overlay toolbar icon, or right-click the page and choose **Open Textmode Overlay**.
+3. In the panel, choose **select media**, then click a highlighted canvas or video.
+4. Adjust the effect or export a frame from the panel.
 
 > [!NOTE]
 > Some media cannot be sampled. Cross-origin, tainted, DRM-protected, or otherwise restricted media may fail when the browser blocks WebGL or canvas pixel access.

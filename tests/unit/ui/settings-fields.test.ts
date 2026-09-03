@@ -58,6 +58,17 @@ describe('settings field views', () => {
 		expect(fontField?.firstElementChild?.tagName).toBe('DIV');
 		expect(fontField?.querySelector('.tm-font-combobox__actions')?.closest('label')).toBeNull();
 
+		const fontRow = form.element.querySelector('.tm-main-font-row');
+		const backgroundField = fontRow?.children.item(0);
+		const fontFieldElement = fontRow?.children.item(1);
+		expect(fontRow?.children).toHaveLength(2);
+		expect(backgroundField?.textContent).toContain('background');
+		expect(backgroundField?.querySelector('[aria-label="background color"]')).not.toBeNull();
+		expect(fontFieldElement).toBe(fontField);
+
+		fontField?.querySelector<HTMLButtonElement>('[role="combobox"]')?.click();
+		expect(document.body.querySelector<HTMLElement>('.tm-font-combobox-popover')?.dataset.align).toBe('end');
+
 		form.dispose();
 		form.element.remove();
 	});

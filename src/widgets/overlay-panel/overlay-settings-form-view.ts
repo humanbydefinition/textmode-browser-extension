@@ -13,9 +13,10 @@ import { icon } from './icons';
 import { TabsView } from './components/tabs-view';
 import { ConverterTabsView } from './components/converter-tabs-view';
 import { FontComboboxView, type FontEntry } from './font-combobox/font-combobox-view';
+import { ColorPickerView } from './color-picker/color-picker-view';
 import { ColorModeFieldView } from './settings/color-mode-field-view';
 import { createExportGrid } from './settings/export-grid-view';
-import { createButton, createToggleField, createToggleInput } from './settings/form-controls';
+import { createButton, createSettingField, createToggleField, createToggleInput } from './settings/form-controls';
 import { GlyphRampFieldView } from './settings/glyph-ramp-field-view';
 import { RangeFieldView } from './settings/range-field-view';
 import { formatPercent, formatPixels, overlaySettingLimits } from './overlay-ui-model';
@@ -40,6 +41,7 @@ export class OverlaySettingsFormView {
 	private readonly invertToggle: HTMLInputElement;
 	private readonly opacityField: RangeFieldView;
 	private readonly fontSizeField: RangeFieldView;
+	private readonly backgroundColorPicker: ColorPickerView;
 	private readonly charColorModeField: ColorModeFieldView;
 	private readonly cellColorModeField: ColorModeFieldView;
 	private readonly glyphRampField: GlyphRampFieldView;
@@ -87,6 +89,12 @@ export class OverlaySettingsFormView {
 			limits: overlaySettingLimits.fontSize,
 			format: formatPixels,
 			onChange: (fontSize) => this.options.onChange({ fontSize }),
+		});
+		this.backgroundColorPicker = new ColorPickerView({
+			label: 'background',
+			value: options.settings.background,
+			portalContainer: options.portalContainer,
+			onChange: (background) => this.options.onChange({ background }),
 		});
 		const quickControls = h(
 			'section',
@@ -141,7 +149,13 @@ export class OverlaySettingsFormView {
 			),
 			this.fontCombobox.element
 		);
-		quickControls.append(fontField);
+		const fontRow = h(
+			'div',
+			{ className: 'tm-main-font-row' },
+			createSettingField('background', this.backgroundColorPicker.element),
+			fontField
+		);
+		quickControls.append(fontRow);
 		const brightnessControls = h(
 			'div',
 			{ className: 'tm-control-group tm-converter-controls tm-brightness-controls' },
@@ -195,6 +209,7 @@ export class OverlaySettingsFormView {
 		this.overlayToggle.checked = settings.enabled;
 		this.opacityField.update(settings.opacity);
 		this.fontSizeField.update(settings.fontSize);
+		this.backgroundColorPicker.update(settings.background);
 		this.invertToggle.checked = settings.invert;
 		this.charColorModeField.update(settings.charColorMode, settings.charColor);
 		this.cellColorModeField.update(settings.cellColorMode, settings.cellColor);
@@ -210,6 +225,7 @@ export class OverlaySettingsFormView {
 	}
 
 	public dispose(): void {
+		this.backgroundColorPicker.dispose();
 		this.charColorModeField.dispose();
 		this.cellColorModeField.dispose();
 		this.fontCombobox.dispose();

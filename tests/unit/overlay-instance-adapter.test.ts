@@ -10,7 +10,7 @@ type MockTextmodeInstance = {
 	canvas: HTMLCanvasElement;
 	setup: ReturnType<typeof vi.fn>;
 	draw: ReturnType<typeof vi.fn>;
-	clear: ReturnType<typeof vi.fn>;
+	background: ReturnType<typeof vi.fn>;
 	image: ReturnType<typeof vi.fn>;
 	filter: ReturnType<typeof vi.fn>;
 	filters: { has: ReturnType<typeof vi.fn> };
@@ -98,6 +98,10 @@ describe('overlay instance adapter', () => {
 
 		expect(vi.mocked(instance.image).mock.invocationCallOrder[0]).toBeLessThan(
 			vi.mocked(instance.filter).mock.invocationCallOrder[0]!
+		);
+		expect(instance.background).toHaveBeenCalledWith(DEFAULT_OVERLAY_SETTINGS.background);
+		expect(vi.mocked(instance.background).mock.invocationCallOrder[0]).toBeLessThan(
+			vi.mocked(instance.image).mock.invocationCallOrder[0]!
 		);
 		expect(instance.filter).toHaveBeenNthCalledWith(1, 'brightness', { amount: 1.2 });
 		expect(instance.filter).toHaveBeenNthCalledWith(2, 'invert', undefined);
@@ -215,7 +219,7 @@ function createTextmodeInstance(overrides: Partial<MockTextmodeInstance> = {}): 
 			if (callback) void callback();
 		}),
 		draw: vi.fn(),
-		clear: vi.fn(),
+		background: vi.fn(),
 		image: vi.fn(),
 		filter: vi.fn(),
 		filters: { has: vi.fn(() => true) },

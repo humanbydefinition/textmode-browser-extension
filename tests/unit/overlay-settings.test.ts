@@ -67,10 +67,12 @@ describe('mergeOverlaySettings', () => {
 		const settings = mergeOverlaySettings(DEFAULT_OVERLAY_SETTINGS, {
 			glyphRamp: '   ',
 			cellColor: 'blue',
+			background: 'blue',
 		});
 
 		expect(settings.glyphRamp).toBe(DEFAULT_OVERLAY_SETTINGS.glyphRamp);
 		expect(settings.cellColor).toBe(DEFAULT_OVERLAY_SETTINGS.cellColor);
+		expect(settings.background).toBe(DEFAULT_OVERLAY_SETTINGS.background);
 	});
 
 	it('preserves alpha-channel colors', () => {

@@ -328,6 +328,7 @@ function isOverlaySettingsPatch(value: unknown): value is Partial<OverlaySetting
 			case 'glyphRamp':
 			case 'charColor':
 			case 'cellColor':
+			case 'background':
 			case 'fontId':
 				return typeof patchValue === 'string';
 			case 'charColorMode':

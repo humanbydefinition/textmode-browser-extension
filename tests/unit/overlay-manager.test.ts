@@ -7,7 +7,7 @@ interface MockTextmodeInstance {
 	canvas: HTMLCanvasElement;
 	setup: ReturnType<typeof vi.fn>;
 	draw: ReturnType<typeof vi.fn>;
-	clear: ReturnType<typeof vi.fn>;
+	background: ReturnType<typeof vi.fn>;
 	image: ReturnType<typeof vi.fn>;
 	targetFrameRate: ReturnType<typeof vi.fn>;
 	noLoop: ReturnType<typeof vi.fn>;
@@ -33,7 +33,7 @@ vi.mock('textmode.js', () => ({
 					if (callback) void callback();
 				}),
 				draw: vi.fn(),
-				clear: vi.fn(),
+				background: vi.fn(),
 				image: vi.fn(),
 				targetFrameRate: vi.fn(),
 				noLoop: vi.fn(),
@@ -129,7 +129,7 @@ describe('OverlayManager', () => {
 		expect(onChange).toHaveBeenCalled();
 	});
 
-	it('clears and skips image rendering when a video has no current frame', async () => {
+	it('sets the background and skips image rendering when a video has no current frame', async () => {
 		const video = createVideo('source');
 		document.body.append(video);
 		const manager = new OverlayManager(vi.fn());
@@ -141,7 +141,7 @@ describe('OverlayManager', () => {
 		const drawCallback = instances[0]?.draw.mock.calls[0]?.[0] as (() => void) | undefined;
 		drawCallback?.();
 
-		expect(instances[0]?.clear).toHaveBeenCalledTimes(1);
+		expect(instances[0]?.background).toHaveBeenCalledWith('#000000');
 		expect(instances[0]?.image).not.toHaveBeenCalled();
 	});
 

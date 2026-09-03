@@ -16,6 +16,9 @@ describe('isRuntimeMessage', () => {
 		).toBe(true);
 		expect(isRuntimeMessage({ type: 'REMOVE_OVERLAY', id: 'overlay-1' })).toBe(true);
 		expect(isRuntimeMessage({ type: 'UPDATE_OVERLAY', id: 'overlay-1', settings: { fontSize: 16 } })).toBe(true);
+		expect(isRuntimeMessage({ type: 'UPDATE_OVERLAY', id: 'overlay-1', settings: { background: '#112233' } })).toBe(
+			true
+		);
 		expect(
 			isRuntimeMessage({ type: 'UPDATE_OVERLAY', id: 'overlay-1', settings: { brightnessEnabled: false } })
 		).toBe(true);

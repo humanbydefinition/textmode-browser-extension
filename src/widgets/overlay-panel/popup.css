@@ -551,6 +551,17 @@ select {
 	overflow: hidden;
 }
 
+.tm-main-font-row {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+	gap: 8px;
+	min-width: 0;
+}
+
+.tm-main-font-row > .tm-field > .tm-field__label {
+	min-height: 22px;
+}
+
 .tm-overlay-toggle-actions {
 	display: flex;
 	align-items: center;

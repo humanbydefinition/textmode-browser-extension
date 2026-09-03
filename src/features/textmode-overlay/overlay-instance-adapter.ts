@@ -36,7 +36,7 @@ export function createOverlayInstance(
 	});
 
 	instance.draw(() => {
-		instance.clear();
+		instance.background(controller.settings.background);
 		const source = instance.overlay?.source;
 		if (!controller.settings.enabled || !source) return;
 		if (!canRenderElement(controller.element)) return;

@@ -31,6 +31,7 @@ export interface OverlaySettings {
 	opacity: number;
 	fontSize: number;
 	fontId: FontId;
+	background: string;
 	glyphRamp: string;
 	brightnessEnabled: boolean;
 	invert: boolean;
@@ -65,6 +66,7 @@ export function createDefaultOverlaySettings(): OverlaySettings {
 		opacity: 1,
 		fontSize: 8,
 		fontId: DEFAULT_FONT_ID,
+		background: '#000000',
 		glyphRamp: ' .:-=+*#%@',
 		brightnessEnabled: true,
 		invert: false,
@@ -114,6 +116,10 @@ export function mergeOverlaySettings(base: OverlaySettings, patch: Partial<Overl
 
 	if (!isOverlayColor(next.cellColor)) {
 		next.cellColor = DEFAULT_OVERLAY_SETTINGS.cellColor;
+	}
+
+	if (!isOverlayColor(next.background)) {
+		next.background = DEFAULT_OVERLAY_SETTINGS.background;
 	}
 
 	if (!isFontId(next.fontId)) {

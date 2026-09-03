@@ -194,7 +194,8 @@ describe('OverlayPanelView', () => {
 		expect(quickControls?.children[0]).toBe(host.querySelector('.tm-overlay-toggle-row'));
 		expect(quickControls?.children[1]?.textContent).toContain('opacity');
 		expect(quickControls?.children[2]?.textContent).toContain('font size');
-		expect(quickControls?.children[3]).toBe(host.querySelector('.tm-main-font-field'));
+		expect(quickControls?.children[3]).toBe(host.querySelector('.tm-main-font-row'));
+		expect(quickControls?.querySelector('.tm-main-font-row .tm-main-font-field')).not.toBeNull();
 		expect(advanced?.firstElementChild).toBe(converterTabs);
 		expect(
 			converterTabs?.querySelector('.tm-converter-tabs-list')?.closest('[data-slot="scroll-area"]')

@@ -100,14 +100,6 @@ export class TopFrameCoordinator {
 				case 'TOGGLE_OVERLAY':
 					await this.toggleControlPanel();
 					break;
-				case 'APPLY_CONTEXT_TARGET':
-					await this.applyContextTarget(message);
-					break;
-				case 'SHOW_CONTEXT_TARGET_ERROR':
-					await this.runtimeReady;
-					await this.ensureControlPanel();
-					this.controlPanel?.setNotice(message.message);
-					break;
 				case 'START_PICKING':
 					await this.startPicking();
 					break;
@@ -216,24 +208,6 @@ export class TopFrameCoordinator {
 			this.controlPanel?.updatePickingState(false);
 		} catch (error) {
 			this.controlPanel?.updatePickingState(false);
-			this.reportTargetError(error);
-		}
-	}
-
-	private async applyContextTarget(
-		message: Extract<PopupToContentMessage, { type: 'APPLY_CONTEXT_TARGET' }>
-	): Promise<void> {
-		await this.runtimeReady;
-		if (this.activePickSessionId) {
-			await this.broadcastFrameCommand({ type: 'FRAME_END_PICKING', pickSessionId: this.activePickSessionId });
-			this.activePickSessionId = undefined;
-		}
-		try {
-			await this.createOverlayForTarget(message.frameId, message.runtimeId, message.targetToken);
-			await this.ensureControlPanel();
-			this.controlPanel?.setNotice(undefined);
-		} catch (error) {
-			await this.ensureControlPanel();
 			this.reportTargetError(error);
 		}
 	}

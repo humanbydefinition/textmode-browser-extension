@@ -27,12 +27,7 @@ export type PopupToContentMessage =
 	| { type: 'PAUSE_ALL' }
 	| { type: 'RESUME_ALL' }
 	| { type: 'REMOVE_ALL' }
-	| { type: 'TOGGLE_OVERLAY' }
-	| { type: 'APPLY_CONTEXT_TARGET'; frameId: number; runtimeId: string; targetToken: string }
-	| { type: 'SHOW_CONTEXT_TARGET_ERROR'; message: string };
-
-export type ContextTargetMessage =
-	{ type: 'CONTEXT_TARGET_CAPTURED'; targetToken: string } | { type: 'CONTEXT_TARGET_CLEARED' };
+	| { type: 'TOGGLE_OVERLAY' };
 
 export interface FrameAddress {
 	frameId: number;
@@ -102,7 +97,6 @@ export interface CustomFontStorageResponse extends RuntimeAck {
 
 export type RuntimeMessage =
 	| PopupToContentMessage
-	| ContextTargetMessage
 	| ContentToPopupMessage
 	| CustomFontStorageMessage
 	| FrameCommand
@@ -123,7 +117,6 @@ export function isRuntimeMessage(value: unknown): value is RuntimeMessage {
 
 	return (
 		isPopupToContentMessage(value) ||
-		isContextTargetMessage(value) ||
 		isContentToPopupMessage(value) ||
 		isCustomFontStorageMessage(value) ||
 		isFrameCommand(value) ||
@@ -257,14 +250,6 @@ export function isPopupToContentMessage(value: unknown): value is PopupToContent
 		case 'REMOVE_ALL':
 		case 'TOGGLE_OVERLAY':
 			return true;
-		case 'APPLY_CONTEXT_TARGET':
-			return (
-				Number.isInteger(value.frameId) &&
-				typeof value.runtimeId === 'string' &&
-				typeof value.targetToken === 'string'
-			);
-		case 'SHOW_CONTEXT_TARGET_ERROR':
-			return typeof value.message === 'string';
 		case 'UPDATE_OVERLAY':
 			return typeof value.id === 'string' && isOverlaySettingsPatch(value.settings);
 		case 'EXPORT_OVERLAY':
@@ -274,14 +259,6 @@ export function isPopupToContentMessage(value: unknown): value is PopupToContent
 		default:
 			return false;
 	}
-}
-
-export function isContextTargetMessage(value: unknown): value is ContextTargetMessage {
-	if (!isRecord(value) || typeof value.type !== 'string') return false;
-	return (
-		(value.type === 'CONTEXT_TARGET_CAPTURED' && typeof value.targetToken === 'string') ||
-		value.type === 'CONTEXT_TARGET_CLEARED'
-	);
 }
 
 function isContentToPopupMessage(value: Record<string, unknown>): value is ContentToPopupMessage {

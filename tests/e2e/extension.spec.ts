@@ -11,68 +11,6 @@ test('fixture page renders selectable media targets', async ({ page }) => {
 	await expect(page.locator('video#demo-video')).toBeVisible();
 });
 
-test('Chrome extension applies the target captured by the persistent context tracker', async () => {
-	const extensionPath = resolve(import.meta.dirname, '../../.output/chrome-mv3-e2e');
-	test.skip(!existsSync(resolve(extensionPath, 'manifest.json')), 'Run npm run build:e2e:chrome before e2e.');
-
-	const server = await startFixtureServer();
-	const userDataDir = await mkdtemp(join(tmpdir(), 'textmode-context-target-e2e-'));
-	const context = await chromium.launchPersistentContext(userDataDir, {
-		headless: false,
-		args: [`--disable-extensions-except=${extensionPath}`, `--load-extension=${extensionPath}`],
-	});
-
-	try {
-		const page = context.pages()[0] ?? (await context.newPage());
-		await page.goto(server.url);
-		const canvas = page.locator('canvas#demo-canvas');
-		await canvas.click({ button: 'right', position: { x: 24, y: 24 } });
-		await page.keyboard.press('Escape');
-
-		const serviceWorker = context.serviceWorkers()[0] ?? (await context.waitForEvent('serviceworker'));
-		const targetToken = await serviceWorker.evaluate(async () => {
-			const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-			if (!tab?.id) return null;
-			const result = await chrome.scripting.executeScript({
-				target: { tabId: tab.id },
-				func: () => {
-					const registry = (
-						window as unknown as {
-							__textmodeContextTargetRegistry?: { target?: { token?: string } };
-						}
-					).__textmodeContextTargetRegistry;
-					return registry?.target?.token ?? null;
-				},
-			});
-			return result[0]?.result ?? null;
-		});
-		expect(targetToken).toMatch(/^context-/);
-
-		await serviceWorker.evaluate(async (token) => {
-			const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-			if (!tab?.id) throw new Error('Missing active tab for context-target E2E.');
-			await chrome.scripting.executeScript({
-				target: { tabId: tab.id, allFrames: true },
-				files: ['/content-runtime.js'],
-			});
-			const probe = await chrome.tabs.sendMessage(tab.id, { type: 'FRAME_PING' }, { frameId: 0 });
-			if (!probe?.runtimeId) throw new Error('The frame runtime did not identify itself.');
-			await chrome.tabs.sendMessage(
-				tab.id,
-				{ type: 'APPLY_CONTEXT_TARGET', frameId: 0, runtimeId: probe.runtimeId, targetToken: token },
-				{ frameId: 0 }
-			);
-		}, targetToken);
-
-		await expect(page.locator('canvas[data-textmode-ascii-extension-ui="true"]')).toHaveCount(1);
-		await expect(page.locator('#textmode-ascii-overlay-control-panel-root')).toBeAttached();
-	} finally {
-		await context.close();
-		await rm(userDataDir, { recursive: true, force: true });
-		await server.close();
-	}
-});
-
 test('Chrome extension can select a canvas and create an overlay', async () => {
 	const extensionPath = resolve(import.meta.dirname, '../../.output/chrome-mv3-e2e');
 	test.skip(!existsSync(resolve(extensionPath, 'manifest.json')), 'Run npm run build:chrome before e2e.');

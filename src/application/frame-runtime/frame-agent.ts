@@ -1,5 +1,4 @@
 import { ElementPicker, type SelectableElement } from '../../features/media-picker/element-picker';
-import { getContextTargetRegistry } from '../../features/media-picker/context-target-registry';
 import { addRuntimeMessageListener, sendMessageToRuntime } from '../../shared/browser/browser-api';
 import { isFrameCommand, type FrameCommand, type FrameEvent, type RuntimeAck } from '../../shared/messaging/messages';
 import type { FrameOverlayPort } from './frame-overlay-port';
@@ -38,7 +37,7 @@ export class FrameAgent {
 			this.pendingTarget = undefined;
 			return element;
 		}
-		return getContextTargetRegistry().consume(token);
+		return undefined;
 	}
 
 	public emitOverlayState(overlays = this.overlayHost?.list() ?? []): void {

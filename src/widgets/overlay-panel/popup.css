@@ -920,8 +920,7 @@ select {
 	min-width: 0;
 }
 
-.tm-post-fx-content .tm-field,
-.tm-post-fx-content .tm-field > [data-slot='slider'] {
+.tm-post-fx-content .tm-field {
 	width: 100%;
 	min-width: 0;
 }

@@ -38,7 +38,7 @@
 		"dev:firefox": "wxt -b firefox --mv3",
 		"zip": "wxt zip",
 		"zip:chrome": "wxt zip -b chrome --mv3",
-		"zip:opera": "wxt zip -b chrome --mv3 --mode opera && mv .output/textmode-ascii-overlay-extension-$npm_package_version-chrome.zip .output/textmode-ascii-overlay-extension-$npm_package_version-opera.zip",
+		"zip:opera": "wxt zip -b chrome --mv3 --mode opera && mv .output/textmode-ascii-overlay-extension-$npm_package_version-chrome-opera.zip .output/textmode-ascii-overlay-extension-$npm_package_version-opera.zip",
 		"zip:edge": "wxt zip -b edge --mv3",
 		"zip:firefox": "wxt zip -b firefox --mv3",
 		"lint:firefox": "npm run build:firefox && web-ext lint --source-dir .output/firefox-mv3 --self-hosted",

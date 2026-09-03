@@ -90,7 +90,7 @@ When changing the schema, add a new versioned normalizer and an explicit migrati
 
 ## Privacy and Permissions
 
-Production builds declare `activeTab`, `contextMenus`, `scripting`, `storage`, and `unlimitedStorage`, plus HTTP(S) host access. Access to page media is user-triggered and processed locally; per-hostname presets, panel placement, and uploaded fonts remain in browser-managed extension storage. The extension has no backend, account synchronization, analytics, advertising, or remote telemetry, and it does not transmit selected page content or exports to textmode.art.
+Production builds declare `activeTab`, `contextMenus`, `scripting`, `storage`, and `unlimitedStorage`. Access to page media is user-triggered and processed locally; per-hostname presets, panel placement, and uploaded fonts remain in browser-managed extension storage. The extension has no backend, account synchronization, analytics, advertising, or remote telemetry, and it does not transmit selected page content or exports to textmode.art.
 
 See the [Imprint](https://legal.textmode.art/projects/extension.textmode.art/en/imprint) and [Privacy Policy](https://legal.textmode.art/projects/extension.textmode.art/en/privacy) for the complete disclosures covering the extension and extension.textmode.art landing page.
 

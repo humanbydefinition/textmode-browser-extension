@@ -89,7 +89,7 @@ Textmode Overlay accesses a page only after you invoke it from the toolbar or co
 
 The extension uses `activeTab`, `contextMenus`, `scripting`, `storage`, and `unlimitedStorage`. It does not request permanent host permissions.
 
-See the [Imprint](https://legal.textmode.art/projects/extension.textmode.art/en/imprint) and [Privacy Policy](https://legal.textmode.art/projects/extension.textmode.art/en/privacy) for the complete disclosures covering the extension and extension.textmode.art landing page.
+See the [Imprint](https://legal.textmode.art/projects/extension.textmode.art/en/imprint) and [Privacy Policy](https://legal.textmode.art/projects/extension.textmode.art/en/privacy) for the complete disclosures covering the extension and [extension.textmode.art](https://extension.textmode.art/) landing page.
 
 ## Usage
 
@@ -100,16 +100,6 @@ See the [Imprint](https://legal.textmode.art/projects/extension.textmode.art/en/
 
 > [!NOTE]
 > Some media cannot be sampled. Cross-origin, tainted, DRM-protected, or otherwise restricted media may fail when the browser blocks WebGL or canvas pixel access.
-
-### Uploading Fonts
-
-Open the font picker from the in-page panel and choose **upload font...** to add a local TrueType `.ttf` or TrueType-outline `.otf` font. Uploaded fonts are persisted in browser-managed extension storage and remain available after page reloads or navigation until you remove them, clear the extension data, or uninstall the extension. WOFF, WOFF2, CFF-based OTF files, and files larger than 10 MB are rejected.
-
-### Post-FX Filters
-
-Open the in-page control panel, switch to the **post fx** tab, and use that list to shape the final rendered output. Each row can be enabled or disabled, expanded to reveal its controls, and dragged by the grip handle to change the order in which the filters run.
-
-The stack is applied from top to bottom, so reordering filters can change the final look even when the same filters stay enabled. When a filter has adjustable properties, expand its row and update the available sliders or numeric controls directly from that panel.
 
 ## Development
 

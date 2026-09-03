@@ -90,18 +90,17 @@ When changing the schema, add a new versioned normalizer and an explicit migrati
 
 ## Privacy and Permissions
 
-Production builds declare `activeTab`, `scripting`, `storage`, and `unlimitedStorage`. Access to page media is user-triggered and processed locally; per-hostname presets, panel placement, and uploaded fonts remain in browser-managed extension storage. The extension has no backend, account synchronization, analytics, advertising, or remote telemetry, and it does not transmit selected page content or exports to textmode.art.
+Production builds declare `activeTab`, `contextMenus`, `scripting`, `storage`, and `unlimitedStorage`, plus HTTP(S) host access. Access to page media is user-triggered and processed locally; per-hostname presets, panel placement, and uploaded fonts remain in browser-managed extension storage. The extension has no backend, account synchronization, analytics, advertising, or remote telemetry, and it does not transmit selected page content or exports to textmode.art.
 
 See the [Imprint](https://legal.textmode.art/projects/extension.textmode.art/en/imprint) and [Privacy Policy](https://legal.textmode.art/projects/extension.textmode.art/en/privacy) for the complete disclosures covering the extension and extension.textmode.art landing page.
 
 ## Usage
 
 1. Open a [page](https://www.youtube.com/watch?v=dQw4w9WgXcQ) with a visible canvas or video element.
-2. Click the textmode overlay extension action.
-3. Click **select media**.
-4. Click the target media element on the page.
-5. Adjust the overlay settings from the in-page panel.
-6. Export the result when you want a static artifact.
+2. Right-click the target and choose **Apply Textmode Overlay**, or click the textmode overlay extension action.
+3. If you opened the extension action, click **select media** and then click the target media element on the page.
+4. Adjust the overlay settings from the in-page panel.
+5. Export the result when you want a static artifact.
 
 > [!NOTE]
 > Some media cannot be sampled. Cross-origin, tainted, DRM-protected, or otherwise restricted media may fail when the browser blocks WebGL or canvas pixel access.

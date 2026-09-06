@@ -75,8 +75,8 @@
 	},
 	"devDependencies": {
 		"@playwright/test": "^1.62.1",
-		"@textmode/build": "^0.1.0",
-		"@textmode/lint": "^0.1.1",
+		"@textmode/build": "^0.1.1",
+		"@textmode/lint": "^0.1.2",
 		"@textmode/release": "^0.2.1",
 		"@types/chrome": "^0.2.7",
 		"@types/node": "^26.4.0",

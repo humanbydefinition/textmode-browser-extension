@@ -63,7 +63,7 @@
 	"dependencies": {
 		"textmode.contour.js": "^1.0.1",
 		"textmode.export.js": "^1.8.1",
-		"textmode.filters.js": "^1.2.5",
+		"textmode.filters.js": "^1.2.6",
 		"textmode.js": "^0.18.0",
 		"textmode.overlay.js": "^1.0.3"
 	},

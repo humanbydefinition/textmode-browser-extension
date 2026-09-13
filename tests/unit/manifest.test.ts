@@ -20,7 +20,25 @@ describe('extension manifest', () => {
 			.filter((entry) => entry.isDirectory())
 			.map((entry) => entry.name);
 
-		expect(locales).toEqual(expect.arrayContaining(['en', 'de', 'es', 'pt_BR', 'ja', 'fr', 'ru', 'ko', 'zh_CN']));
+		expect(locales).toEqual(
+			expect.arrayContaining([
+				'en',
+				'de',
+				'es',
+				'pt_BR',
+				'ja',
+				'fr',
+				'ru',
+				'ko',
+				'zh_CN',
+				'it',
+				'pl',
+				'nl',
+				'tr',
+				'zh_TW',
+				'es_419',
+			])
+		);
 
 		for (const locale of locales) {
 			const catalog = JSON.parse(readFileSync(resolve(LOCALES_DIR, locale, 'messages.json'), 'utf8')) as Record<

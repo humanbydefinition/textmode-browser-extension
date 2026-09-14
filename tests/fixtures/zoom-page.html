@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<title>ASCII Overlay Zoom Fixture</title>
+		<style>
+			html,
+			body {
+				margin: 0;
+				background: #111827;
+			}
+			#zoom-viewport {
+				position: relative;
+				width: 760px;
+				height: 520px;
+				overflow: auto;
+			}
+			#zoom-frame {
+				position: absolute;
+				top: 0;
+				left: 0;
+				width: 1000px;
+				height: 700px;
+				transform-origin: top left;
+				will-change: transform;
+			}
+			#zoom-canvas {
+				display: block;
+				width: 640px;
+				height: 360px;
+				background: #020617;
+			}
+			#direct-overlay {
+				position: relative;
+				left: 25%;
+				top: auto;
+				display: block;
+				width: 40px;
+				height: 30px;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="zoom-viewport">
+			<div id="zoom-frame">
+				<canvas id="zoom-canvas" width="640" height="360"></canvas>
+			</div>
+		</div>
+		<script src="/textmode.overlay.umd.js"></script>
+		<script>
+			const frame = document.querySelector('#zoom-frame');
+			const canvas = document.querySelector('#zoom-canvas');
+			const ctx = canvas.getContext('2d');
+			ctx.fillStyle = '#020617';
+			ctx.fillRect(0, 0, canvas.width, canvas.height);
+			ctx.fillStyle = '#38bdf8';
+			ctx.fillRect(40, 40, 200, 120);
+			ctx.fillStyle = '#f8fafc';
+			ctx.font = '32px monospace';
+			ctx.fillText('ZOOM', 320, 200);
+
+			window.__canvasClicks = 0;
+			canvas.addEventListener('click', () => {
+				window.__canvasClicks += 1;
+			});
+
+			function resetGeometryStyles() {
+				frame.style.left = '0px';
+				frame.style.top = '0px';
+				frame.style.transform = 'none';
+				frame.style.zoom = '1';
+				canvas.style.width = '640px';
+				canvas.style.height = '360px';
+				canvas.style.transform = 'none';
+				canvas.style.transformOrigin = 'top left';
+			}
+
+			window.resetGeometry = () => {
+				resetGeometryStyles();
+				document.querySelector('#zoom-viewport').scrollTo(0, 0);
+			};
+			window.setAncestorTransform = (scaleX, scaleY = scaleX, panX = 0, panY = 0) => {
+				resetGeometryStyles();
+				frame.style.transform = `translate(${panX}px, ${panY}px) scale(${scaleX}, ${scaleY})`;
+			};
+			window.setCssZoom = (zoom, panX = 0, panY = 0) => {
+				resetGeometryStyles();
+				frame.style.left = `${panX}px`;
+				frame.style.top = `${panY}px`;
+				frame.style.zoom = String(zoom);
+			};
+			window.setTargetTransform = (scaleX, scaleY, panX = 0, panY = 0) => {
+				resetGeometryStyles();
+				canvas.style.transform = `translate(${panX}px, ${panY}px) scale(${scaleX}, ${scaleY})`;
+			};
+			window.setCompensatedCssZoom = (zoom) => {
+				resetGeometryStyles();
+				frame.style.zoom = String(zoom);
+				canvas.style.width = `${640 / zoom}px`;
+				canvas.style.height = `${360 / zoom}px`;
+			};
+
+			let directOverlay;
+			let directSource;
+			let requestDirectSync;
+			window.__overlayClicks = 0;
+			window.initializeOverlayApi = () => {
+				if (directOverlay) return;
+				const output = document.createElement('canvas');
+				output.id = 'direct-overlay';
+				output.addEventListener('click', () => {
+					window.__overlayClicks += 1;
+				});
+				canvas.after(output);
+				const hooks = new Map();
+				window.textmodeOverlay.OverlayPlugin.install(
+					{
+						canvas: output,
+						createTexture: (target) => ({ target, dispose() {} }),
+						resizeCanvas: (width, height) => {
+							output.width = width;
+							output.height = height;
+							output.style.width = `${width}px`;
+							output.style.height = `${height}px`;
+						},
+					},
+					{
+						on: (name, callback) => {
+							hooks.set(name, callback);
+							return () => hooks.delete(name);
+						},
+						defineExtension: (_category, _name, descriptor) => {
+							directOverlay = descriptor.get();
+						},
+					}
+				);
+				requestDirectSync = () => hooks.get('postDraw')?.();
+				directSource = directOverlay.setTarget(canvas);
+			};
+			window.rebindOverlayPointerEvents = (pointerEvents) => {
+				const source = pointerEvents
+					? directOverlay.setTarget(canvas, { pointerEvents })
+					: directOverlay.setTarget(canvas);
+				return source === directSource;
+			};
+			window.requestDirectOverlaySync = () => requestDirectSync?.();
+			window.resetGeometry();
+		</script>
+	</body>
+</html>

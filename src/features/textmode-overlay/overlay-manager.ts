@@ -13,12 +13,7 @@ import type { SelectableElement } from '../media-picker/element-picker';
 import { textmodeOverlayRenderer, type OverlayRendererPort } from './overlay-renderer';
 import { toOverlayDescriptor } from './overlay-descriptor';
 import { exportTextmodeOverlay } from './overlay-export-service';
-import {
-	applyControllerSettings,
-	createOverlayInstance,
-	loadControllerFont,
-	syncControllerCanvasStyle,
-} from './overlay-instance-adapter';
+import { applyControllerSettings, createOverlayInstance, loadControllerFont } from './overlay-instance-adapter';
 import {
 	assertCanCreateOverlay,
 	createOverlayController,
@@ -29,7 +24,6 @@ import {
 export class OverlayManager {
 	private readonly overlays = new Map<string, OverlayController>();
 	private idCounter = 0;
-	private readonly resizeObserver = new ResizeObserver(() => this.syncCanvasStyles());
 	private readonly mutationObserver = new MutationObserver(() => this.removeDetachedOverlays());
 
 	public constructor(
@@ -63,7 +57,6 @@ export class OverlayManager {
 		const controller = createOverlayController(id, element, settings);
 
 		this.overlays.set(id, controller);
-		this.resizeObserver.observe(element);
 
 		try {
 			createOverlayInstance(controller, this.renderer, { fontAssetUrl });
@@ -209,13 +202,6 @@ export class OverlayManager {
 		};
 	}
 
-	private syncCanvasStyles(): void {
-		for (const controller of this.overlays.values()) {
-			syncControllerCanvasStyle(controller);
-		}
-		this.onChange();
-	}
-
 	private removeDetachedOverlays(): void {
 		let changed = false;
 		for (const [id, controller] of this.overlays) {
@@ -230,7 +216,6 @@ export class OverlayManager {
 	}
 
 	private disposeController(controller: OverlayController): void {
-		this.resizeObserver.unobserve(controller.element);
 		disposeOverlayController(controller);
 	}
 

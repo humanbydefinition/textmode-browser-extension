@@ -1,0 +1,10 @@
+{
+	"extName": {
+		"message": "Textmode Overlay",
+		"description": "Extension name shown in the browser and in store listings."
+	},
+	"extDescription": {
+		"message": "<canvas> 및 <video> 요소를 실시간 ASCII 아트로 변환합니다.",
+		"description": "Short summary shown in the browser and in store listings."
+	}
+}

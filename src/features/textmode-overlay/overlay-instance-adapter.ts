@@ -22,10 +22,9 @@ export function createOverlayInstance(
 	controller.instance = instance;
 	controller.loadedFontId = controller.settings.fontId;
 
-	instance.overlay?.setTarget(controller.element);
+	instance.overlay?.setTarget(controller.element, { pointerEvents: 'none' });
 
 	instance.canvas.dataset.textmodeAsciiExtensionUi = 'true';
-	instance.canvas.style.pointerEvents = 'none';
 	instance.canvas.style.opacity = String(controller.settings.opacity);
 	instance.canvas.style.mixBlendMode = 'normal';
 
@@ -69,7 +68,6 @@ export function applyControllerSettings(
 
 	if (!instance) return;
 	instance.canvas.style.opacity = String(settings.opacity);
-	instance.canvas.style.pointerEvents = 'none';
 	instance.targetFrameRate(60);
 
 	if (!settings.enabled) {
@@ -98,13 +96,6 @@ export function applyControllerSettings(
 	}
 
 	configureSource(controller);
-}
-
-export function syncControllerCanvasStyle(controller: OverlayController): void {
-	if (controller.instance) {
-		controller.instance.canvas.style.opacity = String(controller.settings.opacity);
-		controller.instance.canvas.style.pointerEvents = 'none';
-	}
 }
 
 function configureSource(controller: OverlayController): void {

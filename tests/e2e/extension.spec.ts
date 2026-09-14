@@ -5,10 +5,76 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { chromium, expect, test } from '@playwright/test';
 
+declare global {
+	interface Window {
+		resetGeometry: () => void;
+		setAncestorTransform: (scaleX: number, scaleY?: number, panX?: number, panY?: number) => void;
+		setCssZoom: (zoom: number, panX?: number, panY?: number) => void;
+		setTargetTransform: (scaleX: number, scaleY: number, panX?: number, panY?: number) => void;
+		setCompensatedCssZoom: (zoom: number) => void;
+		initializeOverlayApi: () => void;
+		rebindOverlayPointerEvents: (pointerEvents?: 'auto' | 'none') => boolean;
+		requestDirectOverlaySync: () => void;
+		__canvasClicks: number;
+		__overlayClicks: number;
+	}
+}
+
 test('fixture page renders selectable media targets', async ({ page }) => {
 	await page.goto(`file://${process.cwd()}/tests/fixtures/media-page.html`);
 	await expect(page.locator('canvas#demo-canvas')).toBeVisible();
 	await expect(page.locator('video#demo-video')).toBeVisible();
+});
+
+test('published overlay bundle reconfigures a same-target binding in place', async ({ page, browserName }) => {
+	const server = await startFixtureServer('zoom-page.html');
+	try {
+		await page.goto(server.url);
+		await page.evaluate(() => window.initializeOverlayApi());
+		const target = page.locator('#zoom-canvas');
+		const overlay = page.locator('#direct-overlay');
+		const expectAligned = async (scenario: string): Promise<void> => {
+			await expect
+				.poll(
+					async () => {
+						const targetBox = await target.boundingBox();
+						const overlayBox = await overlay.boundingBox();
+						if (!targetBox || !overlayBox) return Number.POSITIVE_INFINITY;
+						return Math.max(
+							Math.abs(targetBox.x - overlayBox.x),
+							Math.abs(targetBox.y - overlayBox.y),
+							Math.abs(targetBox.width - overlayBox.width),
+							Math.abs(targetBox.height - overlayBox.height)
+						);
+					},
+					{ message: `${browserName}: overlay misaligned for ${scenario}` }
+				)
+				.toBeLessThanOrEqual(1.5);
+		};
+
+		await expect(overlay).toHaveCSS('pointer-events', 'none');
+		await expectAligned('initial binding');
+		await target.click({ position: { x: 320, y: 180 } });
+		expect(await page.evaluate(() => [window.__canvasClicks, window.__overlayClicks])).toEqual([1, 0]);
+
+		expect(await page.evaluate(() => window.rebindOverlayPointerEvents('auto'))).toBe(true);
+		await expect(overlay).toHaveCSS('pointer-events', 'auto');
+		await overlay.click({ position: { x: 320, y: 180 } });
+		expect(await page.evaluate(() => [window.__canvasClicks, window.__overlayClicks])).toEqual([1, 1]);
+
+		expect(await page.evaluate(() => window.rebindOverlayPointerEvents())).toBe(true);
+		await expect(overlay).toHaveCSS('pointer-events', 'none');
+
+		for (const zoom of [0.5, 1, 2]) {
+			await page.evaluate((value) => {
+				window.setCssZoom(value, 30, 20);
+				window.requestDirectOverlaySync();
+			}, zoom);
+			await expectAligned(`CSS zoom ${zoom}`);
+		}
+	} finally {
+		await server.close();
+	}
 });
 
 test('Chrome extension can select a canvas and create an overlay', async () => {
@@ -264,6 +330,134 @@ test('Chrome extension can select a canvas and create an overlay', async () => {
 	}
 });
 
+test('Chrome extension preserves overlay geometry across supported coordinate-space changes', async () => {
+	const extensionPath = resolve(import.meta.dirname, '../../.output/chrome-mv3-e2e');
+	test.skip(!existsSync(resolve(extensionPath, 'manifest.json')), 'Run npm run build:e2e:chrome before e2e.');
+
+	const server = await startFixtureServer('zoom-page.html');
+	const userDataDir = await mkdtemp(join(tmpdir(), 'textmode-extension-zoom-e2e-'));
+	const context = await chromium.launchPersistentContext(userDataDir, {
+		headless: false,
+		args: [`--disable-extensions-except=${extensionPath}`, `--load-extension=${extensionPath}`],
+	});
+
+	try {
+		const page = context.pages()[0] ?? (await context.newPage());
+		await page.setViewportSize({ width: 800, height: 720 });
+		await page.goto(server.url);
+		await expect(page.locator('#zoom-canvas')).toBeVisible();
+
+		const serviceWorker = context.serviceWorkers()[0] ?? (await context.waitForEvent('serviceworker'));
+		await serviceWorker.evaluate(async () => {
+			const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+			if (!tab?.id) throw new Error('Missing active tab for zoom E2E.');
+			await chrome.scripting.executeScript({
+				target: { tabId: tab.id, allFrames: true },
+				files: ['/content-runtime.js'],
+			});
+			const ready = await chrome.tabs.sendMessage(tab.id, { type: 'FRAME_PING' }, { frameId: 0 });
+			if (!ready?.ok) throw new Error('The injected frame runtime did not acknowledge startup.');
+			await chrome.tabs.sendMessage(tab.id, { type: 'TOGGLE_OVERLAY' }, { frameId: 0 });
+		});
+		await expect(page.locator('#textmode-ascii-overlay-control-panel-root')).toBeAttached();
+
+		await page.getByRole('button', { name: /(?:select|replace) media/i }).click();
+		await page.locator('#zoom-canvas').click({ position: { x: 24, y: 24 } });
+		const overlay = page.locator('canvas[data-textmode-ascii-extension-ui="true"]');
+		await expect(overlay).toHaveCount(1);
+		await expect(overlay).toHaveCSS('pointer-events', 'none');
+		const expectAligned = async (scenario: string): Promise<void> => {
+			await expect
+				.poll(
+					async () => {
+						const targetBox = await page.locator('#zoom-canvas').boundingBox();
+						const overlayBox = await overlay.boundingBox();
+						if (!targetBox || !overlayBox) return Number.POSITIVE_INFINITY;
+						return Math.max(
+							Math.abs(targetBox.x - overlayBox.x),
+							Math.abs(targetBox.y - overlayBox.y),
+							Math.abs(targetBox.width - overlayBox.width),
+							Math.abs(targetBox.height - overlayBox.height)
+						);
+					},
+					{ message: `overlay misaligned for ${scenario}` }
+				)
+				.toBeLessThanOrEqual(1.5);
+		};
+		const sendFrameCommand = async (type: 'PAUSE_ALL' | 'RESUME_ALL'): Promise<void> => {
+			await serviceWorker.evaluate(async (commandType) => {
+				const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+				if (!tab?.id) throw new Error(`Missing active tab for ${commandType}.`);
+				const response = await chrome.tabs.sendMessage(tab.id, { type: commandType }, { frameId: 0 });
+				if (!response?.ok) throw new Error(response?.error ?? `${commandType} failed.`);
+			}, type);
+		};
+
+		for (const scale of [0.5, 0.75, 1, 1.25, 2]) {
+			await page.evaluate((value) => window.setAncestorTransform(value, value, 30, 20), scale);
+			await expectAligned(`ancestor transform scale ${scale}`);
+		}
+		await page.evaluate(() => window.setAncestorTransform(1.5, 0.75, 35, 25));
+		await expectAligned('non-uniform ancestor scale and translation');
+
+		for (const zoom of [0.5, 0.75, 1, 1.25, 2]) {
+			await page.evaluate((value) => window.setCssZoom(value, 30, 20), zoom);
+			await expectAligned(`CSS zoom ${zoom}`);
+		}
+
+		await page.evaluate(() => window.setTargetTransform(1.25, 0.75, 30, 20));
+		await expectAligned('target-owned positive scale and translation');
+
+		await page.evaluate(() => {
+			window.resetGeometry();
+			document.querySelector('#zoom-viewport')?.scrollTo(120, 80);
+		});
+		await expectAligned('nested scrolling');
+
+		await page.evaluate(() => window.resetGeometry());
+		await expectAligned('unchanged-target baseline');
+		const unchangedTargetBaseline = await page.locator('#zoom-canvas').boundingBox();
+		if (!unchangedTargetBaseline) throw new Error('Expected the unchanged-target baseline bounds.');
+		await page.evaluate(() => window.setCompensatedCssZoom(2));
+		await expect
+			.poll(async () => {
+				const box = await page.locator('#zoom-canvas').boundingBox();
+				if (!box) return Number.POSITIVE_INFINITY;
+				return Math.max(
+					Math.abs(box.x - unchangedTargetBaseline.x),
+					Math.abs(box.y - unchangedTargetBaseline.y),
+					Math.abs(box.width - unchangedTargetBaseline.width),
+					Math.abs(box.height - unchangedTargetBaseline.height)
+				);
+			})
+			.toBeLessThanOrEqual(0.1);
+		await expectAligned('unchanged target rectangle with a changed output coordinate space');
+		expect(await overlay.evaluate((canvas) => Number.parseFloat(getComputedStyle(canvas).width))).toBeCloseTo(
+			320,
+			0
+		);
+
+		await sendFrameCommand('PAUSE_ALL');
+		await expect(overlay).toBeHidden();
+		await page.evaluate(() => window.setAncestorTransform(1.25, 0.75, 45, 30));
+		await page.evaluate(
+			() => new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())))
+		);
+		await sendFrameCommand('RESUME_ALL');
+		await expect(overlay).toBeVisible();
+		await expectAligned('hide, change geometry, then show');
+
+		await page.evaluate(() => window.resetGeometry());
+		await expectAligned('reset geometry');
+		await page.locator('#zoom-canvas').click({ position: { x: 320, y: 180 } });
+		expect(await page.evaluate(() => window.__canvasClicks)).toBe(1);
+	} finally {
+		await context.close();
+		await rm(userDataDir, { recursive: true, force: true });
+		await server.close();
+	}
+});
+
 test('Chrome extension can select media in same-origin, nested, srcdoc, and newly added iframes', async () => {
 	const extensionPath = resolve(import.meta.dirname, '../../.output/chrome-mv3-e2e');
 	test.skip(!existsSync(resolve(extensionPath, 'manifest.json')), 'Run npm run build:e2e:chrome before e2e.');
@@ -418,10 +612,19 @@ interface FixtureServer {
 	close: () => Promise<void>;
 }
 
-async function startFixtureServer(): Promise<FixtureServer> {
-	const html = await readFile(resolve(import.meta.dirname, '../fixtures/media-page.html'), 'utf8');
+async function startFixtureServer(pageFile = 'media-page.html'): Promise<FixtureServer> {
+	const html = await readFile(resolve(import.meta.dirname, `../fixtures/${pageFile}`), 'utf8');
+	const overlayBundle = await readFile(
+		resolve(import.meta.dirname, '../../node_modules/textmode.overlay.js/dist/textmode.overlay.umd.js'),
+		'utf8'
+	);
 	let serverPort = 0;
 	const server = createServer((request, response) => {
+		if (request.url === '/textmode.overlay.umd.js') {
+			response.writeHead(200, { 'content-type': 'text/javascript; charset=utf-8' });
+			response.end(overlayBundle);
+			return;
+		}
 		response.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
 		switch (request.url) {
 			case '/iframe-media':

@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { OverlayManager } from '../../src/features/textmode-overlay/overlay-manager';
 import { getMediaSecurityHint } from '../../src/shared/errors/errors';
-import { createMockOverlayController, MockResizeObserver, mockRect } from './test-helpers';
+import { createMockOverlayController, mockRect } from './test-helpers';
 
 interface MockTextmodeInstance {
 	canvas: HTMLCanvasElement;
@@ -73,7 +73,6 @@ describe('OverlayManager', () => {
 	beforeEach(() => {
 		instances.length = 0;
 		document.body.replaceChildren();
-		vi.stubGlobal('ResizeObserver', MockResizeObserver);
 		vi.stubGlobal('WebGL2RenderingContext', class WebGL2RenderingContext {});
 		vi.stubGlobal('chrome', {
 			runtime: {
@@ -105,7 +104,7 @@ describe('OverlayManager', () => {
 
 		await manager.createOverlay(canvas, { fontSize: 16 });
 
-		expect(instances[0]?.canvas.style.pointerEvents).toBe('none');
+		expect(instances[0]?.overlay.setTarget).toHaveBeenCalledWith(canvas, { pointerEvents: 'none' });
 		expect(instances[0]?.canvas.style.mixBlendMode).toBe('normal');
 	});
 

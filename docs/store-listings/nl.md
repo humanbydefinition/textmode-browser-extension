@@ -1,4 +1,3 @@
-```text
 Laat het bewegende web eruitzien als tekst.
 
 [Textmode Overlay] is een realtime ASCII-artgenerator en video-naar-tekst-effect voor je browser. Selecteer een compatibele video of canvas en zie hoe die verandert in een levendig, perfect uitgelijnd raster van tekens. Combineer helderheidsarcering met contourlijnen, kies je kleuren en lettertype, stapel visuele effecten en exporteer het frame wanneer de compositie goed voelt.
@@ -121,4 +120,3 @@ Gebruikte machtigingen:
 ─── COMPATIBILITEIT
 
 Same-origin, geneste, srcdoc- en dynamisch toegevoegde iframes worden ondersteund. Media in cross-origin of ondoorzichtige sandbox-iframes kunnen niet worden gekozen. Besmette canvas (tainted canvas), DRM-video en andere beveiligde bronnen kunnen het bemonsteren van pixels ook blokkeren volgens de normale beveiligingsregels van de browser.
-```

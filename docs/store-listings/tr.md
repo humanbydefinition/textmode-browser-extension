@@ -1,4 +1,3 @@
-```text
 Hareket eden web'i metne dönüştürün.
 
 [Textmode Overlay], tarayıcınız için gerçek zamanlı bir ASCII sanatı üreticisi ve videoyu metne çeviren bir efekt. Uyumlu bir video veya canvas seçin ve onun canlı, kusursuz hizalanmış bir karakter ızgarasına dönüşmesini izleyin. Parlaklık gölgelemesini kontur çizgileriyle birleştirin, renklerinizi ve yazı tipinizi seçin, görsel efektleri katmanlayın ve kompozisyon istediğiniz gibi olduğunda kareyi dışa aktarın.
@@ -121,4 +120,3 @@ Kullanılan izinler:
 ─── UYUMLULUK
 
 Aynı kökene ait, iç içe, srcdoc ve dinamik olarak eklenen iframe'ler desteklenir. Kökenler arası veya opak sanal alan iframe'lerindeki medyalar hedeflenemez. Bozulmuş canvas'lar (tainted canvas), DRM videolar ve diğer korumalı kaynaklar da normal tarayıcı güvenlik kuralları uyarınca piksel örneklemeyi engelleyebilir.
-```

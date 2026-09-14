@@ -1,0 +1,5 @@
+{
+	// Store listing payloads are plain-text copy for store dashboards, not
+	// Markdown documents. Do not lint this directory.
+	"default": false,
+}

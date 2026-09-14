@@ -1,4 +1,3 @@
-```text
 Niech poruszający się internet wygląda jak tekst.
 
 [Textmode Overlay] to generator grafiki ASCII w czasie rzeczywistym i efekt „wideo w tekst” dla Twojej przeglądarki. Wybierz zgodny film lub canvas i patrz, jak zmienia się w żywą, idealnie wyrównaną siatkę znaków. Łącz cieniowanie według jasności z liniami konturu, wybieraj kolory i czcionkę, nakładaj efekty wizualne i eksportuj klatkę, gdy kompozycja jest taka, jak chcesz.
@@ -121,4 +120,3 @@ Używane uprawnienia:
 ─── ZGODNOŚĆ
 
 Obsługiwane są elementy iframe tego samego źródła, zagnieżdżone, srcdoc i dodawane dynamicznie. Media wewnątrz iframe cross-origin lub nieprzejrzystego sandboxa nie mogą być wybrane. Zanieczyszczone canvasy (tainted canvas), wideo DRM i inne chronione źródła mogą również blokować próbkowanie pikseli zgodnie ze standardowymi zasadami bezpieczeństwa przeglądarki.
-```

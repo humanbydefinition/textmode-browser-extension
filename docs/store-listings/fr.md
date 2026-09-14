@@ -1,4 +1,3 @@
-```text
 Faites ressembler le web en mouvement à du texte.
 
 [Textmode Overlay] est un générateur d'art ASCII en temps réel et un effet vidéo-vers-texte pour votre navigateur. Sélectionnez une vidéo ou un canvas compatible, puis regardez-la devenir une grille de caractères vivante et parfaitement alignée. Mélangez l'ombrage par luminosité avec des lignes de contour, choisissez vos couleurs et votre police, empilez des effets visuels et exportez l'image lorsque la composition vous convient.
@@ -121,4 +120,3 @@ Autorisations utilisées :
 ─── COMPATIBILITÉ
 
 Les iframes same-origin, imbriquées, srcdoc et ajoutées dynamiquement sont prises en charge. Les médias dans des iframes cross-origin ou à sandbox opaque ne peuvent pas être ciblés. Les canvas corrompus (tainted canvas), les vidéos DRM et d'autres sources protégées peuvent aussi bloquer l'échantillonnage des pixels selon les règles de sécurité habituelles du navigateur.
-```

@@ -39,8 +39,9 @@ export function createExtensionManifest({
 
 export function createBaseExtensionManifest(fontResources: readonly string[]): UserManifest {
 	return {
-		name: 'Textmode Overlay',
-		description: 'Turn <canvas> and <video> elements into live ASCII art.',
+		name: '__MSG_extName__',
+		description: '__MSG_extDescription__',
+		default_locale: 'en',
 		permissions: ['activeTab', 'contextMenus', 'scripting', 'storage', 'unlimitedStorage'],
 		...(fontResources.length > 0
 			? {

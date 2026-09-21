@@ -1215,7 +1215,7 @@ textarea,
 
 .tm-color-row {
 	display: grid;
-	grid-template-columns: minmax(0, 1fr) 92px;
+	grid-template-columns: 130px minmax(0, 1fr);
 	gap: 8px;
 	align-items: center;
 	min-width: 0;
@@ -1233,6 +1233,8 @@ textarea,
 	grid-template-columns: repeat(2, minmax(0, 1fr));
 	align-items: center;
 	width: 100%;
+	max-width: 130px;
+	justify-self: start;
 	height: 30px;
 	border: 1px solid var(--tm-neutral-26);
 	border-radius: var(--tm-radius);

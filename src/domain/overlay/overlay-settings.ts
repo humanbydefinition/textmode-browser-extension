@@ -73,7 +73,7 @@ export function createDefaultOverlaySettings(): OverlaySettings {
 		charColorMode: 'sampled',
 		charColor: '#ffffff',
 		cellColorMode: 'fixed',
-		cellColor: '#000000',
+		cellColor: '#00000000',
 		contour: createDefaultOverlayContourSettings(),
 		postFx: createDefaultOverlayPostFxItems(),
 	};
@@ -88,7 +88,7 @@ export function createDefaultOverlayContourSettings(): OverlayContourSettings {
 		charColorMode: 'sampled',
 		charColor: '#ffffff',
 		cellColorMode: 'fixed',
-		cellColor: '#000000',
+		cellColor: '#00000000',
 	};
 }
 

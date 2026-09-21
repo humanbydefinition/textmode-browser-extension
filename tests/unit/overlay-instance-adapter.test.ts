@@ -36,6 +36,19 @@ type MockTextmodeInstance = {
 };
 
 describe('overlay instance adapter', () => {
+	it('immediately hides the export library overlay through its public API', () => {
+		const instance = createTextmodeInstance();
+		const controller = createController(instance);
+
+		createOverlayInstance(
+			controller,
+			{ create: vi.fn(() => instance as unknown as ExportableTextmodeInstance) },
+			{ resolveFontAssetUrl: () => null }
+		);
+
+		expect(instance.exportOverlay?.hide).toHaveBeenCalledTimes(1);
+	});
+
 	it('applies paused settings to the textmode instance and source element', () => {
 		const canvas = document.createElement('canvas');
 		canvas.style.opacity = '0.25';

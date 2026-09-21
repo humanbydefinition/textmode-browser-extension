@@ -1559,6 +1559,10 @@ textarea,
 	overflow-wrap: anywhere;
 }
 
+.tm-overlay-card > .tm-error {
+	margin-top: 10px;
+}
+
 .tm-font-combobox__trigger {
 	display: inline-flex;
 	align-items: center;

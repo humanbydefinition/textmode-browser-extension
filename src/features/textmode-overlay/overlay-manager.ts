@@ -42,26 +42,27 @@ export class OverlayManager {
 		assertCanCreateOverlay(element);
 		this.clearOverlays();
 
-		const id = requestedId ?? `overlay-${Date.now().toString(36)}-${++this.idCounter}`;
-		let settings = this.normalizeSettings(mergeOverlaySettings(DEFAULT_OVERLAY_SETTINGS, initialSettings));
-		let fontAssetUrl: string | null = null;
+		let controller: OverlayController | undefined;
 		try {
-			fontAssetUrl = await this.resolveFontUrl(settings.fontId);
-		} catch {
-			settings = { ...settings, fontId: DEFAULT_FONT_ID };
-		}
-		if (!fontAssetUrl) {
-			settings = { ...settings, fontId: DEFAULT_FONT_ID };
-			fontAssetUrl = await this.resolveFontUrl(DEFAULT_FONT_ID);
-		}
-		const controller = createOverlayController(id, element, settings);
-
-		this.overlays.set(id, controller);
-
-		try {
+			const id = requestedId ?? `overlay-${Date.now().toString(36)}-${++this.idCounter}`;
+			let settings = this.normalizeSettings(mergeOverlaySettings(DEFAULT_OVERLAY_SETTINGS, initialSettings));
+			let fontAssetUrl: string | null = null;
+			try {
+				fontAssetUrl = await this.resolveFontUrl(settings.fontId);
+			} catch {
+				settings = { ...settings, fontId: DEFAULT_FONT_ID };
+			}
+			if (!fontAssetUrl) {
+				settings = { ...settings, fontId: DEFAULT_FONT_ID };
+				fontAssetUrl = await this.resolveFontUrl(DEFAULT_FONT_ID);
+			}
+			controller = createOverlayController(id, element, settings);
 			createOverlayInstance(controller, this.renderer, { fontAssetUrl });
+			this.overlays.set(id, controller);
 		} catch (error) {
-			this.markError(controller, error);
+			if (controller) this.disposeController(controller);
+			this.onChange();
+			throw error;
 		}
 
 		this.onChange();

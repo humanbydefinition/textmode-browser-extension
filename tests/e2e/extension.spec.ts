@@ -210,6 +210,9 @@ test('Chrome extension can select a canvas and create an overlay', async () => {
 
 		await expect(page.getByText('canvas selected')).toBeVisible();
 		await expect(page.locator('canvas[data-textmode-ascii-extension-ui="true"]')).toHaveCount(1);
+		const exportOverlayHost = page.locator('[data-plugin="textmode-export-overlay-host"]');
+		await expect(exportOverlayHost).toHaveCount(1);
+		await expect(exportOverlayHost).toHaveCSS('display', 'none');
 		const opacitySlider = page.locator('.tm-field--range', { hasText: 'opacity' });
 		const opacityFieldBounds = await opacitySlider.boundingBox();
 		const opacityThumbBounds = await opacitySlider.locator('[data-slot="slider-thumb"]').boundingBox();

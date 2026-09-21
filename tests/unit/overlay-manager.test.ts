@@ -108,6 +108,31 @@ describe('OverlayManager', () => {
 		expect(instances[0]?.canvas.style.mixBlendMode).toBe('normal');
 	});
 
+	it('does not retain a settings descriptor when media overlay creation fails', async () => {
+		const canvas = createCanvas('cross-origin-source');
+		document.body.append(canvas);
+		const onChange = vi.fn();
+		const instance = {
+			canvas: document.createElement('canvas'),
+			destroy: vi.fn(),
+			overlay: {
+				setTarget: vi.fn(() => {
+					throw new DOMException('The canvas is tainted by a cross-origin source.', 'SecurityError');
+				}),
+			},
+		};
+		const renderer = {
+			create: vi.fn(() => instance),
+		};
+		const manager = new OverlayManager(onChange, renderer as never, async () => '/fonts/Bescii-Mono.ttf');
+
+		await expect(manager.createOverlay(canvas)).rejects.toThrow('cross-origin');
+
+		expect(manager.list()).toEqual([]);
+		expect(instance.destroy).toHaveBeenCalledTimes(1);
+		expect(onChange).toHaveBeenCalledTimes(1);
+	});
+
 	it('records export failures on the overlay descriptor', async () => {
 		const canvas = createCanvas('source');
 		document.body.append(canvas);

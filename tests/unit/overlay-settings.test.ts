@@ -40,7 +40,7 @@ describe('mergeOverlaySettings', () => {
 			charColorMode: 'sampled',
 			charColor: '#ffffff',
 			cellColorMode: 'fixed',
-			cellColor: '#000000',
+			cellColor: '#00000000',
 		});
 
 		const settings = mergeOverlaySettings(DEFAULT_OVERLAY_SETTINGS, {

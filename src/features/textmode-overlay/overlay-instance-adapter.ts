@@ -21,6 +21,7 @@ export function createOverlayInstance(
 	const instance = renderer.create(controller.element, controller.settings, fontSource ? { fontSource } : undefined);
 	controller.instance = instance;
 	controller.loadedFontId = controller.settings.fontId;
+	instance.exportOverlay?.hide();
 
 	instance.overlay?.setTarget(controller.element, { pointerEvents: 'none' });
 
@@ -29,7 +30,6 @@ export function createOverlayInstance(
 	instance.canvas.style.mixBlendMode = 'normal';
 
 	instance.setup(async () => {
-		instance.exportOverlay?.hide();
 		configureSource(controller);
 		controller.postFxFiltersReady = await waitForPostFxFilterRegistration(instance);
 	});

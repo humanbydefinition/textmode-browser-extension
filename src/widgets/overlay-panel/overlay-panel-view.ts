@@ -111,13 +111,17 @@ export class OverlayPanelView {
 		this.notice = h('p', { className: 'tm-error', attributes: { role: 'alert' } });
 		this.notice.hidden = true;
 
-		this.removeButton = createButton('tm-button tm-button--danger tm-button--default-size tm-remove-button');
-		this.removeButton.append(icon('trash'), 'remove overlay');
+		this.removeButton = createButton(
+			'tm-button tm-button--danger tm-button--default-size tm-remove-button',
+			'remove overlay'
+		);
+		this.removeButton.append(icon('trash'));
 		this.removeButton.addEventListener('click', () => {
 			if (this.overlayId) {
 				options.onRemoveOverlay(this.overlayId);
 			}
 		});
+		const selectRow = h('div', { className: 'tm-select-row' }, this.selectButton, this.removeButton);
 		const ratingUrl = options.rateExtensionUrl === undefined ? defaultRateExtensionUrl : options.rateExtensionUrl;
 		const rateLink = ratingUrl
 			? h('a', {
@@ -142,7 +146,7 @@ export class OverlayPanelView {
 				})
 			)
 		);
-		const footer = h('footer', { className: 'tm-panel__footer' }, this.removeButton, footerMeta);
+		const footer = h('footer', { className: 'tm-panel__footer' }, footerMeta);
 
 		this.element = h(
 			'main',
@@ -152,7 +156,7 @@ export class OverlayPanelView {
 				dataset: { mode },
 			},
 			header,
-			this.selectButton,
+			selectRow,
 			this.notice,
 			this.overlayList,
 			footer

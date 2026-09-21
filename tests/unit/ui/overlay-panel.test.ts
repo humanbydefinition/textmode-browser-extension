@@ -122,7 +122,8 @@ describe('OverlayPanelView', () => {
 
 		expect(onExportOverlay).toHaveBeenCalledWith('overlay-1', 'png');
 
-		const removeButton = host.querySelector<HTMLButtonElement>('.tm-panel__footer .tm-remove-button');
+		const removeButton = host.querySelector<HTMLButtonElement>('.tm-select-row .tm-remove-button');
+		expect(host.querySelector('.tm-panel__footer .tm-remove-button')).toBeNull();
 		expect(removeButton?.disabled).toBe(false);
 		removeButton?.click();
 		expect(onRemoveOverlay).toHaveBeenCalledWith('overlay-1');

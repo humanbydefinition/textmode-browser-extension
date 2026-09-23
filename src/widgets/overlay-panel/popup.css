@@ -811,7 +811,11 @@ select {
 
 .tm-post-fx-panel {
 	gap: 8px;
-	padding: 5px;
+	padding: 0 5px 5px;
+}
+
+.tm-post-fx-row:first-child :is(.tm-post-fx-grip, .tm-post-fx-main, .tm-post-fx-disclosure):focus-visible {
+	outline-offset: -2px;
 }
 
 .tm-post-fx-list {

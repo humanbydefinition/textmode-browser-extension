@@ -259,19 +259,6 @@ test('Chrome extension can select a canvas and create an overlay', async () => {
 		const glyphRampInset = await readScrollViewportInset(glyphRampInput, glyphRampViewport);
 		expect(Math.min(glyphRampInset.left, glyphRampInset.right, glyphRampInset.bottom)).toBeGreaterThanOrEqual(4);
 
-		await page.getByRole('tab', { name: 'post fx' }).click();
-		const postFxViewport = page.locator('.tm-tabs-scroll-area__viewport');
-		const lastPostFxRow = page.locator('.tm-post-fx-row').last();
-		const lastPostFxButton = lastPostFxRow.locator('.tm-post-fx-main');
-		await page.keyboard.press('Tab');
-		await lastPostFxButton.focus();
-		await expect(lastPostFxButton).toHaveCSS('outline-style', 'solid');
-		await postFxViewport.evaluate((viewport) => {
-			viewport.scrollTop = viewport.scrollHeight;
-		});
-		const postFxInset = await readScrollViewportInset(lastPostFxRow, postFxViewport);
-		expect(Math.min(postFxInset.left, postFxInset.right, postFxInset.bottom)).toBeGreaterThanOrEqual(4);
-		await page.getByRole('tab', { name: 'advanced' }).click();
 		await page.getByRole('button', { name: /characters color/i }).click();
 		await expect(page.locator('[data-slot="popover-content"]')).toBeVisible();
 

@@ -139,7 +139,6 @@ describe('OverlayPanelView', () => {
 		expect(card).not.toBeNull();
 		expect(card?.parentElement).toBe(host.querySelector('.tm-overlay-list'));
 		expect(host.querySelector('[data-slot="scroll-area"] .tm-overlay-card')).toBeNull();
-		expect(card?.querySelector('.tm-overlay-card__header')?.closest('[data-slot="scroll-area"]')).toBeNull();
 		expect(
 			card?.querySelector('.tm-settings-form > .tm-control-group')?.closest('[data-slot="scroll-area"]')
 		).toBeNull();

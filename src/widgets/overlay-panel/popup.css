@@ -634,6 +634,7 @@ select {
 .tm-tabs-scroll-area__content {
 	display: grid;
 	align-content: start;
+	padding: 5px;
 }
 
 .tm-tabs-list {
@@ -751,6 +752,7 @@ select {
 .tm-converter-scroll-area__content {
 	display: grid;
 	align-content: start;
+	padding: 5px;
 }
 
 .tm-tabs-content[data-state='active'],

@@ -634,7 +634,6 @@ select {
 .tm-tabs-scroll-area__content {
 	display: grid;
 	align-content: start;
-	padding: 5px;
 }
 
 .tm-tabs-list {
@@ -812,6 +811,7 @@ select {
 
 .tm-post-fx-panel {
 	gap: 8px;
+	padding: 5px;
 }
 
 .tm-post-fx-list {

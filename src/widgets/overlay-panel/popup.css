@@ -68,7 +68,7 @@ select {
 	gap: 12px;
 	width: 100%;
 	max-width: var(--tm-panel-width);
-	max-height: min(605px, calc(100vh - 60px));
+	max-height: min(540px, calc(100vh - 60px));
 	min-width: 0;
 	min-height: 0;
 	padding: 12px;

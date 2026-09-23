@@ -43,18 +43,9 @@ export interface OverlaySettings {
 	postFx: OverlayPostFxItem[];
 }
 
-export interface ElementBounds {
-	x: number;
-	y: number;
-	width: number;
-	height: number;
-}
-
 export interface OverlayDescriptor {
 	id: string;
-	elementKind: ElementKind;
 	elementLabel: string;
-	bounds: ElementBounds;
 	settings: OverlaySettings;
 	status: OverlayStatus;
 	latestError?: string;
@@ -155,16 +146,6 @@ export function normalizeOverlayContourSettings(
 		charColor: isOverlayColor(contour.charColor) ? contour.charColor : fallback.charColor,
 		cellColorMode: isSourceColorMode(contour.cellColorMode) ? contour.cellColorMode : fallback.cellColorMode,
 		cellColor: isOverlayColor(contour.cellColor) ? contour.cellColor : fallback.cellColor,
-	};
-}
-
-export function getElementBounds(element: Element): ElementBounds {
-	const rect = element.getBoundingClientRect();
-	return {
-		x: Math.round(rect.left + window.scrollX),
-		y: Math.round(rect.top + window.scrollY),
-		width: Math.round(rect.width),
-		height: Math.round(rect.height),
 	};
 }
 

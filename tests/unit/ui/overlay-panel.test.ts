@@ -361,9 +361,7 @@ function createView(overrides: Partial<ConstructorParameters<typeof OverlayPanel
 function createOverlay(settings = DEFAULT_OVERLAY_SETTINGS): OverlayDescriptor {
 	return {
 		id: 'overlay-1',
-		elementKind: 'canvas',
 		elementLabel: 'canvas#demo-canvas.really-long-class 320x180',
-		bounds: { x: 0, y: 0, width: 320, height: 180 },
 		settings,
 		status: 'active',
 	};

@@ -33,9 +33,7 @@ describe('page state broadcasts', () => {
 		const overlays = [
 			{
 				id: 'overlay-1',
-				elementKind: 'video' as const,
 				elementLabel: 'video',
-				bounds: { x: 0, y: 0, width: 10, height: 10 },
 				settings: DEFAULT_OVERLAY_SETTINGS,
 				status: 'active' as const,
 			},

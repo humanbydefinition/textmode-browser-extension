@@ -15,6 +15,8 @@
   --><a href="https://wxt.dev/"><img alt="WXT" src="https://img.shields.io/badge/WXT-000000?logo=webcomponents.org&logoColor=white" /></a><!--
   --><a href="https://vite.dev/"><img alt="Vite" src="https://img.shields.io/badge/Vite-646CFF?logo=vite&logoColor=white" /></a>
   &nbsp;&nbsp;
+  <a href="https://discord.gg/sjrw8QXNks"><img alt="Discord" src="https://img.shields.io/discord/1357070706181017691?color=5865F2&amp;label=Discord&amp;logo=discord&amp;logoColor=white" /></a>
+  &nbsp;&nbsp;
   <img alt="Chrome MV3" src="https://img.shields.io/badge/Chrome-MV3-4285F4?logo=googlechrome&logoColor=white" /><!--
   --><img alt="Edge MV3" src="https://img.shields.io/badge/Edge-MV3-0078D7?logo=microsoftedge&logoColor=white" /><!--
   --><img alt="Firefox MV3" src="https://img.shields.io/badge/Firefox-MV3-FF7139?logo=firefoxbrowser&logoColor=white" /><!--

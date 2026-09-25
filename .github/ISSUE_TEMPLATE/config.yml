@@ -5,3 +5,6 @@ contact_links:
     - name: textmode.js editor
       url: https://editor.textmode.art
       about: Try textmode.js sketches directly in the browser.
+    - name: Discord
+      url: https://discord.gg/sjrw8QXNks
+      about: Ask informal usage questions or sanity-check ideas before filing an issue.

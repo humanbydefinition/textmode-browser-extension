@@ -122,7 +122,8 @@ describe('OverlayPanelView', () => {
 
 		expect(onExportOverlay).toHaveBeenCalledWith('overlay-1', 'png');
 
-		const removeButton = host.querySelector<HTMLButtonElement>('.tm-panel__footer .tm-remove-button');
+		const removeButton = host.querySelector<HTMLButtonElement>('.tm-select-row .tm-remove-button');
+		expect(host.querySelector('.tm-panel__footer .tm-remove-button')).toBeNull();
 		expect(removeButton?.disabled).toBe(false);
 		removeButton?.click();
 		expect(onRemoveOverlay).toHaveBeenCalledWith('overlay-1');
@@ -138,7 +139,6 @@ describe('OverlayPanelView', () => {
 		expect(card).not.toBeNull();
 		expect(card?.parentElement).toBe(host.querySelector('.tm-overlay-list'));
 		expect(host.querySelector('[data-slot="scroll-area"] .tm-overlay-card')).toBeNull();
-		expect(card?.querySelector('.tm-overlay-card__header')?.closest('[data-slot="scroll-area"]')).toBeNull();
 		expect(
 			card?.querySelector('.tm-settings-form > .tm-control-group')?.closest('[data-slot="scroll-area"]')
 		).toBeNull();
@@ -361,9 +361,7 @@ function createView(overrides: Partial<ConstructorParameters<typeof OverlayPanel
 function createOverlay(settings = DEFAULT_OVERLAY_SETTINGS): OverlayDescriptor {
 	return {
 		id: 'overlay-1',
-		elementKind: 'canvas',
 		elementLabel: 'canvas#demo-canvas.really-long-class 320x180',
-		bounds: { x: 0, y: 0, width: 320, height: 180 },
 		settings,
 		status: 'active',
 	};

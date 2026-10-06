@@ -56,9 +56,7 @@ describe('top frame coordinator', () => {
 	it('coordinates a child-frame pick while keeping presets in the top-page store', async () => {
 		const descriptor: OverlayDescriptor = {
 			id: 'overlay-child',
-			elementKind: 'video',
 			elementLabel: 'video#player 640x360',
-			bounds: { x: 0, y: 0, width: 640, height: 360 },
 			settings: { ...DEFAULT_OVERLAY_SETTINGS, fontSize: 18 },
 			status: 'active',
 		};

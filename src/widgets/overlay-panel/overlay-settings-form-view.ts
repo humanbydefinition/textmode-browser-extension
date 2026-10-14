@@ -225,14 +225,14 @@ export class OverlaySettingsFormView {
 	}
 
 	public dispose(): void {
+		this.tabs.dispose();
+		this.converterTabs.dispose();
 		this.backgroundColorPicker.dispose();
 		this.charColorModeField.dispose();
 		this.cellColorModeField.dispose();
 		this.fontCombobox.dispose();
 		this.postFxPanel.dispose();
 		this.contourPanel.dispose();
-		this.converterTabs.dispose();
-		this.tabs.dispose();
 	}
 
 	private refreshAvailableFonts(): readonly FontEntry[] {

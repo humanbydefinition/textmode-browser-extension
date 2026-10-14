@@ -694,6 +694,82 @@ select {
 	padding: 5px;
 }
 
+.tm-post-fx-scroll-area__content {
+	display: grid;
+	align-content: start;
+}
+
+.tm-panel-scroll-area__content {
+	display: grid;
+	grid-template-rows: auto minmax(0, 1fr);
+	height: 100%;
+}
+
+.tm-panel-scroll-area__content > .tm-overlay-list {
+	grid-row: 2;
+	height: 100%;
+}
+
+.tm-panel[data-scroll-mode='tabs'] .tm-panel-scroll-area__viewport {
+	overflow: hidden;
+}
+
+.tm-panel[data-scroll-mode='tabs'] .tm-panel-scroll-area > [data-slot='scroll-area-scrollbar'] {
+	display: none;
+}
+
+.tm-panel[data-scroll-mode='panel'] .tm-panel-scroll-area__content {
+	grid-template-rows: auto auto;
+	height: auto;
+	gap: 8px;
+	padding: 4px;
+}
+
+.tm-panel[data-scroll-mode='panel'] .tm-overlay-card {
+	grid-template-rows: auto auto;
+	height: auto;
+	overflow: visible;
+}
+
+.tm-panel[data-scroll-mode='panel'] .tm-overlay-list {
+	height: auto;
+}
+
+.tm-panel[data-scroll-mode='panel'] .tm-settings-form,
+.tm-panel[data-scroll-mode='panel'] .tm-settings-tabs,
+.tm-panel[data-scroll-mode='panel'] .tm-converter-tabs {
+	grid-template-rows: auto auto;
+	overflow: visible;
+}
+
+.tm-panel[data-scroll-mode='panel'] .tm-tabs-body,
+.tm-panel[data-scroll-mode='panel'] .tm-tabs-body > .tm-tabs-content[data-state='active'],
+.tm-panel[data-scroll-mode='panel'] .tm-advanced-controls {
+	grid-template-rows: auto;
+	overflow: visible;
+}
+
+.tm-panel[data-scroll-mode='panel'] .tm-converter-scroll-area:not([hidden]),
+.tm-panel[data-scroll-mode='panel'] .tm-post-fx-scroll-area {
+	display: block;
+	overflow: visible;
+}
+
+.tm-panel[data-scroll-mode='panel'] .tm-converter-scroll-area__viewport,
+.tm-panel[data-scroll-mode='panel'] .tm-post-fx-scroll-area__viewport {
+	overflow: visible;
+}
+
+.tm-panel[data-scroll-mode='panel'] .tm-converter-scroll-area > [data-slot='scroll-area-scrollbar'],
+.tm-panel[data-scroll-mode='panel'] .tm-post-fx-scroll-area > [data-slot='scroll-area-scrollbar'] {
+	display: none;
+}
+
+[data-slot='scroll-area-viewport']:focus-visible {
+	outline: 2px solid var(--tm-accent-blue);
+	outline-offset: -2px;
+}
+
 .tm-tabs-content[data-state='active'],
 .tm-advanced-controls {
 	min-height: 0;

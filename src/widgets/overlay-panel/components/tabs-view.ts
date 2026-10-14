@@ -6,10 +6,11 @@ export class TabsView {
 	public readonly exportContent: HTMLDivElement;
 	public readonly advancedContent: HTMLDivElement;
 	public readonly postFxContent: HTMLDivElement;
-	private readonly scrollArea: ScrollAreaView;
 	private readonly exportTrigger: HTMLButtonElement;
 	private readonly advancedTrigger: HTMLButtonElement;
 	private readonly postFxTrigger: HTMLButtonElement;
+	private readonly postFxPanel: HTMLDivElement;
+	private readonly postFxScrollArea: ScrollAreaView;
 	private value: 'export' | 'advanced' | 'postFx' = 'export';
 
 	public constructor() {
@@ -46,17 +47,24 @@ export class TabsView {
 			className: 'tm-tabs-content',
 			attributes: { role: 'tabpanel', 'data-slot': 'tabs-content' },
 		});
-		this.postFxContent = h('div', {
+		this.postFxPanel = h('div', {
 			className: 'tm-tabs-content',
 			attributes: { role: 'tabpanel', 'data-slot': 'tabs-content' },
 		});
-		this.scrollArea = new ScrollAreaView({
-			rootClassName: 'tm-tabs-scroll-area',
-			viewportClassName: 'tm-tabs-scroll-area__viewport',
-			contentClassName: 'tm-tabs-scroll-area__content',
+		this.postFxScrollArea = new ScrollAreaView({
+			rootClassName: 'tm-post-fx-scroll-area',
+			viewportClassName: 'tm-post-fx-scroll-area__viewport',
+			contentClassName: 'tm-post-fx-scroll-area__content',
 		});
-		this.scrollArea.content.append(this.exportContent, this.postFxContent);
-		const contentHost = h('div', { className: 'tm-tabs-body' }, this.scrollArea.element, this.advancedContent);
+		this.postFxContent = this.postFxScrollArea.content as HTMLDivElement;
+		this.postFxPanel.append(this.postFxScrollArea.element);
+		const contentHost = h(
+			'div',
+			{ className: 'tm-tabs-body' },
+			this.exportContent,
+			this.advancedContent,
+			this.postFxPanel
+		);
 		this.element = h(
 			'div',
 			{ className: 'tm-settings-tabs', attributes: { 'data-slot': 'tabs' } },
@@ -76,15 +84,14 @@ export class TabsView {
 	}
 
 	public dispose(): void {
-		this.scrollArea.dispose();
+		this.postFxScrollArea.dispose();
 	}
 
 	private render(): void {
 		updateTab(this.exportTrigger, this.exportContent, this.value === 'export');
 		updateTab(this.advancedTrigger, this.advancedContent, this.value === 'advanced');
-		updateTab(this.postFxTrigger, this.postFxContent, this.value === 'postFx');
-		this.scrollArea.element.hidden = this.value === 'advanced';
-		this.scrollArea.update();
+		updateTab(this.postFxTrigger, this.postFxPanel, this.value === 'postFx');
+		this.postFxScrollArea.update();
 	}
 }
 

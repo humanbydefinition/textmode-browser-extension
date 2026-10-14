@@ -5,6 +5,8 @@ import { h, removeChildren } from './dom';
 import { icon } from './icons';
 import { OverlayCardView } from './panel/overlay-card-view';
 import { createButton } from './settings/form-controls';
+import { ScrollAreaView } from './components/scroll-area-view';
+import { PanelScrollController } from './panel-scroll-controller';
 import { rateExtensionUrl as defaultRateExtensionUrl } from '../../shared/config/store-links';
 
 export interface OverlayPanelViewOptions {
@@ -31,6 +33,8 @@ export class OverlayPanelView {
 	private readonly overlayList: HTMLElement;
 	private readonly removeButton: HTMLButtonElement;
 	private readonly notice: HTMLParagraphElement;
+	private readonly scrollArea: ScrollAreaView;
+	private readonly scrollController: PanelScrollController;
 	private overlayCard: OverlayCardView | null = null;
 	private overlayId: string | null = null;
 	private picking = false;
@@ -107,9 +111,18 @@ export class OverlayPanelView {
 		this.selectButton.addEventListener('click', () => {
 			if (!this.picking) options.onStartPicking();
 		});
-		this.overlayList = h('section', { className: 'tm-overlay-list', attributes: { 'aria-live': 'polite' } });
+		this.overlayList = h('section', { className: 'tm-overlay-list' });
 		this.notice = h('p', { className: 'tm-error', attributes: { role: 'alert' } });
 		this.notice.hidden = true;
+		this.scrollArea = new ScrollAreaView({
+			rootClassName: 'tm-panel-scroll-area',
+			viewportClassName: 'tm-panel-scroll-area__viewport',
+			contentClassName: 'tm-panel-scroll-area__content',
+		});
+		this.scrollArea.viewport.setAttribute('role', 'region');
+		this.scrollArea.viewport.setAttribute('aria-label', 'overlay settings');
+		this.scrollArea.viewport.tabIndex = -1;
+		this.scrollArea.content.append(this.notice, this.overlayList);
 
 		this.removeButton = createButton(
 			'tm-button tm-button--danger tm-button--default-size tm-remove-button',
@@ -153,14 +166,14 @@ export class OverlayPanelView {
 			{
 				className: 'tm-panel',
 				attributes: { 'data-testid': 'overlay-panel' },
-				dataset: { mode },
+				dataset: { mode, scrollMode: 'tabs' },
 			},
 			header,
 			selectRow,
-			this.notice,
-			this.overlayList,
+			this.scrollArea.element,
 			footer
 		);
+		this.scrollController = new PanelScrollController(this.element);
 	}
 
 	public update(
@@ -170,7 +183,9 @@ export class OverlayPanelView {
 		const overlay = overlays[0];
 		this.overlayId = overlay?.id ?? null;
 		this.updateSelectButtonLabel();
+		const removingFocusedOverlay = !overlay && this.removeButton.matches(':focus');
 		this.removeButton.disabled = !overlay;
+		if (removingFocusedOverlay) this.selectButton.focus();
 
 		if (!overlay) {
 			this.overlayCard?.dispose();
@@ -213,7 +228,9 @@ export class OverlayPanelView {
 	}
 
 	public dispose(): void {
+		this.scrollController.dispose();
 		this.overlayCard?.dispose();
+		this.scrollArea.dispose();
 	}
 
 	private updateSelectButtonLabel(): void {

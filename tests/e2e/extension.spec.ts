@@ -3,7 +3,7 @@ import { existsSync } from 'node:fs';
 import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import { chromium, expect, test } from '@playwright/test';
+import { chromium, expect, test, type Locator } from '@playwright/test';
 
 declare global {
 	interface Window {
@@ -208,8 +208,8 @@ test('Chrome extension can select a canvas and create an overlay', async () => {
 		);
 		await page.locator('canvas#demo-canvas').click({ position: { x: 24, y: 24 } });
 
-		await expect(page.getByText('canvas selected')).toBeVisible();
 		await expect(page.locator('canvas[data-textmode-ascii-extension-ui="true"]')).toHaveCount(1);
+		await expect(page.getByRole('button', { name: 'remove overlay', exact: true })).toHaveText('');
 		const exportOverlayHost = page.locator('[data-plugin="textmode-export-overlay-host"]');
 		await expect(exportOverlayHost).toHaveCount(1);
 		await expect(exportOverlayHost).toHaveCSS('display', 'none');
@@ -237,6 +237,8 @@ test('Chrome extension can select a canvas and create an overlay', async () => {
 		await expect(page.getByRole('button', { name: /JPG/i })).toBeVisible();
 		await page.getByRole('tab', { name: 'advanced' }).click();
 		const brightnessLayout = await readConverterLayout(page, 'brightness');
+		await expect(page.locator('.tm-panel')).toHaveAttribute('data-scroll-mode', 'tabs');
+		await expect(page.locator('.tm-panel-scroll-area__viewport')).toHaveCSS('overflow-y', 'hidden');
 		expect(brightnessLayout.tabListInsideScrollArea).toBe(false);
 		expect(brightnessLayout.viewportClientHeight).toBeGreaterThan(0);
 		await page.getByRole('tab', { name: 'contour' }).click();
@@ -247,6 +249,19 @@ test('Chrome extension can select a canvas and create an overlay', async () => {
 		expect(contourLayout.viewportScrollHeight).toBeGreaterThan(contourLayout.viewportClientHeight);
 		expect(contourLayout.endAccessible).toBe(true);
 		await page.getByRole('tab', { name: 'brightness' }).click();
+		const glyphRampInput = page.locator('.tm-brightness-controls input.tm-input');
+		await glyphRampInput.focus();
+		await expect(glyphRampInput).toHaveCSS('outline-style', 'solid');
+		const glyphRampViewport = page.locator(
+			'.tm-converter-tabs-content[data-state="active"] .tm-converter-scroll-area__viewport'
+		);
+		await glyphRampViewport.evaluate((viewport) => {
+			viewport.scrollTop = viewport.scrollHeight;
+		});
+		const glyphRampInset = await readScrollViewportInset(glyphRampInput, glyphRampViewport);
+		expect(await page.locator('.tm-panel-scroll-area__viewport').evaluate((node) => node.scrollTop)).toBe(0);
+		expect(Math.min(glyphRampInset.left, glyphRampInset.right, glyphRampInset.bottom)).toBeGreaterThanOrEqual(4);
+
 		await page.getByRole('button', { name: /characters color/i }).click();
 		await expect(page.locator('[data-slot="popover-content"]')).toBeVisible();
 
@@ -332,6 +347,201 @@ test('Chrome extension can select a canvas and create an overlay', async () => {
 		await server.close();
 	}
 });
+
+test('panel settings remain usable in short viewports and with enlarged text', async () => {
+	test.setTimeout(60_000);
+	const testInfo = test.info();
+	const extensionPath = resolve(import.meta.dirname, '../../.output/chrome-mv3-e2e');
+	test.skip(!existsSync(resolve(extensionPath, 'manifest.json')), 'Run npm run build:e2e:chrome before e2e.');
+	const server = await startFixtureServer();
+	const userDataDir = await mkdtemp(join(tmpdir(), 'textmode-panel-layout-e2e-'));
+	const context = await chromium.launchPersistentContext(userDataDir, {
+		headless: false,
+		args: [`--disable-extensions-except=${extensionPath}`, `--load-extension=${extensionPath}`],
+	});
+	try {
+		const page = context.pages()[0] ?? (await context.newPage());
+		await page.setViewportSize({ width: 800, height: 720 });
+		await page.goto(server.url);
+		const serviceWorker = context.serviceWorkers()[0] ?? (await context.waitForEvent('serviceworker'));
+		await serviceWorker.evaluate(async () => {
+			const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+			if (!tab?.id) throw new Error('Missing active tab for panel layout E2E.');
+			await chrome.scripting.executeScript({
+				target: { tabId: tab.id, allFrames: true },
+				files: ['/content-runtime.js'],
+			});
+			await chrome.tabs.sendMessage(tab.id, { type: 'TOGGLE_OVERLAY' }, { frameId: 0 });
+		});
+		await page.getByRole('button', { name: 'select media', exact: true }).click();
+		await page.locator('#demo-canvas').click({ position: { x: 24, y: 24 } });
+		let viewport = page.locator('.tm-panel-scroll-area__viewport');
+		await expect(page.locator('.tm-panel')).toHaveAttribute('data-scroll-mode', 'tabs');
+		await page.getByRole('checkbox', { name: 'overlay', exact: true }).uncheck();
+		await page.getByRole('button', { name: 'close panel', exact: true }).click();
+		await serviceWorker.evaluate(async () => {
+			const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+			await chrome.tabs.sendMessage(tab!.id!, { type: 'TOGGLE_OVERLAY' }, { frameId: 0 });
+		});
+		await expect(page.getByRole('checkbox', { name: 'overlay', exact: true })).not.toBeChecked();
+		const measurements: Array<{ height: number; settingsViewportHeight: number; scrollHeight: number }> = [];
+
+		for (const height of [720, 500, 400, 320]) {
+			await page.setViewportSize({ width: 800, height });
+			await page.getByRole('tab', { name: 'export', exact: true }).click();
+			viewport = await settingsViewport(page, 'export');
+			await expectControlWithinViewport(page.getByRole('button', { name: 'export JPG', exact: true }), viewport);
+			await page.getByRole('tab', { name: 'advanced', exact: true }).click();
+			await page.getByRole('tab', { name: 'brightness', exact: true }).click();
+			viewport = await settingsViewport(page, 'advanced');
+			await expect.poll(() => viewport.evaluate((node) => node.clientHeight)).toBeGreaterThanOrEqual(48);
+			await expect(page.locator('.tm-panel')).toHaveAttribute(
+				'data-scroll-mode',
+				height === 720 ? 'tabs' : 'panel'
+			);
+			const glyphRamp = page.getByRole('textbox', { name: 'glyph ramp', exact: true });
+			await glyphRamp.focus();
+			await expectControlWithinViewport(glyphRamp, viewport);
+			await expect(glyphRamp).toHaveCSS('outline-style', 'solid');
+			measurements.push(
+				await viewport.evaluate(
+					(node, currentHeight) => ({
+						height: currentHeight,
+						settingsViewportHeight: node.clientHeight,
+						scrollHeight: node.scrollHeight,
+					}),
+					height
+				)
+			);
+			await page.locator('#textmode-ascii-overlay-control-panel-root').screenshot({
+				path: testInfo.outputPath(`panel-${height}.png`),
+			});
+			await page.getByRole('tab', { name: 'contour', exact: true }).click();
+			viewport = await settingsViewport(page, 'advanced');
+			await expectControlWithinViewport(page.locator('.tm-contour-controls [role="slider"]').last(), viewport);
+			await page.getByRole('tab', { name: 'post fx', exact: true }).click();
+			viewport = await settingsViewport(page, 'post fx');
+			const parameterRow = page
+				.locator('.tm-post-fx-row')
+				.filter({ has: page.locator('[role="slider"]') })
+				.last();
+			await parameterRow.locator('.tm-post-fx-main').click();
+			await expectControlWithinViewport(parameterRow.locator('[role="slider"]').last(), viewport);
+			await parameterRow.locator('.tm-post-fx-main').click();
+			await expectControlWithinViewport(
+				page.locator('.tm-post-fx-row').last().locator('.tm-post-fx-main'),
+				viewport
+			);
+			await viewport.focus();
+			await viewport.press('Home');
+			await expect.poll(() => viewport.evaluate((node) => node.scrollTop)).toBe(0);
+			await viewport.press('End');
+			await expect.poll(() => viewport.evaluate((node) => node.scrollTop)).toBeGreaterThan(0);
+			await viewport.evaluate((node) => {
+				node.scrollTop = 0;
+			});
+			await viewport.hover();
+			await page.mouse.wheel(0, 1_000);
+			await expect.poll(() => viewport.evaluate((node) => node.scrollTop)).toBeGreaterThan(0);
+		}
+
+		await page.setViewportSize({ width: 320, height: 500 });
+		await expectControlWithinViewport(
+			page.getByRole('button', { name: 'remove overlay', exact: true }),
+			page.locator('.tm-panel')
+		);
+		await page.getByRole('tab', { name: 'advanced', exact: true }).click();
+		await page.getByRole('tab', { name: 'brightness', exact: true }).click();
+		viewport = await settingsViewport(page, 'advanced');
+		await expectControlWithinViewport(page.getByRole('textbox', { name: 'glyph ramp', exact: true }), viewport);
+		await page.locator('[role="combobox"]').click();
+		await expect(page.locator('[data-slot="popover-content"]')).toBeVisible();
+		await page.keyboard.press('Escape');
+		await expect(page.locator('[role="combobox"]')).toBeFocused();
+		await page.getByRole('button', { name: 'background color', exact: true }).click();
+		await expect(page.locator('[data-slot="popover-content"]')).toBeVisible();
+		await page.keyboard.press('Escape');
+		await expect(page.getByRole('button', { name: 'background color', exact: true })).toBeFocused();
+
+		await page.setViewportSize({ width: 800, height: 720 });
+		await serviceWorker.evaluate(async () => {
+			const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+			await chrome.tabs.setZoom(tab!.id!, 2);
+		});
+		viewport = await settingsViewport(page, 'advanced');
+		await expectControlWithinViewport(page.getByRole('textbox', { name: 'glyph ramp', exact: true }), viewport);
+		await page.screenshot({ path: testInfo.outputPath('browser-zoom-200.png') });
+		await serviceWorker.evaluate(async () => {
+			const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+			await chrome.tabs.setZoom(tab!.id!, 1);
+		});
+		await expect(page.locator('.tm-panel')).toHaveAttribute('data-scroll-mode', 'tabs');
+
+		await page.setViewportSize({ width: 800, height: 720 });
+		await page.evaluate(() => {
+			const root = document.querySelector('#textmode-ascii-overlay-control-panel-root')?.shadowRoot;
+			const elements = [...(root?.querySelectorAll<HTMLElement>('.tm-settings-form, .tm-settings-form *') ?? [])];
+			const sizes = elements.map((node) => Number.parseFloat(getComputedStyle(node).fontSize));
+			elements.forEach((node, index) => {
+				node.style.fontSize = `${sizes[index]! * 2}px`;
+			});
+			const error = root?.querySelector<HTMLElement>('.tm-overlay-card > .tm-error');
+			if (error) {
+				error.hidden = false;
+				error.textContent = 'Test error: Unable to sample this media. Select another target. '.repeat(5);
+			}
+		});
+		viewport = await settingsViewport(page, 'advanced');
+		await expect(page.locator('.tm-panel')).toHaveAttribute('data-scroll-mode', 'panel');
+		await page.getByRole('textbox', { name: 'glyph ramp', exact: true }).focus();
+		await expectControlWithinViewport(page.getByRole('textbox', { name: 'glyph ramp', exact: true }), viewport);
+		await expectControlWithinViewport(page.locator('.tm-overlay-card > .tm-error'), viewport);
+		await page.screenshot({ path: testInfo.outputPath('enlarged-text.png') });
+		await testInfo.attach('panel-layout', {
+			body: JSON.stringify(measurements, null, 2),
+			contentType: 'application/json',
+		});
+		await page.getByRole('button', { name: 'remove overlay', exact: true }).click();
+		await expect(page.getByRole('button', { name: 'select media', exact: true })).toBeFocused();
+	} finally {
+		await context.close();
+		await rm(userDataDir, { recursive: true, force: true });
+		await server.close();
+	}
+});
+
+async function settingsViewport(
+	page: import('@playwright/test').Page,
+	tab: 'export' | 'advanced' | 'post fx'
+): Promise<Locator> {
+	await page.evaluate(
+		() => new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())))
+	);
+	if ((await page.locator('.tm-panel').getAttribute('data-scroll-mode')) === 'panel')
+		return page.locator('.tm-panel-scroll-area__viewport');
+	if (tab === 'advanced')
+		return page.locator('.tm-converter-tabs-content[data-state="active"] .tm-converter-scroll-area__viewport');
+	if (tab === 'post fx') return page.locator('.tm-post-fx-scroll-area__viewport');
+	return page.locator('.tm-tabs-body');
+}
+
+async function expectControlWithinViewport(control: Locator, viewport: Locator): Promise<void> {
+	await control.scrollIntoViewIfNeeded();
+	await expect(control).toBeVisible();
+	await expect
+		.poll(async () => {
+			const [target, bounds] = await Promise.all([control.boundingBox(), viewport.boundingBox()]);
+			return Boolean(
+				target &&
+				bounds &&
+				target.y >= bounds.y - 1 &&
+				target.y + target.height <= bounds.y + bounds.height + 1 &&
+				target.x >= bounds.x - 1 &&
+				target.x + target.width <= bounds.x + bounds.width + 1
+			);
+		})
+		.toBe(true);
+}
 
 test('Chrome extension preserves overlay geometry across supported coordinate-space changes', async () => {
 	const extensionPath = resolve(import.meta.dirname, '../../.output/chrome-mv3-e2e');
@@ -602,12 +812,22 @@ async function readConverterLayout(page: import('@playwright/test').Page, conver
 		);
 		if (viewport) viewport.scrollTop = 0;
 		return {
-			tabListInsideScrollArea: Boolean(tabList?.closest('[data-slot="scroll-area"]')),
+			tabListInsideScrollArea: Boolean(tabList?.closest('.tm-converter-scroll-area')),
 			viewportClientHeight: viewport?.clientHeight ?? 0,
 			viewportScrollHeight: viewport?.scrollHeight ?? 0,
 			endAccessible,
 		};
 	}, converter);
+}
+
+async function readScrollViewportInset(target: Locator, viewport: Locator) {
+	const [targetRect, viewportRect] = await Promise.all([target.boundingBox(), viewport.boundingBox()]);
+	if (!targetRect || !viewportRect) throw new Error('Expected visible scroll viewport and target bounds.');
+	return {
+		left: targetRect.x - viewportRect.x,
+		right: viewportRect.x + viewportRect.width - targetRect.x - targetRect.width,
+		bottom: viewportRect.y + viewportRect.height - targetRect.y - targetRect.height,
+	};
 }
 
 interface FixtureServer {

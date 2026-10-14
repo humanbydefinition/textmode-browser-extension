@@ -29,9 +29,7 @@ describe('ControlPanel', () => {
 		panel.updateState([
 			{
 				id: 'overlay-1',
-				elementKind: 'video',
 				elementLabel: 'video#demo-video 640x360',
-				bounds: { x: 0, y: 0, width: 640, height: 360 },
 				settings: DEFAULT_OVERLAY_SETTINGS,
 				status: 'active',
 			},
@@ -137,9 +135,7 @@ describe('ControlPanel', () => {
 		panel.updateState([
 			{
 				id: 'overlay-1',
-				elementKind: 'canvas',
 				elementLabel: 'canvas#demo-canvas 320x180',
-				bounds: { x: 0, y: 0, width: 320, height: 180 },
 				settings: DEFAULT_OVERLAY_SETTINGS,
 				status: 'active',
 			},

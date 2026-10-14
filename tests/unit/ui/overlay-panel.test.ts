@@ -122,13 +122,18 @@ describe('OverlayPanelView', () => {
 
 		expect(onExportOverlay).toHaveBeenCalledWith('overlay-1', 'png');
 
-		const removeButton = host.querySelector<HTMLButtonElement>('.tm-panel__footer .tm-remove-button');
+		const removeButton = host.querySelector<HTMLButtonElement>('.tm-select-row .tm-remove-button');
+		expect(host.querySelector('.tm-panel__footer .tm-remove-button')).toBeNull();
 		expect(removeButton?.disabled).toBe(false);
+		expect(removeButton?.textContent).toBe('');
+		expect(removeButton?.querySelector('svg')).not.toBeNull();
+		expect(removeButton?.getAttribute('aria-label')).toBe('remove overlay');
 		removeButton?.click();
+		expect(onRemoveOverlay).toHaveBeenCalledTimes(1);
 		expect(onRemoveOverlay).toHaveBeenCalledWith('overlay-1');
 	});
 
-	it('keeps the selected media card chrome outside the tab scroll area', () => {
+	it('defaults to tab scrolling with quick controls and Export outside tab scroll areas', () => {
 		const overlay = createOverlay();
 		const view = createView();
 		view.update([overlay]);
@@ -137,13 +142,44 @@ describe('OverlayPanelView', () => {
 		const card = host.querySelector<HTMLElement>('.tm-overlay-card');
 		expect(card).not.toBeNull();
 		expect(card?.parentElement).toBe(host.querySelector('.tm-overlay-list'));
-		expect(host.querySelector('[data-slot="scroll-area"] .tm-overlay-card')).toBeNull();
-		expect(card?.querySelector('.tm-overlay-card__header')?.closest('[data-slot="scroll-area"]')).toBeNull();
+		expect(view.element.dataset.scrollMode).toBe('tabs');
+		expect(host.querySelectorAll('[data-slot="scroll-area"]')).toHaveLength(4);
+		expect(card?.closest('[data-slot="scroll-area"]')).not.toBeNull();
+		expect(host.querySelector('.tm-select-row')?.closest('[data-slot="scroll-area"]')).toBeNull();
 		expect(
-			card?.querySelector('.tm-settings-form > .tm-control-group')?.closest('[data-slot="scroll-area"]')
+			card
+				?.querySelector('.tm-settings-form > .tm-control-group')
+				?.closest('.tm-converter-scroll-area, .tm-post-fx-scroll-area')
 		).toBeNull();
-		expect(card?.querySelector('[data-slot="tabs-list"]')?.closest('[data-slot="scroll-area"]')).toBeNull();
-		expect(card?.querySelector('.tm-tabs-content')?.closest('[data-slot="scroll-area"]')).not.toBeNull();
+		expect(card?.querySelector('[data-slot="tabs-list"]')?.closest('[data-slot="scroll-area"]')).not.toBeNull();
+		expect(
+			card?.querySelector('.tm-export-grid')?.closest('.tm-converter-scroll-area, .tm-post-fx-scroll-area')
+		).toBeNull();
+		view.setNotice('Unable to sample this media. Select another target.');
+		expect(host.querySelector('.tm-panel-scroll-area__content > .tm-error')?.textContent).toContain(
+			'Select another'
+		);
+	});
+
+	it('keeps media names and status details out of the panel', () => {
+		const view = createView();
+		const overlay = createOverlay();
+		view.update([overlay]);
+		host.append(view.element);
+		expect(host.textContent).not.toContain(overlay.elementLabel);
+		expect(host.querySelector('details')).toBeNull();
+		view.update([{ ...overlay, settings: { ...overlay.settings, enabled: false }, status: 'paused' }]);
+		expect(host.textContent).not.toContain('paused');
+		expect(host.querySelector<HTMLInputElement>('input[aria-label="overlay"]')?.checked).toBe(false);
+	});
+
+	it('returns focus to Select media after removing the focused overlay', () => {
+		const view = createView();
+		view.update([createOverlay()]);
+		host.append(view.element);
+		host.querySelector<HTMLButtonElement>('.tm-remove-button')!.focus();
+		view.update([]);
+		expect(document.activeElement).toBe(host.querySelector('.tm-select-button'));
 	});
 
 	it('cycles glyph ramp presets from the advanced controls', () => {
@@ -198,7 +234,7 @@ describe('OverlayPanelView', () => {
 		expect(quickControls?.querySelector('.tm-main-font-row .tm-main-font-field')).not.toBeNull();
 		expect(advanced?.firstElementChild).toBe(converterTabs);
 		expect(
-			converterTabs?.querySelector('.tm-converter-tabs-list')?.closest('[data-slot="scroll-area"]')
+			converterTabs?.querySelector('.tm-converter-tabs-list')?.closest('.tm-converter-scroll-area')
 		).toBeNull();
 
 		const brightnessControls = converterTabs?.querySelector<HTMLElement>('.tm-brightness-controls');
@@ -361,9 +397,7 @@ function createView(overrides: Partial<ConstructorParameters<typeof OverlayPanel
 function createOverlay(settings = DEFAULT_OVERLAY_SETTINGS): OverlayDescriptor {
 	return {
 		id: 'overlay-1',
-		elementKind: 'canvas',
 		elementLabel: 'canvas#demo-canvas.really-long-class 320x180',
-		bounds: { x: 0, y: 0, width: 320, height: 180 },
 		settings,
 		status: 'active',
 	};

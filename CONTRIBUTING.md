@@ -10,11 +10,12 @@ By participating, you agree to follow our [Code of Conduct](CODE_OF_CONDUCT.md).
 
 This repository uses a structured branch promotion flow for review and integration:
 
-- **`dev`**: The active integration branch. **All pull requests must target this branch.**
-- **`beta`**: The browser-testing branch for changes promoted from `dev`.
-- **`main`**: The stable branch for changes promoted after beta validation.
+- **`dev`**: The active integration branch. Feature and fix pull requests target this branch.
+- **`main`**: The stable branch for changes promoted from `dev` after validation.
 
-*Note: Direct local pushes to `dev`, `beta`, and `main` are blocked by git hooks. Changes must be proposed via pull requests.*
+Use a merge commit when promoting `dev` to `main` to preserve branch history.
+
+*Note: Direct local pushes to `dev` and `main` are blocked by git hooks. Changes must be proposed via pull requests.*
 
 ---
 

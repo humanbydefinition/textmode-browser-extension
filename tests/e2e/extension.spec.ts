@@ -234,7 +234,18 @@ test('Chrome extension can select a canvas and create an overlay', async () => {
 		await expect(page.getByRole('button', { name: /TXT/i })).toBeVisible();
 		await expect(page.getByRole('button', { name: /SVG/i })).toBeVisible();
 		await expect(page.getByRole('button', { name: /PNG/i })).toBeVisible();
-		await expect(page.getByRole('button', { name: /JPG/i })).toBeVisible();
+		await expect(page.getByRole('button', { name: /JSON/i })).toBeVisible();
+		await expect(page.getByRole('button', { name: /JPG/i })).toHaveCount(0);
+		const downloadPromise = page.waitForEvent('download');
+		await page.getByRole('button', { name: 'export JSON', exact: true }).click();
+		const download = await downloadPromise;
+		expect(download.suggestedFilename()).toBe('textmode-overlay.json');
+		const downloadPath = await download.path();
+		if (!downloadPath) throw new Error('Expected the JSON download to be available.');
+		const exportedDocument = JSON.parse(await readFile(downloadPath, 'utf8'));
+		expect(exportedDocument.metadata).toBeUndefined();
+		expect(exportedDocument.frames).toHaveLength(1);
+		expect(exportedDocument.frames[0].layers).toHaveLength(1);
 		await page.getByRole('tab', { name: 'advanced' }).click();
 		const brightnessLayout = await readConverterLayout(page, 'brightness');
 		await expect(page.locator('.tm-panel')).toHaveAttribute('data-scroll-mode', 'tabs');
@@ -390,7 +401,7 @@ test('panel settings remain usable in short viewports and with enlarged text', a
 			await page.setViewportSize({ width: 800, height });
 			await page.getByRole('tab', { name: 'export', exact: true }).click();
 			viewport = await settingsViewport(page, 'export');
-			await expectControlWithinViewport(page.getByRole('button', { name: 'export JPG', exact: true }), viewport);
+			await expectControlWithinViewport(page.getByRole('button', { name: 'export JSON', exact: true }), viewport);
 			await page.getByRole('tab', { name: 'advanced', exact: true }).click();
 			await page.getByRole('tab', { name: 'brightness', exact: true }).click();
 			viewport = await settingsViewport(page, 'advanced');

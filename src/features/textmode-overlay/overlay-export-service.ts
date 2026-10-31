@@ -2,7 +2,9 @@ import { OVERLAY_EXPORT_FORMAT_DEFINITIONS } from '../../domain/overlay/export-f
 import type { OverlayExportFormat } from '../../domain/overlay/overlay-settings';
 import type { ExportableTextmodeInstance } from './overlay-renderer';
 
-type OverlayExportAPI = Required<Pick<ExportableTextmodeInstance, 'saveCanvas' | 'saveSVG' | 'saveStrings'>>;
+type OverlayExportAPI = Required<
+	Pick<ExportableTextmodeInstance, 'saveCanvas' | 'saveSVG' | 'saveStrings' | 'saveJSON'>
+>;
 
 export async function exportTextmodeOverlay(
 	instance: ExportableTextmodeInstance | undefined,
@@ -21,11 +23,14 @@ export async function exportTextmodeOverlay(
 		case 'canvas':
 			await api.saveCanvas(definition.options);
 			break;
+		case 'json':
+			api.saveJSON(definition.options);
+			break;
 	}
 }
 
 function getExportAPI(instance: ExportableTextmodeInstance | undefined): OverlayExportAPI {
-	if (!instance || !instance.saveCanvas || !instance.saveSVG || !instance.saveStrings) {
+	if (!instance || !instance.saveCanvas || !instance.saveSVG || !instance.saveStrings || !instance.saveJSON) {
 		throw new Error('Export controls are not available for this overlay.');
 	}
 
@@ -33,5 +38,6 @@ function getExportAPI(instance: ExportableTextmodeInstance | undefined): Overlay
 		saveCanvas: instance.saveCanvas,
 		saveSVG: instance.saveSVG,
 		saveStrings: instance.saveStrings,
+		saveJSON: instance.saveJSON,
 	};
 }

@@ -87,8 +87,8 @@ Cada efecto puede activarse, reordenarse, expandirse y ajustarse mientras la fue
   ▸ PNG
     ▹ exporta una imagen sin pérdida
 
-  ▸ JPG
-    ▹ exporta una imagen ráster compacta
+  ▸ JSON
+    ▹ exporta un fotograma como datos estructurados
 
 
 ─── RECUERDA TU FLUJO DE TRABAJO

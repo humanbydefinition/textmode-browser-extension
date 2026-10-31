@@ -9,7 +9,7 @@ describe('overlay export service', () => {
 		await exportTextmodeOverlay(instance, 'txt');
 		await exportTextmodeOverlay(instance, 'svg');
 		await exportTextmodeOverlay(instance, 'png');
-		await exportTextmodeOverlay(instance, 'jpg');
+		await exportTextmodeOverlay(instance, 'json');
 
 		expect(instance.saveStrings).toHaveBeenCalledWith({
 			filename: 'textmode-overlay.txt',
@@ -27,10 +27,10 @@ describe('overlay export service', () => {
 			format: 'png',
 			scale: 1,
 		});
-		expect(instance.saveCanvas).toHaveBeenCalledWith({
-			filename: 'textmode-overlay.jpg',
-			format: 'jpg',
-			scale: 1,
+		expect(instance.saveJSON).toHaveBeenCalledWith({
+			filename: 'textmode-overlay.json',
+			target: 'selected',
+			includeMetadata: false,
 		});
 	});
 
@@ -46,5 +46,6 @@ function createExportableInstance(): ExportableTextmodeInstance {
 		saveCanvas: vi.fn(async () => undefined),
 		saveSVG: vi.fn(),
 		saveStrings: vi.fn(),
+		saveJSON: vi.fn(),
 	} as unknown as ExportableTextmodeInstance;
 }

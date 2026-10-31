@@ -88,7 +88,7 @@ Her efekt, kaynak oynatılmaya devam ederken açılıp kapatılabilir, yeniden s
     ▹ kayıpsız bir görüntü dışa aktarın
 
   ▸ JSON
-    ▹ kompakt bir raster görüntü dışa aktarın
+    ▹ bir kareyi yapılandırılmış veri olarak dışa aktarın
 
 
 ─── İŞ AKIŞINIZI HATIRLAR

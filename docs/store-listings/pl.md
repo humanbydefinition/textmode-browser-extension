@@ -88,7 +88,7 @@ Każdy efekt można włączać, zmieniać kolejność, rozwijać i dostrajać, g
     ▹ wyeksportuj obraz bezstratny
 
   ▸ JSON
-    ▹ wyeksportuj kompaktowy obraz rastrowy
+    ▹ wyeksportuj klatkę jako dane strukturalne
 
 
 ─── PAMIĘTA TWÓJ PRZEPŁYW PRACY

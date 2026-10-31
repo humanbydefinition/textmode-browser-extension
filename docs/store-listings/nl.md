@@ -88,7 +88,7 @@ Elk effect kan worden in- en uitgeschakeld, herschikt, uitgeklapt en aangepast t
     ▹ exporteer een verliesvrije afbeelding
 
   ▸ JSON
-    ▹ exporteer een compacte rasterafbeelding
+    ▹ exporteer een frame als gestructureerde gegevens
 
 
 ─── ONTHOUDT JE WORKFLOW

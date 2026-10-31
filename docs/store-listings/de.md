@@ -88,7 +88,7 @@ Jeder Effekt lässt sich umschalten, neu anordnen, aufklappen und anpassen, wäh
     ▹ exportiere ein verlustfreies Bild
 
   ▸ JSON
-    ▹ exportiere ein kompaktes Rasterbild
+    ▹ exportiere ein Einzelbild als strukturierte Daten
 
 
 ─── BEHÄLT DEINEN WORKFLOW

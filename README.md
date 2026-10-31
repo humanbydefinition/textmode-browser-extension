@@ -36,7 +36,7 @@
 - **Media picker**: Select visible media in the page, including supported same-origin and nested frames.
 - **Visual controls**: Adjust brightness, contours, colors, glyph ramps, fonts, opacity, and post-processing effects.
 - **Custom fonts**: Upload local `.ttf` or `.otf` fonts for your own character style.
-- **Exports**: Save a frame as TXT, SVG, PNG, or JPG.
+- **Exports**: Save a frame as TXT, SVG, PNG, or JSON.
 
 ## Browser Support
 
@@ -80,6 +80,23 @@ Load the extension in Chrome:
 2. Enable Developer mode.
 3. Click **Load unpacked**.
 4. Select `.output/chrome-mv3`.
+
+## Mozilla Add-on Reviewer Notes
+
+This archive contains the Firefox MV3 source and the files required to reproduce the submitted build. The project builds locally with the locked dependencies in `package-lock.json`:
+
+```sh
+npm ci
+npm run build:firefox
+```
+
+The unpacked extension is written to `.output/firefox-mv3`. To test it in Firefox, open `about:debugging`, choose **This Firefox**, click **Load Temporary Add-on**, and select `.output/firefox-mv3/manifest.json`.
+
+To exercise the extension, open a page containing a visible HTML5 `<video>` or `<canvas>`, then either click the toolbar icon or right-click the page and choose **Open Textmode Overlay**. In the panel, choose **select media** and click a highlighted target. The context-menu action opens the panel; media selection remains an explicit in-page step.
+
+The production Firefox manifest intentionally has no `host_permissions` and no static content scripts. `activeTab` grants temporary access only after the user invokes the toolbar action or context-menu item, `scripting` injects the in-page runtime on demand, `contextMenus` adds the right-click action, and `storage`/`unlimitedStorage` retain local settings and uploaded fonts. Rendering and exports stay in the browser; there is no backend, telemetry, account system, or remote code.
+
+Some pages and media cannot be sampled because of browser security restrictions, including protected or DRM media, tainted canvases, and cross-origin or opaque sandboxed frames. These limitations are reported in the picker and do not require broader permissions.
 
 ## Custom fonts
 

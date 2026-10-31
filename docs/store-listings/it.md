@@ -87,8 +87,8 @@ Ogni effetto può essere attivato, riordinato, espanso e regolato mentre la sorg
   ▸ PNG
     ▹ esporta un'immagine senza perdita
 
-  ▸ JPG
-    ▹ esporta un'immagine raster compatta
+  ▸ JSON
+    ▹ esporta un fotogramma come dati strutturati
 
 
 ─── RICORDA IL TUO FLUSSO DI LAVORO

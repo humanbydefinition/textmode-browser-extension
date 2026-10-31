@@ -30,14 +30,14 @@ export const OVERLAY_EXPORT_FORMAT_DEFINITIONS = {
 			scale: 1,
 		},
 	},
-	jpg: {
-		label: 'JPG',
-		iconName: 'image-down',
-		exportType: 'canvas',
+	json: {
+		label: 'JSON',
+		iconName: 'file-code',
+		exportType: 'json',
 		options: {
-			filename: 'textmode-overlay.jpg',
-			format: 'jpg',
-			scale: 1,
+			filename: 'textmode-overlay.json',
+			target: 'selected',
+			includeMetadata: false,
 		},
 	},
 } as const;

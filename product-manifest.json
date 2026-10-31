@@ -1,7 +1,7 @@
 {
 	"schemaVersion": 1,
 	"name": "Textmode Overlay",
-	"version": "1.4.2",
+	"version": "1.4.3",
 	"repositoryUrl": "https://github.com/humanbydefinition/textmode-browser-extensions",
 	"supportUrl": "https://code.textmode.art/docs/support",
 	"browserListings": [
@@ -47,7 +47,7 @@
 		}
 	],
 	"capabilities": {
-		"exportFormats": ["TXT", "SVG", "PNG", "JPG"],
+		"exportFormats": ["TXT", "SVG", "PNG", "JSON"],
 		"glyphRampPresetIds": ["classic", "minimal", "soft", "dense"],
 		"postFxCount": 16,
 		"customFonts": {

@@ -26,6 +26,64 @@ test('fixture page renders selectable media targets', async ({ page }) => {
 	await expect(page.locator('video#demo-video')).toBeVisible();
 });
 
+test('bundled fonts load without extension URL reports on a restricted page', async () => {
+	const extensionPath = resolve(import.meta.dirname, '../../.output/chrome-mv3-e2e');
+	test.skip(!existsSync(resolve(extensionPath, 'manifest.json')), 'Run npm run build:e2e:chrome before e2e.');
+	const server = await startFixtureServer('media-page.html', true);
+	const userDataDir = await mkdtemp(join(tmpdir(), 'textmode-font-e2e-'));
+	const context = await chromium.launchPersistentContext(userDataDir, {
+		headless: false,
+		args: [`--disable-extensions-except=${extensionPath}`, `--load-extension=${extensionPath}`],
+	});
+	try {
+		const page = context.pages()[0] ?? (await context.newPage());
+		await page.setViewportSize({ width: 800, height: 720 });
+		const session = await context.newCDPSession(page);
+		const fontErrors: string[] = [];
+		await session.send('Log.enable');
+		session.on('Log.entryAdded', ({ entry }) => {
+			if (entry.text.includes('Unsafe attempt to load URL') && entry.text.includes('/fonts/')) {
+				fontErrors.push(entry.text);
+			}
+		});
+		await page.goto(server.url);
+		await page.evaluate(async () => {
+			await navigator.serviceWorker.register('/font-test-sw.js');
+			await navigator.serviceWorker.ready;
+		});
+		await page.reload();
+		await expect.poll(() => page.evaluate(() => Boolean(navigator.serviceWorker.controller))).toBe(true);
+		const worker = context.serviceWorkers().find((item) => item.url().startsWith('chrome-extension://'));
+		if (!worker) throw new Error('Missing extension service worker');
+		await worker.evaluate(async () => {
+			const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+			if (!tab?.id) throw new Error('Missing active tab');
+			await chrome.scripting.executeScript({
+				target: { tabId: tab.id, allFrames: true },
+				files: ['/content-runtime.js'],
+			});
+			await chrome.tabs.sendMessage(tab.id, { type: 'TOGGLE_OVERLAY' }, { frameId: 0 });
+		});
+		await page.getByRole('button', { name: 'select media', exact: true }).click();
+		await page.locator('#demo-canvas').click({ position: { x: 24, y: 24 } });
+		await expect(page.locator('canvas[data-textmode-ascii-extension-ui="true"]')).toHaveCount(1);
+		await page.getByRole('button', { name: 'next font', exact: true }).click();
+		await page.getByRole('button', { name: 'previous font', exact: true }).click();
+		await expect
+			.poll(() =>
+				page.evaluate(() =>
+					[...document.fonts].some((font) => font.family === 'Bescii Mono' && font.status === 'loaded')
+				)
+			)
+			.toBe(true);
+		expect(fontErrors).toEqual([]);
+	} finally {
+		await context.close();
+		await rm(userDataDir, { recursive: true, force: true });
+		await server.close();
+	}
+});
+
 test('published overlay bundle reconfigures a same-target binding in place', async ({ page, browserName }) => {
 	const server = await startFixtureServer('zoom-page.html');
 	try {
@@ -234,7 +292,18 @@ test('Chrome extension can select a canvas and create an overlay', async () => {
 		await expect(page.getByRole('button', { name: /TXT/i })).toBeVisible();
 		await expect(page.getByRole('button', { name: /SVG/i })).toBeVisible();
 		await expect(page.getByRole('button', { name: /PNG/i })).toBeVisible();
-		await expect(page.getByRole('button', { name: /JPG/i })).toBeVisible();
+		await expect(page.getByRole('button', { name: /JSON/i })).toBeVisible();
+		await expect(page.getByRole('button', { name: /JPG/i })).toHaveCount(0);
+		const downloadPromise = page.waitForEvent('download');
+		await page.getByRole('button', { name: 'export JSON', exact: true }).click();
+		const download = await downloadPromise;
+		expect(download.suggestedFilename()).toBe('textmode-overlay.json');
+		const downloadPath = await download.path();
+		if (!downloadPath) throw new Error('Expected the JSON download to be available.');
+		const exportedDocument = JSON.parse(await readFile(downloadPath, 'utf8'));
+		expect(exportedDocument.metadata).toBeUndefined();
+		expect(exportedDocument.frames).toHaveLength(1);
+		expect(exportedDocument.frames[0].layers).toHaveLength(1);
 		await page.getByRole('tab', { name: 'advanced' }).click();
 		const brightnessLayout = await readConverterLayout(page, 'brightness');
 		await expect(page.locator('.tm-panel')).toHaveAttribute('data-scroll-mode', 'tabs');
@@ -390,7 +459,7 @@ test('panel settings remain usable in short viewports and with enlarged text', a
 			await page.setViewportSize({ width: 800, height });
 			await page.getByRole('tab', { name: 'export', exact: true }).click();
 			viewport = await settingsViewport(page, 'export');
-			await expectControlWithinViewport(page.getByRole('button', { name: 'export JPG', exact: true }), viewport);
+			await expectControlWithinViewport(page.getByRole('button', { name: 'export JSON', exact: true }), viewport);
 			await page.getByRole('tab', { name: 'advanced', exact: true }).click();
 			await page.getByRole('tab', { name: 'brightness', exact: true }).click();
 			viewport = await settingsViewport(page, 'advanced');
@@ -835,7 +904,7 @@ interface FixtureServer {
 	close: () => Promise<void>;
 }
 
-async function startFixtureServer(pageFile = 'media-page.html'): Promise<FixtureServer> {
+async function startFixtureServer(pageFile = 'media-page.html', restrictConnections = false): Promise<FixtureServer> {
 	const html = await readFile(resolve(import.meta.dirname, `../fixtures/${pageFile}`), 'utf8');
 	const overlayBundle = await readFile(
 		resolve(import.meta.dirname, '../../node_modules/textmode.overlay.js/dist/textmode.overlay.umd.js'),
@@ -843,6 +912,15 @@ async function startFixtureServer(pageFile = 'media-page.html'): Promise<Fixture
 	);
 	let serverPort = 0;
 	const server = createServer((request, response) => {
+		if (restrictConnections) {
+			response.setHeader('Connection-Allowlist-Report-Only', '(response-origin); report-to=default');
+			response.setHeader('Reporting-Endpoints', 'default="/reports"');
+		}
+		if (request.url === '/font-test-sw.js') {
+			response.writeHead(200, { 'content-type': 'text/javascript; charset=utf-8' });
+			response.end("self.addEventListener('fetch', () => {});");
+			return;
+		}
 		if (request.url === '/textmode.overlay.umd.js') {
 			response.writeHead(200, { 'content-type': 'text/javascript; charset=utf-8' });
 			response.end(overlayBundle);

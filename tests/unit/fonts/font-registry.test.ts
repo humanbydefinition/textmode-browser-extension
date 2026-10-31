@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { createFontRegistry } from '@/domain/fonts/font-registry';
 import { createRuntimeFontRegistry } from '@/shared/fonts/runtime-font-registry';
 
@@ -37,5 +37,21 @@ describe('font-registry', () => {
 		const registry = createRuntimeFontRegistry((path) => `chrome-extension://test/${path}`);
 		expect(registry.getFontAssetUrl('bescii')).toBe('chrome-extension://test/fonts/Bescii-Mono.ttf');
 		expect(registry.getFontAssetUrl('custom:nonexistent')).toBeNull();
+	});
+
+	it('provides usable bundled font data without requesting extension URLs from the page', async () => {
+		vi.stubGlobal('chrome', { runtime: { getURL: (path: string) => `chrome-extension://test/${path}` } });
+		try {
+			const registry = createRuntimeFontRegistry();
+			for (const font of registry.getAvailableFonts()) {
+				const url = registry.getFontAssetUrl(font.id);
+				expect(url, font.id).toMatch(/^data:font\/ttf;base64,/);
+				expect(await registry.resolveFontAssetUrl(font.id)).toBe(url);
+				const bytes = new Uint8Array(await (await fetch(url!)).arrayBuffer());
+				expect([...bytes.slice(0, 4)]).toEqual([0, 1, 0, 0]);
+			}
+		} finally {
+			vi.unstubAllGlobals();
+		}
 	});
 });

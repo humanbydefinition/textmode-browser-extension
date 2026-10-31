@@ -87,8 +87,8 @@ Cada efeito pode ser ativado, reordenado, expandido e ajustado enquanto a fonte 
   ▸ PNG
     ▹ exporte uma imagem sem perdas
 
-  ▸ JPG
-    ▹ exporte uma imagem raster compacta
+  ▸ JSON
+    ▹ exporte um quadro como dados estruturados
 
 
 ─── LEMBRA DO SEU FLUXO DE TRABALHO

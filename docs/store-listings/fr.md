@@ -88,7 +88,7 @@ Chaque effet peut être activé, réordonné, développé et ajusté pendant que
     ▹ exportez une image sans perte
 
   ▸ JSON
-    ▹ exportez une image raster compacte
+    ▹ exportez une image sous forme de données structurées
 
 
 ─── MÉMORISE VOTRE FLUX DE TRAVAIL

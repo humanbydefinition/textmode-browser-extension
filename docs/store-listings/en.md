@@ -88,7 +88,7 @@ Every effect can be toggled, reordered, expanded, and adjusted while the source 
     ▹ export a lossless image
 
   ▸ JSON
-    ▹ export a compact raster image
+    ▹ export a frame as structured data
 
 
 ─── REMEMBERS YOUR WORKFLOW

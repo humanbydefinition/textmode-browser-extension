@@ -36,7 +36,7 @@
 - **Media picker**: Select visible media in the page, including supported same-origin and nested frames.
 - **Visual controls**: Adjust brightness, contours, colors, glyph ramps, fonts, opacity, and post-processing effects.
 - **Custom fonts**: Upload local `.ttf` or `.otf` fonts for your own character style.
-- **Exports**: Save a frame as TXT, SVG, PNG, or JPG.
+- **Exports**: Save a frame as TXT, SVG, PNG, or JSON.
 
 ## Browser Support
 

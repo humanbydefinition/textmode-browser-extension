@@ -87,7 +87,7 @@ Każdy efekt można włączać, zmieniać kolejność, rozwijać i dostrajać, g
   ▸ PNG
     ▹ wyeksportuj obraz bezstratny
 
-  ▸ JPG
+  ▸ JSON
     ▹ wyeksportuj kompaktowy obraz rastrowy
 
 

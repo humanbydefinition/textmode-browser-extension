@@ -17,6 +17,7 @@ interface MockTextmodeInstance {
 	saveCanvas: ReturnType<typeof vi.fn>;
 	saveSVG: ReturnType<typeof vi.fn>;
 	saveStrings: ReturnType<typeof vi.fn>;
+	saveJSON: ReturnType<typeof vi.fn>;
 	destroy: ReturnType<typeof vi.fn>;
 	readonly overlay: ReturnType<typeof createMockOverlayController>;
 }
@@ -43,6 +44,7 @@ vi.mock('textmode.js', () => ({
 				saveCanvas: vi.fn(async () => undefined),
 				saveSVG: vi.fn(),
 				saveStrings: vi.fn(),
+				saveJSON: vi.fn(),
 				destroy: vi.fn(),
 				get overlay() {
 					return overlayController;

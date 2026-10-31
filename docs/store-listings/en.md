@@ -87,7 +87,7 @@ Every effect can be toggled, reordered, expanded, and adjusted while the source 
   ▸ PNG
     ▹ export a lossless image
 
-  ▸ JPG
+  ▸ JSON
     ▹ export a compact raster image
 
 

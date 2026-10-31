@@ -87,7 +87,7 @@ Jeder Effekt lässt sich umschalten, neu anordnen, aufklappen und anpassen, wäh
   ▸ PNG
     ▹ exportiere ein verlustfreies Bild
 
-  ▸ JPG
+  ▸ JSON
     ▹ exportiere ein kompaktes Rasterbild
 
 

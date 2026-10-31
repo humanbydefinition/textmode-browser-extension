@@ -47,7 +47,7 @@
 		}
 	],
 	"capabilities": {
-		"exportFormats": ["TXT", "SVG", "PNG", "JPG"],
+		"exportFormats": ["TXT", "SVG", "PNG", "JSON"],
 		"glyphRampPresetIds": ["classic", "minimal", "soft", "dense"],
 		"postFxCount": 16,
 		"customFonts": {

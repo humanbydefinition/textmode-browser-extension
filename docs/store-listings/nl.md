@@ -87,7 +87,7 @@ Elk effect kan worden in- en uitgeschakeld, herschikt, uitgeklapt en aangepast t
   ▸ PNG
     ▹ exporteer een verliesvrije afbeelding
 
-  ▸ JPG
+  ▸ JSON
     ▹ exporteer een compacte rasterafbeelding
 
 

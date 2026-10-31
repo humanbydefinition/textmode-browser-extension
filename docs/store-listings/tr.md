@@ -87,7 +87,7 @@ Her efekt, kaynak oynatılmaya devam ederken açılıp kapatılabilir, yeniden s
   ▸ PNG
     ▹ kayıpsız bir görüntü dışa aktarın
 
-  ▸ JPG
+  ▸ JSON
     ▹ kompakt bir raster görüntü dışa aktarın
 
 

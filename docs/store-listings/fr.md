@@ -87,7 +87,7 @@ Chaque effet peut être activé, réordonné, développé et ajusté pendant que
   ▸ PNG
     ▹ exportez une image sans perte
 
-  ▸ JPG
+  ▸ JSON
     ▹ exportez une image raster compacte
 
 

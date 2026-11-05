@@ -3,11 +3,11 @@ import { createFontRegistry } from '@/domain/fonts/font-registry';
 import { createRuntimeFontRegistry } from '@/shared/fonts/runtime-font-registry';
 
 describe('font-registry', () => {
-	it('returns all 9 bundled fonts', () => {
+	it('returns all 11 bundled fonts', () => {
 		const registry = createFontRegistry();
 		const fonts = registry.getAvailableFonts();
 
-		expect(fonts).toHaveLength(9);
+		expect(fonts).toHaveLength(11);
 		expect(fonts.map((font) => font.id)).toEqual([
 			'ursafont',
 			'atascii',
@@ -18,6 +18,8 @@ describe('font-registry', () => {
 			'unscii8Thin',
 			'unscii8Fantasy',
 			'cpc464',
+			'dungeonmode',
+			'rook',
 		]);
 	});
 

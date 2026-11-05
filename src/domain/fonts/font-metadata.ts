@@ -92,6 +92,26 @@ export const BUNDLED_FONT_METADATA = {
 		authorUrl: 'https://codeberg.org/Dmian/font-cpc464',
 		sourceUrl: 'https://damianvila.com/',
 	},
+	dungeonmode: {
+		displayName: 'DUNGEON.mode',
+		assetPath: 'fonts/dungeonmode.ttf',
+		cssFontFamily: 'Font-Dungeonmode',
+		author: 'datagoblin',
+		authorUrl: 'https://datagoblin.itch.io/',
+		sourceUrl: 'https://datagoblin.itch.io/dungeonmode',
+		license: 'CC0 1.0',
+		licenseUrl: 'https://creativecommons.org/publicdomain/zero/1.0/',
+	},
+	rook: {
+		displayName: 'Rook',
+		assetPath: 'fonts/Rook.ttf',
+		cssFontFamily: 'Font-Rook',
+		author: 'Funky Tiger Highsaturn',
+		authorUrl: 'https://autojunkio.itch.io/',
+		sourceUrl: 'https://outer-spec.itch.io/rook',
+		license: 'Use permitted for any purpose; no formal license stated',
+		licenseUrl: 'https://outer-spec.itch.io/rook',
+	},
 } as const satisfies Record<string, FontMeta>;
 
 export type BundledFontId = keyof typeof BUNDLED_FONT_METADATA;

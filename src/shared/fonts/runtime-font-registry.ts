@@ -14,6 +14,8 @@ import unscii8McrFont from '../../../public/fonts/unscii-8-mcr.ttf?inline';
 import unscii8ThinFont from '../../../public/fonts/unscii-8-thin.ttf?inline';
 import unscii8FantasyFont from '../../../public/fonts/unscii-8-fantasy.ttf?inline';
 import cpc464Font from '../../../public/fonts/cpc464.ttf?inline';
+import dungeonmodeFont from '../../../public/fonts/dungeonmode.ttf?inline';
+import rookFont from '../../../public/fonts/Rook.ttf?inline';
 import { FontUploadError } from '../errors/errors';
 import { createCustomFontStore, type CustomFontStore } from './custom-font-store';
 
@@ -52,6 +54,8 @@ const bundledFontData: Record<BundledFontId, string> = {
 	unscii8Thin: unscii8ThinFont,
 	unscii8Fantasy: unscii8FantasyFont,
 	cpc464: cpc464Font,
+	dungeonmode: dungeonmodeFont,
+	rook: rookFont,
 };
 
 export function createRuntimeFontRegistry(

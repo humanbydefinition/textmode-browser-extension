@@ -3,12 +3,22 @@ import { createFontRegistry } from '@/domain/fonts/font-registry';
 import { createRuntimeFontRegistry } from '@/shared/fonts/runtime-font-registry';
 
 describe('font-registry', () => {
-	it('returns all 4 bundled fonts', () => {
+	it('returns all 9 bundled fonts', () => {
 		const registry = createFontRegistry();
 		const fonts = registry.getAvailableFonts();
 
-		expect(fonts).toHaveLength(4);
-		expect(fonts.map((font) => font.id)).toEqual(['ursafont', 'atascii', 'bescii', 'cpc464']);
+		expect(fonts).toHaveLength(9);
+		expect(fonts.map((font) => font.id)).toEqual([
+			'ursafont',
+			'atascii',
+			'bescii',
+			'unscii8',
+			'unscii8Alt',
+			'unscii8Mcr',
+			'unscii8Thin',
+			'unscii8Fantasy',
+			'cpc464',
+		]);
 	});
 
 	it('exposes complete, unique, and valid metadata for bundled fonts', () => {

@@ -8,6 +8,11 @@ import type { StoredCustomFontMetadata } from '../../domain/fonts/custom-font-st
 import ursaFont from '../../../public/fonts/UrsaFont.ttf?inline';
 import atasciiFont from '../../../public/fonts/atascii.ttf?inline';
 import besciiFont from '../../../public/fonts/Bescii-Mono.ttf?inline';
+import unscii8Font from '../../../public/fonts/unscii-8.ttf?inline';
+import unscii8AltFont from '../../../public/fonts/unscii-8-alt.ttf?inline';
+import unscii8McrFont from '../../../public/fonts/unscii-8-mcr.ttf?inline';
+import unscii8ThinFont from '../../../public/fonts/unscii-8-thin.ttf?inline';
+import unscii8FantasyFont from '../../../public/fonts/unscii-8-fantasy.ttf?inline';
 import cpc464Font from '../../../public/fonts/cpc464.ttf?inline';
 import { FontUploadError } from '../errors/errors';
 import { createCustomFontStore, type CustomFontStore } from './custom-font-store';
@@ -41,6 +46,11 @@ const bundledFontData: Record<BundledFontId, string> = {
 	ursafont: ursaFont,
 	atascii: atasciiFont,
 	bescii: besciiFont,
+	unscii8: unscii8Font,
+	unscii8Alt: unscii8AltFont,
+	unscii8Mcr: unscii8McrFont,
+	unscii8Thin: unscii8ThinFont,
+	unscii8Fantasy: unscii8FantasyFont,
 	cpc464: cpc464Font,
 };
 

@@ -3,6 +3,8 @@ type FontMeta = {
 	author: string;
 	authorUrl: string;
 	sourceUrl: string;
+	license?: string;
+	licenseUrl?: string;
 	assetPath: string;
 	cssFontFamily: string;
 };
@@ -31,6 +33,56 @@ export const BUNDLED_FONT_METADATA = {
 		author: 'Damian Vila',
 		authorUrl: 'https://codeberg.org/Dmian/font-bescii',
 		sourceUrl: 'https://damianvila.com/',
+	},
+	unscii8: {
+		displayName: 'UNSCII 8',
+		assetPath: 'fonts/unscii-8.ttf',
+		cssFontFamily: 'Font-Unscii-8',
+		author: 'Viznut',
+		authorUrl: 'https://viznut.fi/',
+		sourceUrl: 'https://viznut.fi/unscii/',
+		license: 'Public domain or CC0',
+		licenseUrl: 'https://github.com/viznut/unscii',
+	},
+	unscii8Alt: {
+		displayName: 'UNSCII 8 Alt',
+		assetPath: 'fonts/unscii-8-alt.ttf',
+		cssFontFamily: 'Font-Unscii-8-Alt',
+		author: 'Viznut',
+		authorUrl: 'https://viznut.fi/',
+		sourceUrl: 'https://viznut.fi/unscii/',
+		license: 'Public domain or CC0',
+		licenseUrl: 'https://github.com/viznut/unscii',
+	},
+	unscii8Mcr: {
+		displayName: 'UNSCII 8 MCR',
+		assetPath: 'fonts/unscii-8-mcr.ttf',
+		cssFontFamily: 'Font-Unscii-8-Mcr',
+		author: 'Viznut',
+		authorUrl: 'https://viznut.fi/',
+		sourceUrl: 'https://viznut.fi/unscii/',
+		license: 'Public domain or CC0',
+		licenseUrl: 'https://github.com/viznut/unscii',
+	},
+	unscii8Thin: {
+		displayName: 'UNSCII 8 Thin',
+		assetPath: 'fonts/unscii-8-thin.ttf',
+		cssFontFamily: 'Font-Unscii-8-Thin',
+		author: 'Viznut',
+		authorUrl: 'https://viznut.fi/',
+		sourceUrl: 'https://viznut.fi/unscii/',
+		license: 'Public domain or CC0',
+		licenseUrl: 'https://github.com/viznut/unscii',
+	},
+	unscii8Fantasy: {
+		displayName: 'UNSCII 8 Fantasy',
+		assetPath: 'fonts/unscii-8-fantasy.ttf',
+		cssFontFamily: 'Font-Unscii-8-Fantasy',
+		author: 'Viznut',
+		authorUrl: 'https://viznut.fi/',
+		sourceUrl: 'https://viznut.fi/unscii/',
+		license: 'Public domain or CC0',
+		licenseUrl: 'https://github.com/viznut/unscii',
 	},
 	cpc464: {
 		displayName: 'CPC464',

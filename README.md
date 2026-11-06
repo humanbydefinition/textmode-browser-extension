@@ -111,3 +111,5 @@ Development workflow, testing, architecture, and contribution guidelines live in
 ## License
 
 `Textmode Overlay` is licensed under the [MIT License](LICENSE).
+
+Bundled fonts retain their own terms. See [Third-party notices](THIRD_PARTY_NOTICES.md).

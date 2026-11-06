@@ -3,8 +3,6 @@ type FontMeta = {
 	author: string;
 	authorUrl: string;
 	sourceUrl: string;
-	license?: string;
-	licenseUrl?: string;
 	assetPath: string;
 	cssFontFamily: string;
 };
@@ -41,8 +39,6 @@ export const BUNDLED_FONT_METADATA = {
 		author: 'Viznut',
 		authorUrl: 'https://viznut.fi/',
 		sourceUrl: 'https://viznut.fi/unscii/',
-		license: 'Public domain or CC0',
-		licenseUrl: 'https://github.com/viznut/unscii',
 	},
 	unscii8Alt: {
 		displayName: 'UNSCII 8 Alt',
@@ -51,8 +47,6 @@ export const BUNDLED_FONT_METADATA = {
 		author: 'Viznut',
 		authorUrl: 'https://viznut.fi/',
 		sourceUrl: 'https://viznut.fi/unscii/',
-		license: 'Public domain or CC0',
-		licenseUrl: 'https://github.com/viznut/unscii',
 	},
 	unscii8Mcr: {
 		displayName: 'UNSCII 8 MCR',
@@ -61,8 +55,6 @@ export const BUNDLED_FONT_METADATA = {
 		author: 'Viznut',
 		authorUrl: 'https://viznut.fi/',
 		sourceUrl: 'https://viznut.fi/unscii/',
-		license: 'Public domain or CC0',
-		licenseUrl: 'https://github.com/viznut/unscii',
 	},
 	unscii8Thin: {
 		displayName: 'UNSCII 8 Thin',
@@ -71,8 +63,6 @@ export const BUNDLED_FONT_METADATA = {
 		author: 'Viznut',
 		authorUrl: 'https://viznut.fi/',
 		sourceUrl: 'https://viznut.fi/unscii/',
-		license: 'Public domain or CC0',
-		licenseUrl: 'https://github.com/viznut/unscii',
 	},
 	unscii8Fantasy: {
 		displayName: 'UNSCII 8 Fantasy',
@@ -81,8 +71,6 @@ export const BUNDLED_FONT_METADATA = {
 		author: 'Viznut',
 		authorUrl: 'https://viznut.fi/',
 		sourceUrl: 'https://viznut.fi/unscii/',
-		license: 'Public domain or CC0',
-		licenseUrl: 'https://github.com/viznut/unscii',
 	},
 	cpc464: {
 		displayName: 'CPC464',
@@ -99,8 +87,6 @@ export const BUNDLED_FONT_METADATA = {
 		author: 'datagoblin',
 		authorUrl: 'https://datagoblin.itch.io/',
 		sourceUrl: 'https://datagoblin.itch.io/dungeonmode',
-		license: 'CC0 1.0',
-		licenseUrl: 'https://creativecommons.org/publicdomain/zero/1.0/',
 	},
 	rook: {
 		displayName: 'Rook',
@@ -109,8 +95,6 @@ export const BUNDLED_FONT_METADATA = {
 		author: 'Funky Tiger Highsaturn',
 		authorUrl: 'https://autojunkio.itch.io/',
 		sourceUrl: 'https://outer-spec.itch.io/rook',
-		license: 'Use permitted for any purpose; no formal license stated',
-		licenseUrl: 'https://outer-spec.itch.io/rook',
 	},
 } as const satisfies Record<string, FontMeta>;
 

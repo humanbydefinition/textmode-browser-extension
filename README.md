@@ -112,4 +112,7 @@ Development workflow, testing, architecture, and contribution guidelines live in
 
 `Textmode Overlay` is licensed under the [MIT License](LICENSE).
 
-Bundled fonts retain their own terms. See [Third-party notices](THIRD_PARTY_NOTICES.md).
+## Acknowledgements
+
+The browser extension includes fonts by other creators. See the
+[third-party notices](THIRD_PARTY_NOTICES.md) for credits and source details.

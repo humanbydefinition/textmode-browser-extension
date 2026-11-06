@@ -58,10 +58,7 @@ const bundledFontData: Record<BundledFontId, string> = {
 	rook: rookFont,
 };
 
-export function createRuntimeFontRegistry(
-	resolveAssetUrl?: (assetPath: string) => string,
-	store: CustomFontStore = createCustomFontStore()
-): RuntimeFontRegistry {
+export function createRuntimeFontRegistry(store: CustomFontStore = createCustomFontStore()): RuntimeFontRegistry {
 	const registry = createFontRegistry();
 	const metadataById = new Map<CustomFontId, StoredCustomFontMetadata>();
 	const blobUrls = new Map<CustomFontId, string>();
@@ -142,7 +139,7 @@ export function createRuntimeFontRegistry(
 		getFontAssetUrl: (fontId) => {
 			if (isCustomFontId(fontId)) return blobUrls.get(fontId) ?? null;
 			const entry = registry.getFontEntry(fontId);
-			return entry ? (resolveAssetUrl?.(entry.assetPath) ?? bundledFontData[entry.id]) : null;
+			return entry ? bundledFontData[entry.id] : null;
 		},
 		async resolveFontAssetUrl(fontId) {
 			if (isCustomFontId(fontId)) {
@@ -150,7 +147,7 @@ export function createRuntimeFontRegistry(
 				return metadataById.has(fontId) ? resolveCustomFontAssetUrl(fontId) : null;
 			}
 			const entry = registry.getFontEntry(fontId);
-			return entry ? (resolveAssetUrl?.(entry.assetPath) ?? bundledFontData[entry.id]) : null;
+			return entry ? bundledFontData[entry.id] : null;
 		},
 		getCustomFonts,
 		getAllFonts: () => [...getCustomFonts(), ...registry.getAvailableFonts()],

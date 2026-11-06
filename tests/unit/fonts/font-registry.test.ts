@@ -45,9 +45,8 @@ describe('font-registry', () => {
 		expect(registry.getPreferredFontEntry('ursafont')?.id).toBe('ursafont');
 	});
 
-	it('getFontAssetUrl resolves valid FontId to extension URLs and returns null for unknown ids', () => {
-		const registry = createRuntimeFontRegistry((path) => `chrome-extension://test/${path}`);
-		expect(registry.getFontAssetUrl('bescii')).toBe('chrome-extension://test/fonts/Bescii-Mono.ttf');
+	it('returns null for an unknown custom font', () => {
+		const registry = createRuntimeFontRegistry();
 		expect(registry.getFontAssetUrl('custom:nonexistent')).toBeNull();
 	});
 

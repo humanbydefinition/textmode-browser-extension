@@ -3,18 +3,12 @@ import type { TargetBrowser, UserManifest } from 'wxt';
 export interface ExtensionManifestOptions {
 	browser: TargetBrowser;
 	mode?: string;
-	fontResources: readonly string[];
 	firefoxExtensionId?: string;
 }
 
-export function createExtensionManifest({
-	browser,
-	mode,
-	fontResources,
-	firefoxExtensionId,
-}: ExtensionManifestOptions): UserManifest {
+export function createExtensionManifest({ browser, mode, firefoxExtensionId }: ExtensionManifestOptions): UserManifest {
 	const manifest: UserManifest = {
-		...createBaseExtensionManifest(fontResources),
+		...createBaseExtensionManifest(),
 	};
 
 	// Playwright drives the page from the extension service worker rather than a browser user gesture.
@@ -37,22 +31,12 @@ export function createExtensionManifest({
 	return manifest;
 }
 
-export function createBaseExtensionManifest(fontResources: readonly string[]): UserManifest {
+export function createBaseExtensionManifest(): UserManifest {
 	return {
 		name: '__MSG_extName__',
 		description: '__MSG_extDescription__',
 		default_locale: 'en',
 		permissions: ['activeTab', 'contextMenus', 'scripting', 'storage', 'unlimitedStorage'],
-		...(fontResources.length > 0
-			? {
-					web_accessible_resources: [
-						{
-							resources: [...fontResources],
-							matches: ['*://*/*'],
-						},
-					],
-				}
-			: {}),
 		action: {
 			default_title: 'Textmode Overlay',
 			default_icon: {

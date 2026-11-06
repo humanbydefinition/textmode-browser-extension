@@ -8,7 +8,14 @@ import type { StoredCustomFontMetadata } from '../../domain/fonts/custom-font-st
 import ursaFont from '../../../public/fonts/UrsaFont.ttf?inline';
 import atasciiFont from '../../../public/fonts/atascii.ttf?inline';
 import besciiFont from '../../../public/fonts/Bescii-Mono.ttf?inline';
+import unscii8Font from '../../../public/fonts/unscii-8.ttf?inline';
+import unscii8AltFont from '../../../public/fonts/unscii-8-alt.ttf?inline';
+import unscii8McrFont from '../../../public/fonts/unscii-8-mcr.ttf?inline';
+import unscii8ThinFont from '../../../public/fonts/unscii-8-thin.ttf?inline';
+import unscii8FantasyFont from '../../../public/fonts/unscii-8-fantasy.ttf?inline';
 import cpc464Font from '../../../public/fonts/cpc464.ttf?inline';
+import dungeonmodeFont from '../../../public/fonts/dungeonmode.ttf?inline';
+import rookFont from '../../../public/fonts/Rook.ttf?inline';
 import { FontUploadError } from '../errors/errors';
 import { createCustomFontStore, type CustomFontStore } from './custom-font-store';
 
@@ -41,13 +48,17 @@ const bundledFontData: Record<BundledFontId, string> = {
 	ursafont: ursaFont,
 	atascii: atasciiFont,
 	bescii: besciiFont,
+	unscii8: unscii8Font,
+	unscii8Alt: unscii8AltFont,
+	unscii8Mcr: unscii8McrFont,
+	unscii8Thin: unscii8ThinFont,
+	unscii8Fantasy: unscii8FantasyFont,
 	cpc464: cpc464Font,
+	dungeonmode: dungeonmodeFont,
+	rook: rookFont,
 };
 
-export function createRuntimeFontRegistry(
-	resolveAssetUrl?: (assetPath: string) => string,
-	store: CustomFontStore = createCustomFontStore()
-): RuntimeFontRegistry {
+export function createRuntimeFontRegistry(store: CustomFontStore = createCustomFontStore()): RuntimeFontRegistry {
 	const registry = createFontRegistry();
 	const metadataById = new Map<CustomFontId, StoredCustomFontMetadata>();
 	const blobUrls = new Map<CustomFontId, string>();
@@ -128,7 +139,7 @@ export function createRuntimeFontRegistry(
 		getFontAssetUrl: (fontId) => {
 			if (isCustomFontId(fontId)) return blobUrls.get(fontId) ?? null;
 			const entry = registry.getFontEntry(fontId);
-			return entry ? (resolveAssetUrl?.(entry.assetPath) ?? bundledFontData[entry.id]) : null;
+			return entry ? bundledFontData[entry.id] : null;
 		},
 		async resolveFontAssetUrl(fontId) {
 			if (isCustomFontId(fontId)) {
@@ -136,7 +147,7 @@ export function createRuntimeFontRegistry(
 				return metadataById.has(fontId) ? resolveCustomFontAssetUrl(fontId) : null;
 			}
 			const entry = registry.getFontEntry(fontId);
-			return entry ? (resolveAssetUrl?.(entry.assetPath) ?? bundledFontData[entry.id]) : null;
+			return entry ? bundledFontData[entry.id] : null;
 		},
 		getCustomFonts,
 		getAllFonts: () => [...getCustomFonts(), ...registry.getAvailableFonts()],

@@ -3,12 +3,24 @@ import { createFontRegistry } from '@/domain/fonts/font-registry';
 import { createRuntimeFontRegistry } from '@/shared/fonts/runtime-font-registry';
 
 describe('font-registry', () => {
-	it('returns all 4 bundled fonts', () => {
+	it('returns all 11 bundled fonts', () => {
 		const registry = createFontRegistry();
 		const fonts = registry.getAvailableFonts();
 
-		expect(fonts).toHaveLength(4);
-		expect(fonts.map((font) => font.id)).toEqual(['ursafont', 'atascii', 'bescii', 'cpc464']);
+		expect(fonts).toHaveLength(11);
+		expect(fonts.map((font) => font.id)).toEqual([
+			'ursafont',
+			'atascii',
+			'bescii',
+			'unscii8',
+			'unscii8Alt',
+			'unscii8Mcr',
+			'unscii8Thin',
+			'unscii8Fantasy',
+			'cpc464',
+			'dungeonmode',
+			'rook',
+		]);
 	});
 
 	it('exposes complete, unique, and valid metadata for bundled fonts', () => {
@@ -33,9 +45,8 @@ describe('font-registry', () => {
 		expect(registry.getPreferredFontEntry('ursafont')?.id).toBe('ursafont');
 	});
 
-	it('getFontAssetUrl resolves valid FontId to extension URLs and returns null for unknown ids', () => {
-		const registry = createRuntimeFontRegistry((path) => `chrome-extension://test/${path}`);
-		expect(registry.getFontAssetUrl('bescii')).toBe('chrome-extension://test/fonts/Bescii-Mono.ttf');
+	it('returns null for an unknown custom font', () => {
+		const registry = createRuntimeFontRegistry();
 		expect(registry.getFontAssetUrl('custom:nonexistent')).toBeNull();
 	});
 

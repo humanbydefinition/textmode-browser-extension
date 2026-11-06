@@ -3,12 +3,11 @@ import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { createExtensionManifest } from '../../src/shared/config/extension-manifest';
 
-const TEST_FONT_RESOURCES = ['fonts/Bescii-Mono.ttf', 'fonts/UrsaFont.ttf'];
 const LOCALES_DIR = resolve(import.meta.dirname, '../../public/_locales');
 
 describe('extension manifest', () => {
 	it('references localized identity messages and declares the default locale', () => {
-		const manifest = createExtensionManifest({ browser: 'chrome', fontResources: TEST_FONT_RESOURCES });
+		const manifest = createExtensionManifest({ browser: 'chrome' });
 
 		expect(manifest.name).toBe('__MSG_extName__');
 		expect(manifest.description).toBe('__MSG_extDescription__');
@@ -53,7 +52,7 @@ describe('extension manifest', () => {
 	});
 
 	it('declares context-menu support without permanent web access', () => {
-		const manifest = createExtensionManifest({ browser: 'chrome', fontResources: TEST_FONT_RESOURCES });
+		const manifest = createExtensionManifest({ browser: 'chrome' });
 
 		expect(manifest.permissions).toEqual(['activeTab', 'contextMenus', 'scripting', 'storage', 'unlimitedStorage']);
 		expect(manifest.host_permissions).toBeUndefined();
@@ -61,10 +60,7 @@ describe('extension manifest', () => {
 	});
 
 	it('omits browser_specific_settings when no firefoxExtensionId is provided', () => {
-		expect(
-			createExtensionManifest({ browser: 'firefox', fontResources: TEST_FONT_RESOURCES })
-				.browser_specific_settings
-		).toBeUndefined();
+		expect(createExtensionManifest({ browser: 'firefox' }).browser_specific_settings).toBeUndefined();
 	});
 
 	it('includes browser_specific_settings with the provided firefoxExtensionId', () => {
@@ -72,7 +68,6 @@ describe('extension manifest', () => {
 		expect(
 			createExtensionManifest({
 				browser: 'firefox',
-				fontResources: TEST_FONT_RESOURCES,
 				firefoxExtensionId: customId,
 			}).browser_specific_settings
 		).toEqual({
@@ -89,30 +84,18 @@ describe('extension manifest', () => {
 		expect(
 			createExtensionManifest({
 				browser: 'chrome',
-				fontResources: TEST_FONT_RESOURCES,
 				firefoxExtensionId: '{some-id}',
 			}).browser_specific_settings
 		).toBeUndefined();
 	});
 
 	it('adds all URLs only to the non-distributable automated E2E harness', () => {
-		expect(
-			createExtensionManifest({ browser: 'chrome', mode: 'e2e', fontResources: TEST_FONT_RESOURCES })
-				.host_permissions
-		).toEqual(['<all_urls>']);
+		expect(createExtensionManifest({ browser: 'chrome', mode: 'e2e' }).host_permissions).toEqual(['<all_urls>']);
 	});
 
-	it('only exposes font resources that are actually available to the build', () => {
-		expect(
-			createExtensionManifest({ browser: 'chrome', fontResources: TEST_FONT_RESOURCES }).web_accessible_resources
-		).toEqual([
-			{
-				resources: TEST_FONT_RESOURCES,
-				matches: ['*://*/*'],
-			},
-		]);
-		expect(
-			createExtensionManifest({ browser: 'chrome', fontResources: [] }).web_accessible_resources
-		).toBeUndefined();
+	it('does not expose resources to websites in production manifests', () => {
+		for (const browser of ['chrome', 'firefox', 'edge', 'safari'] as const) {
+			expect(createExtensionManifest({ browser }).web_accessible_resources).toBeUndefined();
+		}
 	});
 });

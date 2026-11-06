@@ -29,7 +29,7 @@ describe('runtime custom font registry', () => {
 	});
 
 	it('adds TrueType fonts and exposes blob URLs plus summaries', async () => {
-		const registry = createRuntimeFontRegistry((path) => `chrome-extension://test/${path}`, createMockStore());
+		const registry = createRuntimeFontRegistry(createMockStore());
 		const entry = await registry.addCustomFont(new File([TRUE_TYPE_SIGNATURE], 'Pixel Grid.ttf'));
 
 		expect(entry.id).toMatch(/^custom:/);
@@ -38,18 +38,12 @@ describe('runtime custom font registry', () => {
 		expect(registry.getCustomFontUrl(entry.id)).toBe('blob:test-font');
 		expect(registry.getFontAssetUrl(entry.id)).toBe('blob:test-font');
 		expect(registry.resolveFontId(entry.id)).toBe(entry.id);
-		expect(registry.getAllFonts().map((font) => font.id)).toEqual([
-			entry.id,
-			'ursafont',
-			'atascii',
-			'bescii',
-			'cpc464',
-		]);
+		expect(registry.getAllFonts()).toEqual([entry, ...registry.getAvailableFonts()]);
 		expect(registry.toCustomFontSummaries()).toEqual([{ id: entry.id, displayName: 'Pixel Grid' }]);
 	});
 
 	it('revokes blob URLs when custom fonts are removed', async () => {
-		const registry = createRuntimeFontRegistry(undefined, createMockStore());
+		const registry = createRuntimeFontRegistry(createMockStore());
 		const entry = await registry.addCustomFont(new File([TRUE_TYPE_SIGNATURE], 'Grid.ttf'));
 
 		await registry.removeCustomFont(entry.id);
@@ -60,7 +54,7 @@ describe('runtime custom font registry', () => {
 	});
 
 	it('rejects unsupported font uploads', async () => {
-		const registry = createRuntimeFontRegistry(undefined, createMockStore());
+		const registry = createRuntimeFontRegistry(createMockStore());
 
 		await expect(registry.addCustomFont(new File([TRUE_TYPE_SIGNATURE], 'Grid.woff2'))).rejects.toThrow(
 			/WOFF2 fonts are not supported/
@@ -98,7 +92,7 @@ describe('runtime custom font registry', () => {
 			subscribe: () => vi.fn(),
 			dispose: vi.fn(),
 		};
-		const registry = createRuntimeFontRegistry(undefined, store);
+		const registry = createRuntimeFontRegistry(store);
 
 		await registry.initialize();
 		expect(registry.getCustomFonts()).toMatchObject([{ id, displayName: 'Stored Grid' }]);

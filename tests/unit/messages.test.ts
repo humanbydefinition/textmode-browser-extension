@@ -62,6 +62,19 @@ describe('isRuntimeMessage', () => {
 			isRuntimeMessage({
 				type: 'FRAME_EVENT',
 				event: {
+					type: 'FRAME_PICKER_TARGETS',
+					pickSessionId: 'pick-1',
+					runtimeId: 'runtime-1',
+					frameTitle: '',
+					revision: 1,
+					targets: [{ id: 'target-1', label: 'canvas#demo', dimensions: '320x180', availability: 'ready' }],
+				},
+			})
+		).toBe(true);
+		expect(
+			isRuntimeMessage({
+				type: 'FRAME_EVENT',
+				event: {
 					type: 'FRAME_TARGET_PICKED',
 					pickSessionId: 'pick-1',
 					runtimeId: 'runtime-1',
@@ -151,6 +164,19 @@ describe('isRuntimeMessage', () => {
 				targetToken: 'target-1',
 				overlayId: 'overlay-1',
 				settings: { fontSize: 'large' },
+			})
+		).toBe(false);
+		expect(
+			isRuntimeMessage({
+				type: 'FRAME_EVENT',
+				event: {
+					type: 'FRAME_PICKER_TARGETS',
+					pickSessionId: 'pick-1',
+					runtimeId: 'runtime-1',
+					frameTitle: '',
+					revision: 1,
+					targets: [{ id: 'target-1', label: 'canvas#demo', dimensions: 320, availability: 'ready' }],
+				},
 			})
 		).toBe(false);
 	});

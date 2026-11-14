@@ -9,6 +9,8 @@ export interface CandidateInfo {
 	element: SelectableElement;
 	kind: ElementKind;
 	label: string;
+	targetLabel: string;
+	dimensions: string;
 }
 
 export interface PickerTarget {
@@ -17,6 +19,7 @@ export interface PickerTarget {
 	kind: ElementKind | 'iframe';
 	availability: PickerAvailability;
 	label: string;
+	dimensions?: string;
 	blockReason?: PickerBlockReason;
 	reasonText?: string;
 }
@@ -39,7 +42,8 @@ export class PickerTargetRegistry {
 					element,
 					kind: info.kind,
 					availability: 'ready',
-					label: info.label,
+					label: info.targetLabel,
+					dimensions: info.dimensions,
 				});
 				continue;
 			}
@@ -109,10 +113,13 @@ export function isSelectableElement(element: Element): element is SelectableElem
 }
 
 export function describeElement(element: SelectableElement): CandidateInfo {
+	const { targetLabel, dimensions } = createElementDescription(element);
 	return {
 		element,
 		kind: element instanceof HTMLVideoElement ? 'video' : 'canvas',
-		label: createElementLabel(element),
+		label: `${targetLabel} ${dimensions}`.trim(),
+		targetLabel,
+		dimensions,
 	};
 }
 
@@ -163,14 +170,15 @@ function isVisibleFrame(iframe: HTMLIFrameElement): boolean {
 	);
 }
 
-function createElementLabel(element: SelectableElement): string {
+function createElementDescription(element: SelectableElement): { targetLabel: string; dimensions: string } {
 	const id = element.id ? `#${element.id}` : '';
 	const classes = [...element.classList]
 		.slice(0, 2)
 		.map((value) => `.${value}`)
 		.join('');
 	const rect = element.getBoundingClientRect();
-	const size = `${Math.round(rect.width)}x${Math.round(rect.height)}`;
+	const dimensions = `${Math.round(rect.width)}x${Math.round(rect.height)}`;
 	const name = (element.getAttribute('aria-label') || element.getAttribute('title') || '').trim();
-	return `${element.tagName.toLowerCase()}${name ? ` ${name}` : `${id}${classes}`} ${size}`.trim();
+	const targetLabel = `${element.tagName.toLowerCase()}${name ? ` ${name}` : `${id}${classes}`}`.trim();
+	return { targetLabel, dimensions };
 }

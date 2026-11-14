@@ -185,6 +185,25 @@ describe('element-picker', () => {
 		expect(onPick).toHaveBeenCalledWith(canvas);
 	});
 
+	it('emits separate target labels and dimensions for selectable media', () => {
+		const canvas = document.createElement('canvas');
+		canvas.id = 'hero';
+		const video = document.createElement('video');
+		makeVideoReady(video);
+		mockRect(canvas, { width: 320, height: 180 });
+		mockRect(video, { width: 640, height: 360 });
+		document.body.append(canvas, video);
+		const onTargetsChanged = vi.fn();
+		const picker = createPicker({ onTargetsChanged });
+
+		picker.start();
+
+		expect(onTargetsChanged).toHaveBeenCalledWith([
+			{ id: expect.any(String), label: 'canvas#hero', dimensions: '320x180', availability: 'ready' },
+			{ id: expect.any(String), label: 'video', dimensions: '640x360', availability: 'ready' },
+		]);
+	});
+
 	it('does not mark inaccessible iframes', () => {
 		const iframe = document.createElement('iframe');
 		iframe.src = 'https://cross-origin.test/embed';

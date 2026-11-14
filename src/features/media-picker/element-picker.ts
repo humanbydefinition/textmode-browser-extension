@@ -192,9 +192,10 @@ export class ElementPicker {
 		if (this.activeTargetId && !this.targets.has(this.activeTargetId)) this.setActiveTarget(undefined);
 		this.overlay.updateTargets(discovered);
 		this.options.onTargetsChanged?.(
-			discovered.map(({ id, label, availability, reasonText }) => ({
+			discovered.map(({ id, label, dimensions, availability, reasonText }) => ({
 				id,
 				label,
+				...(dimensions ? { dimensions } : {}),
 				availability,
 				...(reasonText ? { reason: reasonText } : {}),
 			}))

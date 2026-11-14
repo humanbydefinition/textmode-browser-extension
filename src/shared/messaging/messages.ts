@@ -39,6 +39,7 @@ export const FRAME_RUNTIME_READY_PROBE = { type: 'FRAME_PING' } as const satisfi
 export interface PickerTargetSummary {
 	id: string;
 	label: string;
+	dimensions?: string;
 	availability: 'ready' | 'blocked';
 	reason?: string;
 }
@@ -221,6 +222,7 @@ export function isFrameEvent(value: unknown): value is FrameEvent {
 						isRecord(target) &&
 						typeof target.id === 'string' &&
 						typeof target.label === 'string' &&
+						(target.dimensions === undefined || typeof target.dimensions === 'string') &&
 						(target.availability === 'ready' || target.availability === 'blocked') &&
 						(target.reason === undefined || typeof target.reason === 'string')
 				)

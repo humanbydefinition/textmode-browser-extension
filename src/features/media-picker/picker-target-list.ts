@@ -1,5 +1,7 @@
+import badgeStyles from '../../shared/ui/badge.css?inline';
 import pickerStyles from './picker-list.css?inline';
 import type { PickerTargetSummary } from '../../shared/messaging/messages';
+import { createBadge } from '../../shared/ui/badge';
 import { icon } from '../../widgets/overlay-panel/icons';
 
 export interface FrameTargets {
@@ -23,7 +25,9 @@ export class PickerTargetList {
 	private readonly list = document.createElement('ul');
 	private readonly status = document.createElement('p');
 	private readonly region = document.createElement('section');
+	private readonly directPick = document.createElement('button');
 	private readonly cancel = document.createElement('button');
+	private directMode = false;
 	private previousFocus?: HTMLElement;
 	private readonly items = new Map<string, HTMLLIElement>();
 	private resizeObserver?: ResizeObserver;
@@ -37,13 +41,19 @@ export class PickerTargetList {
 		private readonly onHighlight: (frame: FrameTargets, target?: PickerTargetSummary) => void,
 		onCancel: () => void,
 		private readonly onFocusFallback: () => void = () => undefined,
-		onRefresh: () => void = () => undefined
+		onRefresh: () => void = () => undefined,
+		onStartDirectPick: () => void = () => undefined
 	) {
 		this.host.dataset.textmodeAsciiExtensionUi = 'true';
 		this.host.dataset.textmodePickerList = 'true';
-		Object.assign(this.host.style, { display: 'block', height: '100%', minHeight: '0' });
+		Object.assign(this.host.style, {
+			display: 'block',
+			height: '100%',
+			minWidth: '0',
+			minHeight: '0',
+		});
 		const style = document.createElement('style');
-		style.textContent = pickerStyles;
+		style.textContent = `${badgeStyles}\n${pickerStyles}`;
 		const region = this.region;
 		region.className = 'tm-picker-list';
 		region.setAttribute('aria-labelledby', 'tm-picker-list-heading');
@@ -57,7 +67,7 @@ export class PickerTargetList {
 		const cancel = this.cancel;
 		cancel.type = 'button';
 		cancel.className = 'tm-picker-list__cancel';
-		cancel.textContent = 'Cancel';
+		cancel.textContent = 'cancel';
 		cancel.hidden = true;
 		cancel.addEventListener('click', onCancel);
 		region.addEventListener('keydown', (event) => {
@@ -69,14 +79,28 @@ export class PickerTargetList {
 		});
 		const header = document.createElement('div');
 		header.className = 'tm-picker-list__header';
+		const actions = document.createElement('div');
+		actions.className = 'tm-picker-list__actions';
+		const directPick = this.directPick;
+		directPick.type = 'button';
+		directPick.className = 'tm-picker-list__icon-button tm-picker-list__direct-pick';
+		directPick.setAttribute('aria-label', 'Select media on page');
+		directPick.title = 'Select media on page';
+		directPick.setAttribute('aria-pressed', 'false');
+		directPick.append(icon('mouse-pointer'));
+		directPick.addEventListener('click', () => {
+			if (this.directMode) onCancel();
+			else onStartDirectPick();
+		});
 		const refresh = document.createElement('button');
 		refresh.type = 'button';
-		refresh.className = 'tm-picker-list__refresh';
+		refresh.className = 'tm-picker-list__icon-button tm-picker-list__refresh';
 		refresh.setAttribute('aria-label', 'Refresh media list');
 		refresh.title = 'Refresh media list';
 		refresh.append(icon('rotate-ccw'));
 		refresh.addEventListener('click', onRefresh);
-		header.append(this.heading, refresh);
+		actions.append(directPick, refresh);
+		header.append(this.heading, actions);
 		const footer = document.createElement('div');
 		footer.className = 'tm-picker-list__footer';
 		footer.append(this.status, cancel);
@@ -97,10 +121,17 @@ export class PickerTargetList {
 	}
 
 	public setDirectMode(direct: boolean): void {
+		this.directMode = direct;
 		this.cancel.hidden = !direct;
+		this.directPick.setAttribute('aria-pressed', String(direct));
 		if (direct) {
-			this.previousFocus = deepActiveElement();
-			this.heading.focus({ preventScroll: true });
+			const active = deepActiveElement();
+			if (!active || !this.root.contains(active)) {
+				this.previousFocus = active;
+				this.heading.focus({ preventScroll: true });
+			}
+		} else if (this.root.activeElement === this.cancel || this.root.activeElement === this.heading) {
+			this.directPick.focus({ preventScroll: true });
 		}
 	}
 
@@ -159,14 +190,33 @@ export class PickerTargetList {
 					item.firstElementChild!.append(label);
 					this.items.set(key, item);
 				}
-				const control = item.firstElementChild!;
+				const control = item.firstElementChild as HTMLButtonElement;
 				const text = control.querySelector('.tm-picker-list__label-text')!;
 				const ordinal = (labelOrdinals.get(target.label) ?? 0) + 1;
 				labelOrdinals.set(target.label, ordinal);
 				const labelText =
 					(labelCounts.get(target.label) ?? 0) > 1 ? `${target.label} (${ordinal})` : target.label;
 				text.textContent = labelText;
-				control.setAttribute('title', labelText);
+				const existingBadge = control.querySelector<HTMLSpanElement>('[data-slot="badge"]');
+				if (target.dimensions) {
+					if (existingBadge) {
+						existingBadge.textContent = target.dimensions;
+					} else {
+						control.append(
+							createBadge({
+								text: target.dimensions,
+								variant: 'secondary',
+								className: 'tm-picker-list__dimensions',
+							})
+						);
+					}
+					control.setAttribute('aria-label', `${labelText}, ${target.dimensions}`);
+					control.setAttribute('title', `${labelText} (${target.dimensions})`);
+				} else {
+					existingBadge?.remove();
+					control.removeAttribute('aria-label');
+					control.setAttribute('title', labelText);
+				}
 				ready++;
 				const current = this.list.children[position++];
 				if (current !== item) this.list.insertBefore(item, current ?? null);

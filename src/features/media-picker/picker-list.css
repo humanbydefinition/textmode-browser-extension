@@ -39,26 +39,39 @@
 	border-bottom: 1px solid #262626;
 }
 
-.tm-picker-list__refresh {
+.tm-picker-list__actions {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	flex: none;
+}
+
+.tm-picker-list__icon-button {
 	display: grid;
 	place-items: center;
 	flex: none;
 	width: 28px;
 	height: 28px;
 	padding: 6px;
-	border: 0;
+	border: 1px solid transparent;
 	border-radius: 4px;
 	background: transparent;
 	color: #a3a3a3;
 	cursor: pointer;
 }
 
-.tm-picker-list__refresh:hover {
+.tm-picker-list__icon-button:hover {
 	background: #262626;
 	color: #fafafa;
 }
 
-.tm-picker-list__refresh svg {
+.tm-picker-list__direct-pick[aria-pressed='true'] {
+	border-color: color-mix(in srgb, #60a5fa 62%, #262626);
+	background: #1a1a1a;
+	color: #fafafa;
+}
+
+.tm-picker-list__icon-button svg {
 	width: 16px;
 	height: 16px;
 }
@@ -73,13 +86,19 @@
 }
 
 .tm-picker-list__cancel {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
 	flex: none;
-	padding: 4px 6px;
+	height: 24px;
+	padding: 0 8px;
 	border: 1px solid #262626;
-	border-radius: 6px;
+	border-radius: 4px;
 	background: #111;
 	color: #d4d4d4;
 	font: inherit;
+	font-size: 11px;
+	line-height: 1;
 	cursor: pointer;
 }
 
@@ -93,6 +112,7 @@
 }
 .tm-picker-list__items {
 	flex: 1 1 auto;
+	min-width: 0;
 	min-height: 0;
 	margin: 8px 0 0;
 	padding: 0;
@@ -113,10 +133,12 @@
 .tm-picker-list__item {
 	display: flex;
 	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
 	width: 100%;
 	min-width: 0;
 	min-height: 34px;
-	padding: 7px 8px;
+	padding: 6px 8px;
 	border: 0;
 	border-radius: 4px;
 	background: transparent;
@@ -131,10 +153,15 @@ button.tm-picker-list__item:hover {
 	background: #1a1a1a;
 	color: #fafafa;
 }
+button.tm-picker-list__item:is(:hover, :focus-visible) .tm-picker-list__dimensions {
+	border-color: rgb(255 255 255 / 0.16);
+	color: #fafafa;
+}
 .tm-picker-list__label {
 	display: block;
+	flex: 1 1 0%;
+	width: 0;
 	min-width: 0;
-	width: 100%;
 	overflow: hidden;
 	white-space: nowrap;
 	text-overflow: ellipsis;
@@ -142,18 +169,31 @@ button.tm-picker-list__item:hover {
 .tm-picker-list__label-text {
 	display: inline;
 }
+.tm-picker-list__dimensions {
+	flex: 0 0 auto;
+	margin-inline-start: auto;
+}
 .tm-picker-list__footer {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
 	gap: 8px;
+	flex: 0 0 auto;
+	min-height: 33px;
+	margin-top: 8px;
 	padding-top: 8px;
+	border-top: 1px solid #262626;
 }
 .tm-picker-list__status {
+	flex: 1 1 auto;
 	min-width: 0;
 	margin: 0;
+	overflow: hidden;
 	color: #a3a3a3;
 	font-size: 10px;
+	line-height: 1.4;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 }
 .tm-picker-list button:focus-visible,
 .tm-picker-list h2:focus-visible {
@@ -189,8 +229,15 @@ button.tm-picker-list__item:hover {
 	}
 	.tm-picker-list__item,
 	.tm-picker-list__cancel,
-	.tm-picker-list__refresh {
+	.tm-picker-list__icon-button,
+	button.tm-picker-list__item:is(:hover, :focus-visible) .tm-picker-list__dimensions {
+		border-color: CanvasText;
+		background: Canvas;
 		color: CanvasText;
+	}
+	.tm-picker-list__direct-pick[aria-pressed='true'] {
+		border-color: Highlight;
+		color: Highlight;
 	}
 	.tm-picker-list button:focus-visible,
 	.tm-picker-list h2:focus-visible {

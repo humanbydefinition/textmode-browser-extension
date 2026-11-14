@@ -89,7 +89,13 @@ describe('frame agent', () => {
 			event: expect.objectContaining({
 				type: 'FRAME_PICKER_TARGETS',
 				runtimeId: agent.runtimeId,
-				targets: [expect.objectContaining({ availability: 'ready', label: expect.stringContaining('video') })],
+				targets: [
+					expect.objectContaining({
+						availability: 'ready',
+						label: 'video',
+						dimensions: '320x180',
+					}),
+				],
 			}),
 		});
 		listener({ type: 'FRAME_END_PICKING', pickSessionId: 'refresh' }, {}, vi.fn());

@@ -13,6 +13,7 @@ export class PanelScrollController {
 			const layoutChanged = records.some(
 				(record) =>
 					record.attributeName === 'hidden' ||
+					record.attributeName === 'data-picking' ||
 					(record.attributeName === 'data-state' &&
 						record.target instanceof HTMLElement &&
 						['tab', 'tabpanel'].includes(record.target.getAttribute('role') ?? ''))
@@ -25,7 +26,7 @@ export class PanelScrollController {
 			childList: true,
 			subtree: true,
 			attributes: true,
-			attributeFilter: ['hidden', 'data-state'],
+			attributeFilter: ['hidden', 'data-state', 'data-picking'],
 		});
 		window.addEventListener('resize', this.schedule);
 		this.observeFixedContent();
@@ -63,7 +64,7 @@ export class PanelScrollController {
 	private update(): void {
 		if (!this.panel.isConnected || !this.panel.getBoundingClientRect().width) return;
 		const query = (selector: string): HTMLElement | null => this.panel.querySelector(selector);
-		const form = query('.tm-settings-form');
+		const form = this.panel.dataset.picking === 'true' ? null : query('.tm-settings-form');
 		const tabs = query('.tm-settings-tabs');
 		const advanced = query('.tm-tabs-body > .tm-tabs-content[data-state="active"] .tm-converter-tabs');
 		const fixed =

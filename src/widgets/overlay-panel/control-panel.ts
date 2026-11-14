@@ -145,6 +145,14 @@ export class ControlPanel {
 		this.render();
 	}
 
+	public getPickerMount(): HTMLElement {
+		return this.view.getPickerMount();
+	}
+
+	public focusSelectMedia(): void {
+		this.view.focusSelectMedia();
+	}
+
 	public updatePickingState(picking: boolean): void {
 		this.view.setPicking(picking);
 	}

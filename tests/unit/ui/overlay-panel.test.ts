@@ -38,6 +38,37 @@ describe('OverlayPanelView', () => {
 		expect(onStartPicking).toHaveBeenCalledTimes(1);
 	});
 
+	it('shows the picker by default in the in-page panel', () => {
+		const view = createView({ mode: 'in-page' });
+		view.update([]);
+		host.append(view.element);
+		expect(host.querySelector('.tm-empty-state')).toBeNull();
+		expect(view.getPickerMount().hidden).toBe(false);
+		expect(host.querySelector<HTMLElement>('.tm-overlay-list')!.hidden).toBe(true);
+		view.dispose();
+	});
+
+	it('shows the picker in the content area and restores the existing settings', () => {
+		const view = createView({ mode: 'in-page' });
+		view.update([createOverlay()]);
+		host.append(view.element);
+		const settings = host.querySelector<HTMLElement>('.tm-overlay-list')!;
+		const pickerMount = view.getPickerMount();
+		const card = settings.querySelector('.tm-overlay-card');
+
+		view.setPicking(true);
+		expect(settings.hidden).toBe(true);
+		expect(pickerMount.hidden).toBe(false);
+		expect(pickerMount.parentElement).toBe(settings.parentElement);
+		view.update([createOverlay()]);
+		expect(settings.hidden).toBe(true);
+		view.setPicking(false);
+		expect(pickerMount.hidden).toBe(true);
+		expect(settings.hidden).toBe(false);
+		expect(settings.querySelector('.tm-overlay-card')).toBe(card);
+		view.dispose();
+	});
+
 	it('keeps the popup header unchanged and compacts only the in-page header', () => {
 		const popupView = createView();
 		popupView.update([]);

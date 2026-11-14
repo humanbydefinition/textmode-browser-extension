@@ -31,6 +31,7 @@ export class OverlayPanelView {
 	private readonly selectButton: HTMLButtonElement;
 	private readonly selectButtonLabel: Text;
 	private readonly overlayList: HTMLElement;
+	private readonly pickerMount: HTMLElement;
 	private readonly removeButton: HTMLButtonElement;
 	private readonly notice: HTMLParagraphElement;
 	private readonly scrollArea: ScrollAreaView;
@@ -113,6 +114,8 @@ export class OverlayPanelView {
 			if (!this.picking) options.onStartPicking();
 		});
 		this.overlayList = h('section', { className: 'tm-overlay-list' });
+		this.pickerMount = h('div', { className: 'tm-picker-mount' });
+		this.pickerMount.hidden = true;
 		this.notice = h('p', { className: 'tm-error', attributes: { role: 'alert' } });
 		this.notice.hidden = true;
 		this.scrollArea = new ScrollAreaView({
@@ -123,7 +126,7 @@ export class OverlayPanelView {
 		this.scrollArea.viewport.setAttribute('role', 'region');
 		this.scrollArea.viewport.setAttribute('aria-label', 'overlay settings');
 		this.scrollArea.viewport.tabIndex = -1;
-		this.scrollArea.content.append(this.notice, this.overlayList);
+		this.scrollArea.content.append(this.notice, this.overlayList, this.pickerMount);
 
 		this.removeButton = createButton(
 			'tm-button tm-button--danger tm-button--default-size tm-remove-button',
@@ -183,6 +186,7 @@ export class OverlayPanelView {
 	): void {
 		const overlay = overlays[0];
 		this.overlayId = overlay?.id ?? null;
+		this.updateContentVisibility();
 		this.updateSelectButtonLabel();
 		const removingFocusedOverlay = !overlay && this.removeButton.matches(':focus');
 		this.removeButton.disabled = !overlay;
@@ -192,7 +196,8 @@ export class OverlayPanelView {
 			this.overlayCard?.dispose();
 			this.overlayCard = null;
 			removeChildren(this.overlayList);
-			this.overlayList.append(h('p', { className: 'tm-empty-state', textContent: 'no media selected.' }));
+			if (this.options.mode !== 'in-page')
+				this.overlayList.append(h('p', { className: 'tm-empty-state', textContent: 'no media selected.' }));
 			return;
 		}
 
@@ -216,8 +221,18 @@ export class OverlayPanelView {
 		this.overlayCard.update(overlay, customFonts);
 	}
 
+	public focusSelectMedia(): void {
+		this.selectButton.focus({ preventScroll: true });
+	}
+
+	public getPickerMount(): HTMLElement {
+		return this.pickerMount;
+	}
+
 	public setPicking(picking: boolean): void {
 		this.picking = picking;
+		this.element.dataset.picking = String(picking);
+		this.updateContentVisibility();
 		this.selectButton.setAttribute('aria-pressed', String(picking));
 		this.selectButton.setAttribute('aria-disabled', String(picking));
 		this.updateSelectButtonLabel();
@@ -232,6 +247,12 @@ export class OverlayPanelView {
 		this.scrollController.dispose();
 		this.overlayCard?.dispose();
 		this.scrollArea.dispose();
+	}
+
+	private updateContentVisibility(): void {
+		const showPicker = this.picking || (this.options.mode === 'in-page' && !this.overlayId);
+		this.overlayList.hidden = showPicker;
+		this.pickerMount.hidden = !showPicker;
 	}
 
 	private updateSelectButtonLabel(): void {

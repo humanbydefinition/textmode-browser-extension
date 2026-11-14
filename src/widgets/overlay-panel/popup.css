@@ -63,6 +63,7 @@ select {
 }
 
 .tm-panel {
+	--tm-picker-area-height: min(240px, 40vh);
 	display: grid;
 	grid-template-rows: auto auto minmax(0, 1fr) auto;
 	gap: 12px;
@@ -708,6 +709,18 @@ select {
 .tm-panel-scroll-area__content > .tm-overlay-list {
 	grid-row: 2;
 	height: 100%;
+}
+
+.tm-picker-mount {
+	grid-row: 2;
+	min-height: 0;
+	height: var(--tm-picker-area-height);
+	max-height: 100%;
+}
+
+.tm-overlay-list[hidden],
+.tm-picker-mount[hidden] {
+	display: none;
 }
 
 .tm-panel[data-scroll-mode='tabs'] .tm-panel-scroll-area__viewport {

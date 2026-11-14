@@ -376,6 +376,61 @@ describe('element-picker', () => {
 		expect(isSelectableElement(redirectedTaintedVideo)).toBe(false);
 	});
 
+	it('caches video readability per source across refreshes and coalesces burst playback events', async () => {
+		const video = document.createElement('video');
+		makeVideoReady(video);
+		video.src = `${window.location.origin}/feed.mp4`;
+		mockRect(video, { width: 320, height: 180 });
+		document.body.append(video);
+
+		let probeCalls = 0;
+		let throwOnNext = false;
+		vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockImplementation((() => {
+			let tainted = false;
+			return {
+				clearRect: vi.fn(),
+				drawImage: vi.fn(() => {
+					probeCalls += 1;
+					if (throwOnNext) tainted = true;
+				}),
+				getImageData: vi.fn(() => {
+					if (tainted) {
+						throw new DOMException('Tainted canvas.', 'SecurityError');
+					}
+					return { data: new Uint8ClampedArray(4) };
+				}),
+			};
+		}) as unknown as typeof HTMLCanvasElement.prototype.getContext);
+
+		const onTargetsChanged = vi.fn();
+		const picker = createPicker({ onTargetsChanged });
+		picker.start();
+
+		expect(probeCalls).toBe(1);
+		expect(onTargetsChanged).toHaveBeenCalledTimes(1);
+
+		picker.refresh();
+		picker.refresh();
+		expect(probeCalls).toBe(1);
+
+		onTargetsChanged.mockClear();
+		video.dispatchEvent(new Event('playing'));
+		video.dispatchEvent(new Event('waiting'));
+		video.dispatchEvent(new Event('seeking'));
+		video.dispatchEvent(new Event('seeked'));
+
+		expect(onTargetsChanged).not.toHaveBeenCalled();
+		await vi.waitFor(() => expect(onTargetsChanged).toHaveBeenCalledTimes(1));
+		expect(probeCalls).toBe(1);
+
+		// Invalidating via loadstart or changing src re-probes cleanly, and taint clears the global probe.
+		throwOnNext = true;
+		video.dispatchEvent(new Event('loadstart'));
+		await vi.waitFor(() => expect(onTargetsChanged).toHaveBeenCalledTimes(2));
+		expect(probeCalls).toBe(2);
+		expect(getMarkers()).toHaveLength(0);
+	});
+
 	function createPicker(overrides: Partial<ConstructorParameters<typeof ElementPicker>[0]> = {}): ElementPicker {
 		const picker = new ElementPicker({
 			onPick: vi.fn(),

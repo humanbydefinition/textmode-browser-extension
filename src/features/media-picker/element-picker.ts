@@ -33,6 +33,7 @@ export class ElementPicker {
 	private mutationObserver?: MutationObserver;
 	private resizeObserver?: ResizeObserver;
 	private animationFrame?: number;
+	private refreshFrame?: number;
 	private readonly observedTargets = new Set<Element>();
 	private readonly frameLoadListeners = new Map<HTMLIFrameElement, EventListener>();
 
@@ -78,7 +79,10 @@ export class ElementPicker {
 		window.visualViewport?.removeEventListener('scroll', this.onViewportChange);
 		if (this.animationFrame !== undefined) cancelAnimationFrame(this.animationFrame);
 		this.animationFrame = undefined;
+		if (this.refreshFrame !== undefined) cancelAnimationFrame(this.refreshFrame);
+		this.refreshFrame = undefined;
 		this.targets.clear();
+		this.registry.clearCache();
 		if ((this.options.restoreFocus ?? window === window.top) && this.previousFocus?.isConnected) {
 			this.previousFocus.focus({ preventScroll: true });
 		}
@@ -177,11 +181,31 @@ export class ElementPicker {
 	};
 
 	private readonly onMediaChange = (event: Event): void => {
-		if (event.target instanceof HTMLVideoElement) this.refreshTargets();
+		if (!(event.target instanceof HTMLVideoElement)) return;
+		if (event.type === 'loadstart' || event.type === 'emptied') {
+			this.registry.invalidate(event.target);
+		}
+		if (event.type === 'loadeddata' || event.type === 'emptied') {
+			this.refreshTargets();
+			return;
+		}
+		this.scheduleRefreshTargets();
 	};
+
+	private scheduleRefreshTargets(): void {
+		if (!this.active || this.refreshFrame !== undefined) return;
+		this.refreshFrame = requestAnimationFrame(() => {
+			this.refreshFrame = undefined;
+			this.refreshTargets();
+		});
+	}
 
 	private refreshTargets(): void {
 		if (!this.active) return;
+		if (this.refreshFrame !== undefined) {
+			cancelAnimationFrame(this.refreshFrame);
+			this.refreshFrame = undefined;
+		}
 		const discovered = this.registry.discover();
 		this.targets.clear();
 		for (const target of discovered) this.targets.set(target.id, target);
@@ -207,10 +231,10 @@ export class ElementPicker {
 
 	private mountObservers(): void {
 		if (typeof MutationObserver !== 'undefined') {
-			this.mutationObserver = new MutationObserver(() => this.refreshTargets());
+			this.mutationObserver = new MutationObserver(() => this.scheduleRefreshTargets());
 			this.mutationObserver.observe(document.documentElement, {
 				attributes: true,
-				attributeFilter: ['class', 'hidden', 'src', 'srcdoc', 'sandbox', 'style'],
+				attributeFilter: ['class', 'crossorigin', 'hidden', 'src', 'srcdoc', 'sandbox', 'style'],
 				childList: true,
 				subtree: true,
 			});

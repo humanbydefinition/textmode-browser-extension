@@ -201,6 +201,11 @@ describe('picker target list', () => {
 		);
 		expect(styles).toMatch(/\.tm-picker-list__footer\s*\{[^}]*min-height:\s*33px/);
 		expect(styles).toMatch(/\.tm-picker-list__cancel\s*\{[^}]*height:\s*24px/);
+		expect(styles).toMatch(
+			/\.tm-picker-list__items\s*\{[^}]*overflow-y:\s*scroll;[^}]*scrollbar-gutter:\s*stable;[^}]*scrollbar-color:\s*var\(--scrollbar-thumb\)\s+var\(--scrollbar-track\);/s
+		);
+		expect(styles).toMatch(/@supports not \(scrollbar-color:\s*auto\)/);
+		expect(styles).toMatch(/@media \(prefers-contrast:\s*more\)/);
 		list.dispose();
 	});
 });

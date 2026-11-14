@@ -124,17 +124,36 @@
 	color: #fafafa;
 }
 .tm-picker-list__items {
+	--scrollbar-thumb: #737373;
+	--scrollbar-track: #161616;
 	flex: 1 1 auto;
 	min-width: 0;
 	min-height: 0;
 	margin: 8px 0 0;
-	padding: 0;
+	padding: 0 6px 0 0;
 	list-style: none;
-	overflow-y: auto;
+	overflow-y: scroll;
 	overflow-x: hidden;
 	overscroll-behavior: contain;
+	scroll-padding-block: 4px;
+	scrollbar-gutter: stable;
 	scrollbar-width: thin;
-	scrollbar-color: #525252 transparent;
+	scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+}
+
+@supports not (scrollbar-color: auto) {
+	.tm-picker-list__items::-webkit-scrollbar {
+		width: 8px;
+		height: 8px;
+	}
+	.tm-picker-list__items::-webkit-scrollbar-thumb {
+		border-radius: 9999px;
+		background: var(--scrollbar-thumb);
+	}
+	.tm-picker-list__items::-webkit-scrollbar-track {
+		border-radius: 9999px;
+		background: var(--scrollbar-track);
+	}
 }
 
 .tm-picker-list__items li {
@@ -234,11 +253,20 @@ button.tm-picker-list__item:is(:hover, :focus-visible) .tm-picker-list__dimensio
 		}
 	}
 }
+@media (prefers-contrast: more) {
+	.tm-picker-list__items {
+		--scrollbar-thumb: #ffffff;
+		--scrollbar-track: #000000;
+	}
+}
 @media (forced-colors: active) {
 	.tm-picker-list {
 		border-color: CanvasText;
 		background: Canvas;
 		color: CanvasText;
+	}
+	.tm-picker-list__items {
+		scrollbar-color: auto;
 	}
 	.tm-picker-list__item,
 	.tm-picker-list__cancel,

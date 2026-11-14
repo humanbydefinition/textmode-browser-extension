@@ -1,0 +1,65 @@
+[data-slot='badge'] {
+	display: inline-flex;
+	flex: 0 0 auto;
+	align-items: center;
+	justify-content: center;
+	gap: 4px;
+	width: fit-content;
+	overflow: hidden;
+	border: 1px solid transparent;
+	border-radius: 9999px;
+	padding: 2px 7px;
+	font-size: 10px;
+	font-weight: 500;
+	line-height: 1.25;
+	white-space: nowrap;
+	font-variant-numeric: tabular-nums;
+	transition:
+		color 0.15s,
+		background-color 0.15s,
+		border-color 0.15s,
+		box-shadow 0.15s;
+}
+
+[data-slot='badge'] > svg {
+	pointer-events: none;
+	width: 12px;
+	height: 12px;
+	flex: 0 0 auto;
+}
+
+[data-slot='badge'][data-variant='default'] {
+	background: var(--primary, #fafafa);
+	color: var(--primary-foreground, #171717);
+}
+
+[data-slot='badge'][data-variant='secondary'] {
+	border-color: rgb(255 255 255 / 0.08);
+	background: var(--muted, #242424);
+	color: var(--tm-neutral-d4, #d4d4d4);
+}
+
+[data-slot='badge'][data-variant='outline'] {
+	border-color: var(--tm-neutral-26, #262626);
+	background: transparent;
+	color: var(--tm-neutral-d4, #d4d4d4);
+}
+
+[data-slot='badge'][data-variant='destructive'] {
+	border-color: color-mix(in srgb, var(--tm-danger, #ff6b6b) 54%, var(--tm-neutral-26, #262626));
+	background: color-mix(in srgb, var(--tm-danger, #ff6b6b) 16%, var(--tm-neutral-0f, #0f0f0f));
+	color: #ffd0d0;
+}
+
+[data-slot='badge'][data-variant='ghost'] {
+	background: transparent;
+	color: var(--tm-neutral-a3, #a3a3a3);
+}
+
+@media (forced-colors: active) {
+	[data-slot='badge'] {
+		border-color: CanvasText;
+		background: Canvas;
+		color: CanvasText;
+	}
+}

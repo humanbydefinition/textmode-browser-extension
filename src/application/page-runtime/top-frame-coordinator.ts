@@ -53,6 +53,7 @@ export class TopFrameCoordinator {
 	private readonly presetStore: SitePresetStore;
 	private readonly panelPlacementStore: PanelPlacementStore;
 	private readonly runtimeReady: Promise<void>;
+	private isRuntimeReady = false;
 	private sitePreset: OverlaySettings | null = null;
 	private panelPlacement: PanelPlacement | null = null;
 	private activeOverlay?: RoutedOverlay;
@@ -76,7 +77,9 @@ export class TopFrameCoordinator {
 			runtimeFontRegistry.initialize(),
 			this.loadSitePreset(),
 			this.loadPanelPlacement(),
-		]).then(() => undefined);
+		]).then(() => {
+			this.isRuntimeReady = true;
+		});
 
 		runtimeFontRegistry.subscribe((change) => {
 			if (change.removedIds.includes(this.sitePreset?.fontId as `custom:${string}`)) {
@@ -227,7 +230,7 @@ export class TopFrameCoordinator {
 	}
 
 	private async startPicking(direct = true): Promise<void> {
-		await this.runtimeReady;
+		if (!this.isRuntimeReady) await this.runtimeReady;
 		if (direct) await this.ensureControlPanel();
 		if (direct && this.passiveStartup) await this.passiveStartup;
 		if (!this.controlPanel || (!direct && this.activeOverlay)) return;
@@ -253,11 +256,8 @@ export class TopFrameCoordinator {
 			broadcastPickingStarted();
 			return;
 		}
-		const ensured = await this.route({ type: 'ENSURE_FRAME_AGENTS' });
-		if (!ensured.ok) throw new Error(ensured.error ?? 'Unable to start iframe media selection.');
-		if (!this.controlPanel || (!direct && this.activeOverlay)) return;
 		this.closePickerList();
-		this.activePickSessionId = createId('pick');
+		const session = (this.activePickSessionId = createId('pick'));
 		this.pickResolved = false;
 		this.directPicking = direct;
 		this.pickerList = new PickerTargetList(
@@ -266,11 +266,11 @@ export class TopFrameCoordinator {
 			() => void this.cancelPicking(),
 			() => this.controlPanel?.focusPanel(),
 			() => {
-				const session = this.activePickSessionId;
-				if (!session) return;
+				const activeSession = this.activePickSessionId;
+				if (!activeSession) return;
 				this.clearPanelNotice();
-				void this.refreshPickerTargets(session).catch((error) => {
-					if (this.activePickSessionId !== session) return;
+				void this.refreshPickerTargets(activeSession).catch((error) => {
+					if (this.activePickSessionId !== activeSession) return;
 					this.reportPanelError(toUserMessage(error));
 				});
 			},
@@ -279,15 +279,26 @@ export class TopFrameCoordinator {
 		this.controlPanel.updatePickingState(direct);
 		this.pickerList.mount(this.controlPanel.getPickerMount(), this.controlPanel.isViewportFocused());
 		if (direct) this.pickerList.setDirectMode(true);
-		this.pickerList.update([]);
-		const session = this.activePickSessionId;
 		try {
+			const ensured = await this.route({ type: 'ENSURE_FRAME_AGENTS' });
+			if (!ensured.ok) throw new Error(ensured.error ?? 'Unable to start iframe media selection.');
+			if (this.activePickSessionId !== session || !this.controlPanel || (!direct && this.activeOverlay)) {
+				if (this.activePickSessionId === session) {
+					this.activePickSessionId = undefined;
+					this.closePickerList();
+					this.controlPanel?.updatePickingState(false);
+				}
+				return;
+			}
 			const response = await this.broadcastFrameCommand({
 				type: 'FRAME_BEGIN_PICKING',
 				pickSessionId: session,
 				direct,
 			});
 			if (!response.ok) throw new Error(response.error ?? 'Unable to start media selection.');
+			if (this.activePickSessionId === session && this.pickerFrames.size === 0) {
+				this.pickerList?.update([]);
+			}
 			if (direct && this.activePickSessionId === session) broadcastPickingStarted();
 		} catch (error) {
 			if (this.activePickSessionId === session) {
@@ -420,14 +431,15 @@ export class TopFrameCoordinator {
 		try {
 			if (this.activePickSessionId === pickSessionId) {
 				this.activePickSessionId = undefined;
-				this.closePickerList();
 			}
-			const ended = await this.broadcastFrameCommand({ type: 'FRAME_END_PICKING', pickSessionId });
+			const [ended] = await Promise.all([
+				this.broadcastFrameCommand({ type: 'FRAME_END_PICKING', pickSessionId }),
+				this.createOverlayForTarget(frameId, runtimeId, targetToken),
+			]);
 			if (!ended.ok) throw new Error(ended.error ?? 'Unable to finish media selection.');
-			await this.createOverlayForTarget(frameId, runtimeId, targetToken);
 			this.pickResolved = false;
-			this.controlPanel?.updatePickingState(false);
 		} catch (error) {
+			this.closePickerList();
 			this.controlPanel?.updatePickingState(false);
 			this.pickResolved = false;
 			this.reportTargetError(error);
@@ -435,8 +447,10 @@ export class TopFrameCoordinator {
 	}
 
 	private async createOverlayForTarget(frameId: number, runtimeId: string, targetToken: string): Promise<void> {
-		await this.broadcastFrameCommand({ type: 'FRAME_REMOVE_ALL' });
-		this.activeOverlay = undefined;
+		if (this.activeOverlay) {
+			await this.broadcastFrameCommand({ type: 'FRAME_REMOVE_ALL' });
+			this.activeOverlay = undefined;
+		}
 		const overlayId = createId('overlay');
 		const owner = { frameId, runtimeId };
 		const response = await this.route({
@@ -458,7 +472,9 @@ export class TopFrameCoordinator {
 		this.activeOverlay = { owner, descriptor: markEmbedded(response.overlays[0], frameId) };
 		this.clearPanelNotice();
 		this.saveActiveOverlayPreset();
+		this.controlPanel?.updatePickingState(false);
 		this.sync();
+		this.closePickerList();
 	}
 
 	private async updateOverlay(id: string, settings: Partial<OverlaySettings>): Promise<void> {

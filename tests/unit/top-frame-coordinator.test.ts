@@ -24,13 +24,20 @@ vi.mock('../../src/shared/fonts/runtime-font-registry', () => ({
 }));
 
 const setNoticeSpy = vi.fn();
+const panelEvents: string[] = [];
 
 vi.mock('../../src/widgets/overlay-panel/control-panel', () => ({
 	ControlPanel: class {
 		mount() {}
 		unmount() {}
-		updateState() {}
-		updatePickingState() {}
+		updateState(overlays: OverlayDescriptor[]) {
+			panelEvents.push(
+				`state:${overlays.length}:${Boolean(document.querySelector('[data-textmode-picker-list]'))}`
+			);
+		}
+		updatePickingState(picking: boolean) {
+			panelEvents.push(`picking:${picking}:${Boolean(document.querySelector('[data-textmode-picker-list]'))}`);
+		}
 		setNotice(message: string | undefined) {
 			setNoticeSpy(message);
 		}
@@ -59,6 +66,8 @@ describe('top frame coordinator', () => {
 
 	beforeEach(() => {
 		vi.clearAllMocks();
+		panelEvents.length = 0;
+		document.querySelectorAll('[data-textmode-picker-list]').forEach((node) => node.remove());
 		vi.mocked(addRuntimeMessageListener).mockImplementation((next) => {
 			listener = next;
 		});
@@ -378,5 +387,95 @@ describe('top frame coordinator', () => {
 		listener({ type: 'START_PICKING' }, {}, startedDirect);
 		await vi.waitFor(() => expect(startedDirect).toHaveBeenCalled());
 		expect(setNoticeSpy).toHaveBeenCalledWith(undefined);
+	});
+
+	it('keeps picker list mounted until overlay state syncs and mounts picker immediately when returning', async () => {
+		const descriptor: OverlayDescriptor = {
+			id: 'overlay-3',
+			elementLabel: 'canvas',
+			settings: DEFAULT_OVERLAY_SETTINGS,
+			status: 'active',
+		};
+		let resolvePrepare: ((value: { ok: boolean; overlays?: OverlayDescriptor[] }) => void) | undefined;
+		let resolveEnsureAgents: ((value: { ok: boolean }) => void) | undefined;
+		let holdEnsureAgents = false;
+
+		vi.mocked(sendMessageToRuntime).mockImplementation((message: unknown) => {
+			const request = message as { type: string; command?: { type: string } };
+			if (request.type === 'PREPARE_FRAME_OVERLAY') {
+				return new Promise((resolve) => {
+					resolvePrepare = resolve;
+				});
+			}
+			if (request.type === 'SEND_FRAME_COMMAND' && request.command?.type === 'FRAME_REMOVE_OVERLAY') {
+				return Promise.resolve({ ok: true, overlays: [] });
+			}
+			if (request.type === 'ENSURE_FRAME_AGENTS' && holdEnsureAgents) {
+				return new Promise((resolve) => {
+					resolveEnsureAgents = resolve;
+				});
+			}
+			return Promise.resolve({ ok: true });
+		});
+
+		new TopFrameCoordinator({ pageUrl, presetStore, panelPlacementStore: placementStore });
+		const opened = vi.fn();
+		listener({ type: 'TOGGLE_OVERLAY' }, {}, opened);
+		await vi.waitFor(() => expect(opened).toHaveBeenCalledWith({ ok: true, overlays: [] }));
+
+		const pickSessionCall = () =>
+			vi
+				.mocked(sendMessageToRuntime)
+				.mock.calls.map(([msg]) => msg as { type: string; command?: { type: string; pickSessionId?: string } })
+				.find((msg) => msg.type === 'BROADCAST_FRAME_COMMAND' && msg.command?.type === 'FRAME_BEGIN_PICKING');
+
+		await vi.waitFor(() => expect(pickSessionCall()).toBeDefined());
+		const pickSessionId = pickSessionCall()!.command!.pickSessionId!;
+		expect(document.querySelector('[data-textmode-picker-list]')).not.toBeNull();
+
+		panelEvents.length = 0;
+		listener(
+			{
+				type: 'ROUTED_FRAME_EVENT',
+				frameId: 0,
+				event: {
+					type: 'FRAME_TARGET_PICKED',
+					pickSessionId,
+					runtimeId: 'runtime-1',
+					targetToken: 'canvas-1',
+				},
+			},
+			{},
+			vi.fn()
+		);
+
+		await vi.waitFor(() => expect(resolvePrepare).toBeDefined());
+		// Picker list must remain mounted while overlay creation IPC is still in flight.
+		expect(document.querySelector('[data-textmode-picker-list]')).not.toBeNull();
+		expect(panelEvents.some((event) => event.startsWith('state:1:'))).toBe(false);
+
+		resolvePrepare!({ ok: true, overlays: [descriptor] });
+		await vi.waitFor(() => expect(document.querySelector('[data-textmode-picker-list]')).toBeNull());
+		expect(panelEvents).toEqual(expect.arrayContaining(['picking:false:true', 'state:1:true']));
+
+		// Remove overlay -> transition back to select media must mount picker list before ENSURE_FRAME_AGENTS finishes.
+		holdEnsureAgents = true;
+		listener({ type: 'REMOVE_OVERLAY', id: descriptor.id }, {}, vi.fn());
+		await vi.waitFor(() => expect(resolveEnsureAgents).toBeDefined());
+		expect(document.querySelector('[data-textmode-picker-list]')).not.toBeNull();
+
+		resolveEnsureAgents!({ ok: true });
+		await vi.waitFor(() =>
+			expect(
+				vi
+					.mocked(sendMessageToRuntime)
+					.mock.calls.filter(
+						([msg]) =>
+							(msg as { type: string; command?: { type: string } }).type === 'BROADCAST_FRAME_COMMAND' &&
+							(msg as { type: string; command?: { type: string } }).command?.type ===
+								'FRAME_BEGIN_PICKING'
+					).length
+			).toBeGreaterThan(1)
+		);
 	});
 });

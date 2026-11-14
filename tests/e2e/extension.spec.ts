@@ -64,7 +64,7 @@ test('bundled fonts load without extension URL reports on a restricted page', as
 			});
 			await chrome.tabs.sendMessage(tab.id, { type: 'TOGGLE_OVERLAY' }, { frameId: 0 });
 		});
-		await page.getByRole('button', { name: 'select media', exact: true }).click();
+		await page.getByRole('button', { name: 'Select media on page', exact: true }).click();
 		await expect(page.locator('.tm-picker-marker[data-availability="ready"]').first()).toBeVisible();
 		await page.locator('#demo-canvas').click({ position: { x: 24, y: 24 } });
 		await expect(page.locator('canvas[data-textmode-ascii-extension-ui="true"]')).toHaveCount(1);
@@ -234,7 +234,7 @@ test('Chrome extension can select a canvas and create an overlay', async () => {
 		expect(reopenedPanelRect?.x).toBeCloseTo(movedPanelRect.x, 0);
 		expect(reopenedPanelRect?.y).toBeCloseTo(movedPanelRect.y, 0);
 
-		await page.getByRole('button', { name: /select media/i }).click();
+		await page.getByRole('button', { name: 'Select media on page', exact: true }).click();
 		const pickerList = page.locator('[data-textmode-picker-list]');
 		await expect(pickerList.getByRole('heading', { name: 'Select media' })).toBeVisible();
 		await expect(page.locator('.tm-picker-status')).toHaveCount(0);
@@ -254,7 +254,15 @@ test('Chrome extension can select a canvas and create an overlay', async () => {
 		await page.locator('canvas#demo-canvas').click({ position: { x: 24, y: 24 } });
 
 		await expect(page.locator('canvas[data-textmode-ascii-extension-ui="true"]')).toHaveCount(1);
-		await expect(page.getByRole('button', { name: 'remove overlay', exact: true })).toHaveText('');
+		const removeOverlayButton = page.getByRole('button', { name: 'remove overlay', exact: true });
+		await expect(removeOverlayButton).toHaveText('remove');
+		await expect(removeOverlayButton).toHaveCSS('border-top-width', '0px');
+		await expect(removeOverlayButton).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+		await expect(removeOverlayButton).toHaveCSS('box-shadow', 'none');
+		const resetOverlayButton = page.getByRole('button', { name: 'reset all settings to defaults' });
+		const resetBox = await resetOverlayButton.boundingBox();
+		const removeBox = await removeOverlayButton.boundingBox();
+		expect(removeBox!.x).toBeGreaterThanOrEqual(resetBox!.x + resetBox!.width);
 		const exportOverlayHost = page.locator('[data-plugin="textmode-export-overlay-host"]');
 		await expect(exportOverlayHost).toHaveCount(1);
 		await expect(exportOverlayHost).toHaveCSS('display', 'none');
@@ -392,7 +400,7 @@ test('Chrome extension can select a canvas and create an overlay', async () => {
 		const reloadedPanelRect = await panelHost.boundingBox();
 		expect(reloadedPanelRect?.x).toBeCloseTo(movedPanelRect.x, 0);
 		expect(reloadedPanelRect?.y).toBeCloseTo(movedPanelRect.y, 0);
-		await page.getByRole('button', { name: /select media/i }).click();
+		await page.getByRole('button', { name: 'Select media on page', exact: true }).click();
 		await page.locator('canvas#demo-canvas').click({ position: { x: 24, y: 24 } });
 		await page.getByRole('tab', { name: 'advanced' }).click();
 		await page.locator('[role="combobox"]').click();
@@ -429,7 +437,7 @@ test('panel settings remain usable in short viewports and with enlarged text', a
 			});
 			await chrome.tabs.sendMessage(tab.id, { type: 'TOGGLE_OVERLAY' }, { frameId: 0 });
 		});
-		await page.getByRole('button', { name: 'select media', exact: true }).click();
+		await page.getByRole('button', { name: 'Select media on page', exact: true }).click();
 		await page.locator('#demo-canvas').click({ position: { x: 24, y: 24 } });
 		let viewport = page.locator('.tm-panel-scroll-area__viewport');
 		await expect(page.locator('.tm-panel')).toHaveAttribute('data-scroll-mode', 'tabs');
@@ -453,7 +461,7 @@ test('panel settings remain usable in short viewports and with enlarged text', a
 			await expect.poll(() => viewport.evaluate((node) => node.clientHeight)).toBeGreaterThanOrEqual(48);
 			await expect(page.locator('.tm-panel')).toHaveAttribute(
 				'data-scroll-mode',
-				height === 720 ? 'tabs' : 'panel'
+				height >= 500 ? 'tabs' : 'panel'
 			);
 			const glyphRamp = page.getByRole('textbox', { name: 'glyph ramp', exact: true });
 			await glyphRamp.focus();
@@ -558,7 +566,9 @@ test('panel settings remain usable in short viewports and with enlarged text', a
 			contentType: 'application/json',
 		});
 		await page.getByRole('button', { name: 'remove overlay', exact: true }).click();
-		await expect(page.getByRole('button', { name: 'select media', exact: true })).toBeFocused();
+		await expect(
+			page.locator('[data-textmode-picker-list]').getByRole('heading', { name: 'Select media' })
+		).toBeFocused();
 	} finally {
 		await context.close();
 		await rm(userDataDir, { recursive: true, force: true });
@@ -630,7 +640,7 @@ test('Chrome extension preserves overlay geometry across supported coordinate-sp
 		});
 		await expect(page.locator('#textmode-ascii-overlay-control-panel-root')).toBeAttached();
 
-		await page.getByRole('button', { name: /(?:select|replace) media/i }).click();
+		await page.getByRole('button', { name: 'Select media on page', exact: true }).click();
 		await page.locator('#zoom-canvas').click({ position: { x: 24, y: 24 } });
 		const overlay = page.locator('canvas[data-textmode-ascii-extension-ui="true"]');
 		await expect(overlay).toHaveCount(1);
@@ -749,11 +759,26 @@ test('keyboard users can select media in the page and an iframe', async () => {
 			});
 			await chrome.tabs.sendMessage(tab.id, { type: 'TOGGLE_OVERLAY' }, { frameId: 0 });
 		});
-		const selectMedia = page.getByRole('button', { name: 'select media', exact: true });
+		await expect(page.getByRole('button', { name: /^(?:select|replace) media$/i })).toHaveCount(0);
 		const mainPanel = page.locator('#textmode-ascii-overlay-control-panel-root');
 		const list = page.locator('[data-textmode-picker-list]');
+		const directPick = list.getByRole('button', { name: 'Select media on page', exact: true });
+		const refreshMedia = list.getByRole('button', { name: 'Refresh media list', exact: true });
+		const directPickBounds = await directPick.boundingBox();
+		const refreshMediaBounds = await refreshMedia.boundingBox();
+		expect(directPickBounds!.x + directPickBounds!.width).toBeLessThanOrEqual(refreshMediaBounds!.x);
 		const pageTarget = list.getByRole('button', { name: /canvas#demo-canvas/ });
 		await expect(pageTarget).toBeVisible();
+		const pageTargetBadge = pageTarget.locator('[data-slot="badge"]');
+		await expect(pageTargetBadge).toHaveText('320x180');
+		await expect(pageTarget.locator('.tm-picker-list__label')).toHaveText('canvas#demo-canvas');
+		const pageTargetBounds = await pageTarget.boundingBox();
+		const pageLabelBounds = await pageTarget.locator('.tm-picker-list__label').boundingBox();
+		const pageBadgeBounds = await pageTargetBadge.boundingBox();
+		expect(pageBadgeBounds!.x).toBeGreaterThanOrEqual(pageLabelBounds!.x + pageLabelBounds!.width);
+		expect(pageBadgeBounds!.x + pageBadgeBounds!.width).toBeLessThanOrEqual(
+			pageTargetBounds!.x + pageTargetBounds!.width
+		);
 		await expect(page.locator('.tm-empty-state')).toHaveCount(0);
 		const pageMarker = page
 			.locator('.textmode-ascii-overlay-picker')
@@ -764,9 +789,10 @@ test('keyboard users can select media in the page and an iframe', async () => {
 		await expect(pageMarker).toHaveAttribute('data-preview', 'true');
 		await page.mouse.move(5, 5);
 		await expect(pageMarker).toHaveAttribute('data-preview', 'false');
-		await selectMedia.focus();
+		await directPick.focus();
 		await page.keyboard.press('Enter');
-		await expect(list.getByRole('heading', { name: 'Select media' })).toBeFocused();
+		await expect(directPick).toHaveAttribute('aria-pressed', 'true');
+		await expect(list.getByRole('button', { name: 'cancel', exact: true })).toBeVisible();
 		await expect(pageTarget).toBeVisible();
 		let mainBounds = await mainPanel.boundingBox();
 		let listBounds = await list.boundingBox();
@@ -800,16 +826,21 @@ test('keyboard users can select media in the page and an iframe', async () => {
 			)
 		).toBe(true);
 		await accessibility.detach();
+		await page.keyboard.press('Escape');
+		await expect(directPick).toHaveAttribute('aria-pressed', 'false');
 		await list.getByRole('heading', { name: 'Select media' }).focus();
 		await page.keyboard.press('Tab');
-		await expect(list.getByRole('button', { name: 'Refresh media list' })).toBeFocused();
+		await expect(directPick).toBeFocused();
+		await page.keyboard.press('Tab');
+		await expect(refreshMedia).toBeFocused();
 		await page.keyboard.press('Tab');
 		await expect(pageTarget).toBeFocused();
 		await page.keyboard.press('Enter');
 		await expect(page.locator('canvas[data-textmode-ascii-extension-ui="true"]')).toHaveCount(1);
-		const replaceMedia = page.getByRole('button', { name: 'replace media', exact: true });
-		await expect(replaceMedia).toBeFocused();
+		const removeOverlay = page.getByRole('button', { name: 'remove overlay', exact: true });
+		await removeOverlay.focus();
 		await page.keyboard.press('Enter');
+		await expect(list.getByRole('heading', { name: 'Select media' })).toBeFocused();
 		const frameTarget = list.getByRole('button', { name: /canvas#iframe-canvas/ });
 		await expect(frameTarget).toBeVisible();
 		for (let i = 0; i < 10 && !(await frameTarget.evaluate((element) => element.matches(':focus'))); i++)
@@ -819,16 +850,16 @@ test('keyboard users can select media in the page and an iframe', async () => {
 		await expect(
 			page.frameLocator('#same-origin-frame').locator('canvas[data-textmode-ascii-extension-ui="true"]')
 		).toHaveCount(1);
-		await expect(replaceMedia).toBeFocused();
+		await removeOverlay.focus();
 		await page.keyboard.press('Enter');
 		await page.evaluate(() => {
 			const frame = document.createElement('iframe');
 			frame.id = 'keyboard-dynamic';
 			frame.title = 'New media';
-			frame.src = '/iframe-dynamic';
+			frame.src = '/iframe-keyboard-dynamic';
 			document.body.append(frame);
 		});
-		const dynamicTarget = list.getByRole('button', { name: /canvas#dynamic-canvas/ });
+		const dynamicTarget = list.getByRole('button', { name: /canvas#keyboard-dynamic-canvas/ });
 		await expect(dynamicTarget).toBeVisible();
 		for (let i = 0; i < 12 && !(await dynamicTarget.evaluate((element) => element.matches(':focus'))); i++)
 			await page.keyboard.press('Tab');
@@ -837,7 +868,7 @@ test('keyboard users can select media in the page and an iframe', async () => {
 		await expect(
 			page.frameLocator('#keyboard-dynamic').locator('canvas[data-textmode-ascii-extension-ui="true"]')
 		).toHaveCount(1);
-		await expect(replaceMedia).toBeFocused();
+		await removeOverlay.focus();
 		await page.evaluate(() => {
 			for (let i = 0; i < 20; i++) {
 				const canvas = document.createElement('canvas');
@@ -858,16 +889,28 @@ test('keyboard users can select media in the page and an iframe', async () => {
 			.toBe(true);
 		await expect(longTarget.locator('.tm-picker-list__label')).toHaveCSS('white-space', 'nowrap');
 		await expect.poll(() => longTarget.getAttribute('data-overflow')).toBe('true');
+		const longBadge = longTarget.locator('[data-slot="badge"]');
+		await expect(longBadge).toHaveText('320x180');
+		const longBadgeBefore = await longBadge.boundingBox();
 		await longTarget.focus();
 		await expect(longTarget.locator('.tm-picker-list__label-text')).toHaveCSS(
 			'animation-name',
 			'tm-picker-text-scroll'
 		);
+		await expect(longBadge).toHaveCSS('animation-name', 'none');
+		const longBadgeAfter = await longBadge.boundingBox();
+		expect(longBadgeAfter!.x).toBeCloseTo(longBadgeBefore!.x, 1);
+		expect(longBadgeAfter!.width).toBeCloseTo(longBadgeBefore!.width, 1);
+		await directPick.focus();
+		await page.keyboard.press('Enter');
+		await expect(directPick).toHaveAttribute('aria-pressed', 'true');
 		await page.keyboard.press('Escape');
-		await expect(replaceMedia).toBeFocused();
+		await expect(directPick).toHaveAttribute('aria-pressed', 'false');
+		await expect(directPick).toBeFocused();
 		await page.setViewportSize({ width: 320, height: 480 });
 		await page.emulateMedia({ reducedMotion: 'reduce', forcedColors: 'active' });
 		await page.keyboard.press('Enter');
+		await expect(directPick).toHaveAttribute('aria-pressed', 'true');
 		const region = list.locator('.tm-picker-list');
 		await expect(region).toBeVisible();
 		expect(await region.evaluate((element) => element.getAnimations().length)).toBe(0);
@@ -877,8 +920,8 @@ test('keyboard users can select media in the page and an iframe', async () => {
 		expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(320);
 		expect(bounds!.y + bounds!.height).toBeLessThanOrEqual(480);
 		await page.keyboard.press('Escape');
-		await expect(list).toHaveCount(0);
-		await expect(replaceMedia).toBeFocused();
+		await expect(directPick).toHaveAttribute('aria-pressed', 'false');
+		await expect(directPick).toBeFocused();
 	} finally {
 		await context.close();
 		await server.close();
@@ -971,7 +1014,7 @@ test('Chrome extension can select media in same-origin, nested, srcdoc, and newl
 		});
 
 		await test.step('leave cross-origin iframes unmarked', async () => {
-			await page.getByRole('button', { name: /(?:select|replace) media/i }).click();
+			await startDirectMousePick(page);
 			const blocker = page.locator('.textmode-ascii-overlay-iframe-blocker');
 			await expect(blocker).toHaveCount(0);
 			await page.keyboard.press('Escape');
@@ -983,12 +1026,20 @@ test('Chrome extension can select media in same-origin, nested, srcdoc, and newl
 	}
 });
 
+async function startDirectMousePick(page: import('@playwright/test').Page): Promise<void> {
+	const removeButton = page.getByRole('button', { name: 'remove overlay', exact: true });
+	if (await removeButton.isVisible()) {
+		await removeButton.click();
+	}
+	await page.getByRole('button', { name: 'Select media on page', exact: true }).click();
+}
+
 async function selectIframeCanvas(
 	page: import('@playwright/test').Page,
 	frameSelector: string,
 	canvasSelector: string
 ) {
-	await page.getByRole('button', { name: /(?:select|replace) media/i }).click();
+	await startDirectMousePick(page);
 	await expect(page.frameLocator(frameSelector).locator('.tm-picker-marker[data-availability="ready"]')).toHaveCount(
 		1
 	);
@@ -999,7 +1050,7 @@ async function selectIframeCanvas(
 }
 
 async function selectNestedIframeCanvas(page: import('@playwright/test').Page) {
-	await page.getByRole('button', { name: /(?:select|replace) media/i }).click();
+	await startDirectMousePick(page);
 	await expect(
 		page
 			.frameLocator('#nested-root-frame')
@@ -1090,6 +1141,9 @@ async function startFixtureServer(pageFile = 'media-page.html', restrictConnecti
 				break;
 			case '/iframe-dynamic':
 				response.end(createIframeFixture('dynamic-canvas'));
+				break;
+			case '/iframe-keyboard-dynamic':
+				response.end(createIframeFixture('keyboard-dynamic-canvas'));
 				break;
 			default:
 				response.end(html.replaceAll('__SERVER_PORT__', String(serverPort)));

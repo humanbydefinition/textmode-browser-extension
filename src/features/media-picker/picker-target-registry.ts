@@ -26,16 +26,36 @@ export interface PickerTarget {
 
 const EXTENSION_UI_SELECTOR = '[data-textmode-ascii-extension-ui="true"]';
 
+interface VideoReadabilityEntry {
+	sourceKey: string;
+	crossOrigin: string | null;
+	hasSrcObject: boolean;
+	readable: boolean;
+}
+
 export class PickerTargetRegistry {
 	private readonly targetIds = new WeakMap<Element, string>();
+	private videoReadability = new WeakMap<HTMLVideoElement, VideoReadabilityEntry>();
+	private taintedCanvases = new WeakSet<HTMLCanvasElement>();
 	private nextTargetId = 0;
+
+	public invalidate(element: Element): void {
+		if (element instanceof HTMLVideoElement) {
+			this.videoReadability.delete(element);
+		}
+	}
+
+	public clearCache(): void {
+		this.videoReadability = new WeakMap<HTMLVideoElement, VideoReadabilityEntry>();
+		this.taintedCanvases = new WeakSet<HTMLCanvasElement>();
+	}
 
 	public discover(root: ParentNode = document): PickerTarget[] {
 		const targets: PickerTarget[] = [];
 		for (const element of root.querySelectorAll('canvas, video, iframe')) {
 			if (element.closest(EXTENSION_UI_SELECTOR)) continue;
 
-			if (isSelectableElement(element)) {
+			if (isSelectableElementWithCache(element, this.videoReadability, this.taintedCanvases)) {
 				const info = describeElement(element);
 				targets.push({
 					id: this.getId(element),
@@ -80,6 +100,14 @@ export function getSelectableElements(root: ParentNode = document): SelectableEl
 }
 
 export function isSelectableElement(element: Element): element is SelectableElement {
+	return isSelectableElementWithCache(element);
+}
+
+function isSelectableElementWithCache(
+	element: Element,
+	videoCache?: WeakMap<HTMLVideoElement, VideoReadabilityEntry>,
+	taintedCanvases?: WeakSet<HTMLCanvasElement>
+): element is SelectableElement {
 	if (!(element instanceof HTMLCanvasElement) && !(element instanceof HTMLVideoElement)) {
 		return false;
 	}
@@ -104,12 +132,115 @@ export function isSelectableElement(element: Element): element is SelectableElem
 	}
 
 	const styles = window.getComputedStyle(element);
+	if (
+		styles.display === 'none' ||
+		styles.visibility === 'hidden' ||
+		styles.pointerEvents === 'none' ||
+		(styles.opacity !== '' && Number(styles.opacity) <= 0)
+	) {
+		return false;
+	}
+
+	return isElementPixelReadable(element, videoCache, taintedCanvases);
+}
+
+let taintProbeCanvas: HTMLCanvasElement | undefined;
+let taintProbeContext: CanvasRenderingContext2D | null = null;
+
+function resetTaintProbe(): void {
+	taintProbeCanvas = undefined;
+	taintProbeContext = null;
+}
+
+function getTaintProbeContext(): CanvasRenderingContext2D | null {
+	if (taintProbeContext) return taintProbeContext;
+	if (typeof document.createElement !== 'function') return null;
+	taintProbeCanvas = document.createElement('canvas');
+	taintProbeCanvas.width = 1;
+	taintProbeCanvas.height = 1;
+	taintProbeContext = taintProbeCanvas.getContext('2d', { willReadFrequently: true });
+	if (!taintProbeContext) resetTaintProbe();
+	return taintProbeContext;
+}
+
+function getVideoSourceKey(video: HTMLVideoElement): string {
 	return (
-		styles.display !== 'none' &&
-		styles.visibility !== 'hidden' &&
-		styles.pointerEvents !== 'none' &&
-		(styles.opacity === '' || Number(styles.opacity) > 0)
+		video.currentSrc || video.getAttribute('src') || video.querySelector('source[src]')?.getAttribute('src') || ''
 	);
+}
+
+function hasOpaqueCrossOriginVideoSource(video: HTMLVideoElement): boolean {
+	if (video.crossOrigin) return false;
+	const sourceUrl = getVideoSourceKey(video);
+	if (!sourceUrl) return false;
+	try {
+		const url = new URL(sourceUrl, document.baseURI);
+		if (url.protocol !== 'http:' && url.protocol !== 'https:') return false;
+		const pageOrigin = window.location.origin;
+		if (!pageOrigin || pageOrigin === 'null') return false;
+		return url.origin !== pageOrigin;
+	} catch {
+		return false;
+	}
+}
+
+function probeElementWithCanvas(element: SelectableElement): boolean {
+	const context = getTaintProbeContext();
+	if (!context || typeof context.drawImage !== 'function' || typeof context.getImageData !== 'function') {
+		return true;
+	}
+
+	try {
+		context.clearRect?.(0, 0, 1, 1);
+		context.drawImage(element, 0, 0, 1, 1);
+		context.getImageData(0, 0, 1, 1);
+		return true;
+	} catch {
+		// Once a probe canvas becomes origin-dirty, it stays tainted, so discard it immediately.
+		resetTaintProbe();
+		return false;
+	}
+}
+
+function isElementPixelReadable(
+	element: SelectableElement,
+	videoCache?: WeakMap<HTMLVideoElement, VideoReadabilityEntry>,
+	taintedCanvases?: WeakSet<HTMLCanvasElement>
+): boolean {
+	if (element instanceof HTMLVideoElement) {
+		if ('mediaKeys' in element && element.mediaKeys != null) {
+			return false;
+		}
+		const sourceKey = getVideoSourceKey(element);
+		const crossOrigin = element.crossOrigin ?? null;
+		const hasSrcObject = Boolean(element.srcObject);
+		const canCache = Boolean(videoCache && (sourceKey || hasSrcObject));
+		if (canCache) {
+			const cached = videoCache!.get(element);
+			if (
+				cached &&
+				cached.sourceKey === sourceKey &&
+				cached.crossOrigin === crossOrigin &&
+				cached.hasSrcObject === hasSrcObject
+			) {
+				return cached.readable;
+			}
+		}
+		const readable = !hasOpaqueCrossOriginVideoSource(element) && probeElementWithCanvas(element);
+		if (canCache) {
+			videoCache!.set(element, { sourceKey, crossOrigin, hasSrcObject, readable });
+		}
+		return readable;
+	}
+
+	if (taintedCanvases?.has(element)) {
+		return false;
+	}
+	const readable = probeElementWithCanvas(element);
+	if (!readable) {
+		taintedCanvases?.add(element);
+	}
+	return readable;
 }
 
 export function describeElement(element: SelectableElement): CandidateInfo {

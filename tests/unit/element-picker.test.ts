@@ -20,6 +20,7 @@ describe('element-picker', () => {
 	afterEach(() => {
 		for (const picker of activePickers.splice(0)) picker.stop(false);
 		Reflect.deleteProperty(document, 'elementsFromPoint');
+		vi.restoreAllMocks();
 	});
 
 	it('includes visible canvas and video elements', () => {
@@ -290,6 +291,89 @@ describe('element-picker', () => {
 		expect(styles).toContain('prefers-reduced-motion: reduce');
 		expect(styles).toContain('forced-colors: active');
 		expect(styles).toMatch(/\.tm-picker-marker\s*{[^}]*z-index:\s*1/s);
+	});
+
+	it('excludes cross-origin non-CORS, DRM-protected, and tainted media elements from selection', () => {
+		const crossOriginVideo = document.createElement('video');
+		makeVideoReady(crossOriginVideo);
+		crossOriginVideo.src = 'https://cdn.other.test/clip.mp4';
+		mockRect(crossOriginVideo, { width: 320, height: 180 });
+
+		const sourceChildVideo = document.createElement('video');
+		makeVideoReady(sourceChildVideo);
+		const sourceChild = document.createElement('source');
+		sourceChild.src = 'https://cdn.other.test/child.mp4';
+		sourceChildVideo.append(sourceChild);
+		mockRect(sourceChildVideo, { width: 320, height: 180 });
+
+		const corsVideo = document.createElement('video');
+		makeVideoReady(corsVideo);
+		corsVideo.crossOrigin = 'anonymous';
+		corsVideo.src = 'https://cdn.other.test/cors.mp4';
+		mockRect(corsVideo, { width: 320, height: 180 });
+
+		const drmVideo = document.createElement('video');
+		makeVideoReady(drmVideo);
+		Object.defineProperty(drmVideo, 'mediaKeys', { value: {}, configurable: true });
+		mockRect(drmVideo, { width: 320, height: 180 });
+
+		const sameOriginVideo = document.createElement('video');
+		makeVideoReady(sameOriginVideo);
+		sameOriginVideo.src = `${window.location.origin}/local.mp4`;
+		mockRect(sameOriginVideo, { width: 320, height: 180 });
+
+		document.body.append(crossOriginVideo, sourceChildVideo, corsVideo, drmVideo, sameOriginVideo);
+
+		expect(isSelectableElement(crossOriginVideo)).toBe(false);
+		expect(isSelectableElement(sourceChildVideo)).toBe(false);
+		expect(isSelectableElement(drmVideo)).toBe(false);
+		expect(isSelectableElement(corsVideo)).toBe(true);
+		expect(isSelectableElement(sameOriginVideo)).toBe(true);
+		expect(getSelectableElements()).toEqual([corsVideo, sameOriginVideo]);
+	});
+
+	it('probes pixel readability and discards tainted scratch canvases between checks', () => {
+		const redirectedTaintedVideo = document.createElement('video');
+		makeVideoReady(redirectedTaintedVideo);
+		redirectedTaintedVideo.src = `${window.location.origin}/redirect-to-cdn.mp4`;
+		mockRect(redirectedTaintedVideo, { width: 320, height: 180 });
+
+		const cleanCanvas = document.createElement('canvas');
+		mockRect(cleanCanvas, { width: 320, height: 180 });
+
+		document.body.append(redirectedTaintedVideo, cleanCanvas);
+
+		let lastDrawn: unknown;
+		let contextCreations = 0;
+		vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockImplementation((() => {
+			contextCreations += 1;
+			let tainted = false;
+			return {
+				clearRect: vi.fn(),
+				drawImage: vi.fn((source: unknown) => {
+					lastDrawn = source;
+					if (source === redirectedTaintedVideo) tainted = true;
+				}),
+				getImageData: vi.fn(() => {
+					if (tainted) {
+						throw new DOMException(
+							"Failed to execute 'getImageData' on 'CanvasRenderingContext2D': The canvas has been tainted by cross-origin data.",
+							'SecurityError'
+						);
+					}
+					return { data: new Uint8ClampedArray(4) };
+				}),
+			};
+		}) as unknown as typeof HTMLCanvasElement.prototype.getContext);
+
+		// Redirected cross-origin video throws SecurityError during probe and is excluded.
+		expect(getSelectableElements()).toEqual([cleanCanvas]);
+		expect(lastDrawn).toBe(cleanCanvas);
+		// One initial scratch canvas, reset once after taint, then clean canvas succeeds on the fresh scratch canvas.
+		expect(contextCreations).toBe(2);
+
+		// Reset global scratch probe before restoring mocks so other tests start clean.
+		expect(isSelectableElement(redirectedTaintedVideo)).toBe(false);
 	});
 
 	function createPicker(overrides: Partial<ConstructorParameters<typeof ElementPicker>[0]> = {}): ElementPicker {

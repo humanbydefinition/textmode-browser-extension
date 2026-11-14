@@ -1589,9 +1589,13 @@ textarea,
 .tm-error {
 	margin: 0;
 	color: #ffd0d0;
-	font-size: 11px;
+	font-size: 10px;
 	line-height: 1.45;
 	overflow-wrap: anywhere;
+}
+
+.tm-panel[data-scroll-mode='tabs'] .tm-panel-scroll-area__content > .tm-error {
+	margin-bottom: 12px;
 }
 
 .tm-overlay-card > .tm-error {

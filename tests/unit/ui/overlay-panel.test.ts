@@ -429,6 +429,10 @@ describe('OverlayPanelView', () => {
 		);
 		expect(styles).toMatch(/\.tm-panel\s*\{[^}]*--tm-picker-area-height:\s*302px;/);
 		expect(styles).toMatch(/\.tm-picker-mount\s*\{[^}]*height:\s*var\(--tm-picker-area-height\);/);
+		expect(styles).toMatch(/\.tm-error\s*\{[^}]*font-size:\s*10px;/);
+		expect(styles).toMatch(
+			/\.tm-panel\[data-scroll-mode='tabs'\]\s+\.tm-panel-scroll-area__content\s*>\s*\.tm-error\s*\{[^}]*margin-bottom:\s*12px;/
+		);
 	});
 });
 

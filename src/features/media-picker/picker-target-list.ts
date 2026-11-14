@@ -2,7 +2,7 @@ import badgeStyles from '../../shared/ui/badge.css?inline';
 import pickerStyles from './picker-list.css?inline';
 import type { PickerTargetSummary } from '../../shared/messaging/messages';
 import { createBadge } from '../../shared/ui/badge';
-import { icon } from '../../widgets/overlay-panel/icons';
+import { icon } from '../../shared/ui/icons';
 
 export interface FrameTargets {
 	frameId: number;

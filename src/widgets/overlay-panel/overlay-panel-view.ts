@@ -2,7 +2,7 @@ import type { CustomFontSummary } from '../../domain/fonts/custom-font-entry';
 import type { OverlayDescriptor, OverlayExportFormat, OverlaySettings } from '../../domain/overlay/overlay-settings';
 import type { CustomFontId } from '../../domain/overlay/overlay-settings';
 import { h, removeChildren } from './dom';
-import { icon } from './icons';
+import { icon } from '../../shared/ui/icons';
 import { OverlayCardView } from './panel/overlay-card-view';
 import { createButton } from './settings/form-controls';
 import { ScrollAreaView } from './components/scroll-area-view';

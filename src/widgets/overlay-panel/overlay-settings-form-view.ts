@@ -9,7 +9,7 @@ import type { CustomFontId, FontId, OverlayExportFormat, OverlaySettings } from 
 import { DEFAULT_FONT_ID, createDefaultOverlaySettings, isBundledFontId } from '../../domain/overlay/overlay-settings';
 import { toUserMessage } from '../../shared/errors/errors';
 import { h } from './dom';
-import { icon } from './icons';
+import { icon } from '../../shared/ui/icons';
 import { TabsView } from './components/tabs-view';
 import { ConverterTabsView } from './components/converter-tabs-view';
 import { FontComboboxView, type FontEntry } from './font-combobox/font-combobox-view';

@@ -42,6 +42,17 @@ describe('frame agent', () => {
 				}),
 			})
 		);
+		const picked = vi
+			.mocked(sendMessageToRuntime)
+			.mock.calls.map(([message]) => message)
+			.find((message) => message.type === 'FRAME_EVENT' && message.event.type === 'FRAME_TARGET_PICKED');
+		if (!picked || picked.type !== 'FRAME_EVENT' || picked.event.type !== 'FRAME_TARGET_PICKED')
+			throw new Error('Missing selected target');
+		const repeated = vi.fn();
+		listener({ type: 'FRAME_BEGIN_PICKING', pickSessionId: 'pick-1' }, {}, repeated);
+		await vi.waitFor(() => expect(repeated).toHaveBeenCalledWith({ ok: true }));
+		expect(document.querySelector('.textmode-ascii-overlay-picker')).toBeNull();
+		expect(agent.consumePendingTarget(picked.event.targetToken)).toBe(canvas);
 	});
 
 	it('rejects commands addressed to a previous document runtime', async () => {
@@ -53,9 +64,35 @@ describe('frame agent', () => {
 			expect(response).toHaveBeenCalledWith({
 				ok: false,
 				error: 'The target iframe navigated and is no longer available.',
+				errorCategory: 'stale-runtime',
 			})
 		);
 		expect(agent.runtimeId).not.toBe('stale-runtime');
+	});
+
+	it('rescans targets when the active selection session is refreshed', async () => {
+		const video = document.createElement('video');
+		mockRect(video, { width: 320, height: 180 });
+		document.body.append(video);
+		const agent = new FrameAgent();
+		const start = vi.fn();
+		listener({ type: 'FRAME_BEGIN_PICKING', pickSessionId: 'refresh' }, {}, start);
+		await vi.waitFor(() => expect(start).toHaveBeenCalledWith({ ok: true }));
+		Object.defineProperty(video, 'readyState', { value: video.HAVE_CURRENT_DATA, configurable: true });
+		Object.defineProperty(video, 'videoWidth', { value: 320, configurable: true });
+		Object.defineProperty(video, 'videoHeight', { value: 180, configurable: true });
+		const refresh = vi.fn();
+		listener({ type: 'FRAME_BEGIN_PICKING', pickSessionId: 'refresh' }, {}, refresh);
+		await vi.waitFor(() => expect(refresh).toHaveBeenCalledWith({ ok: true }));
+		expect(sendMessageToRuntime).toHaveBeenCalledWith({
+			type: 'FRAME_EVENT',
+			event: expect.objectContaining({
+				type: 'FRAME_PICKER_TARGETS',
+				runtimeId: agent.runtimeId,
+				targets: [expect.objectContaining({ availability: 'ready', label: expect.stringContaining('video') })],
+			}),
+		});
+		listener({ type: 'FRAME_END_PICKING', pickSessionId: 'refresh' }, {}, vi.fn());
 	});
 
 	it('acknowledges the readiness probe used by toolbar startup', async () => {

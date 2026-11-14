@@ -65,7 +65,7 @@ select {
 }
 
 .tm-panel {
-	--tm-picker-area-height: min(240px, 40vh);
+	--tm-picker-area-height: 302px;
 	display: grid;
 	grid-template-rows: auto minmax(0, 1fr) auto;
 	gap: 12px;

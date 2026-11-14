@@ -193,6 +193,12 @@ describe('picker target list', () => {
 			resolve(import.meta.dirname, '../../src/features/media-picker/picker-list.css'),
 			'utf8'
 		);
+		expect(styles).toMatch(/\.tm-picker-list\s*\{[^}]*border-radius:\s*6px/);
+		expect(styles).toMatch(/\.tm-picker-list__header\s*\{[^}]*padding:\s*0 0 8px/);
+		expect(styles).toMatch(/\.tm-picker-list h2\s*\{[^}]*color:\s*#d4d4d4;[^}]*font-weight:\s*700/);
+		expect(styles).toMatch(
+			/\.tm-picker-list__direct-pick\[aria-pressed='true'\]\s*\{[^}]*border-color:\s*#f5f5f5;[^}]*background:\s*#262626;[^}]*color:\s*#f5f5f5;/
+		);
 		expect(styles).toMatch(/\.tm-picker-list__footer\s*\{[^}]*min-height:\s*33px/);
 		expect(styles).toMatch(/\.tm-picker-list__cancel\s*\{[^}]*height:\s*24px/);
 		list.dispose();

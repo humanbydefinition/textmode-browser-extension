@@ -208,4 +208,33 @@ describe('picker target list', () => {
 		expect(styles).toMatch(/@media \(prefers-contrast:\s*more\)/);
 		list.dispose();
 	});
+
+	it('supports ArrowUp, ArrowDown, Home, and End navigation across media items', () => {
+		const list = new PickerTargetList(vi.fn(), vi.fn(), vi.fn());
+		list.mount();
+		list.update([
+			{
+				frameId: 0,
+				runtimeId: 'runtime',
+				frameTitle: '',
+				targets: [
+					{ id: 'a', label: 'canvas', availability: 'ready' },
+					{ id: 'b', label: 'video', availability: 'ready' },
+					{ id: 'c', label: 'canvas', availability: 'ready' },
+				],
+			},
+		]);
+		const host = document.querySelector<HTMLElement>('[data-textmode-picker-list]')!;
+		const buttons = [...host.shadowRoot!.querySelectorAll<HTMLButtonElement>('button.tm-picker-list__item')];
+		buttons[0]!.focus();
+		buttons[0]!.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true }));
+		expect(host.shadowRoot!.activeElement).toBe(buttons[1]);
+		buttons[1]!.dispatchEvent(new KeyboardEvent('keydown', { key: 'End', bubbles: true }));
+		expect(host.shadowRoot!.activeElement).toBe(buttons[2]);
+		buttons[2]!.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowUp', bubbles: true }));
+		expect(host.shadowRoot!.activeElement).toBe(buttons[1]);
+		buttons[1]!.dispatchEvent(new KeyboardEvent('keydown', { key: 'Home', bubbles: true }));
+		expect(host.shadowRoot!.activeElement).toBe(buttons[0]);
+		list.dispose();
+	});
 });

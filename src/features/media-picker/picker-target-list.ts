@@ -64,6 +64,7 @@ export class PickerTargetList {
 		this.status.setAttribute('role', 'status');
 		this.list.className = 'tm-picker-list__items';
 		this.list.setAttribute('role', 'list');
+		this.list.addEventListener('keydown', (event) => this.handleListKeyDown(event));
 		const cancel = this.cancel;
 		cancel.type = 'button';
 		cancel.className = 'tm-picker-list__cancel';
@@ -246,6 +247,21 @@ export class PickerTargetList {
 			if (this.status.textContent !== message) this.status.textContent = message;
 		}
 		this.scheduleMeasure();
+	}
+
+	private handleListKeyDown(event: KeyboardEvent): void {
+		const buttons = [...this.list.querySelectorAll<HTMLButtonElement>('button.tm-picker-list__item')];
+		if (!buttons.length) return;
+		const currentIndex = buttons.indexOf(this.root.activeElement as HTMLButtonElement);
+		if (currentIndex === -1) return;
+		let nextIndex: number | undefined;
+		if (event.key === 'ArrowDown') nextIndex = Math.min(buttons.length - 1, currentIndex + 1);
+		else if (event.key === 'ArrowUp') nextIndex = Math.max(0, currentIndex - 1);
+		else if (event.key === 'Home') nextIndex = 0;
+		else if (event.key === 'End') nextIndex = buttons.length - 1;
+		if (nextIndex === undefined) return;
+		event.preventDefault();
+		buttons[nextIndex]?.focus();
 	}
 
 	private syncHighlight(): void {

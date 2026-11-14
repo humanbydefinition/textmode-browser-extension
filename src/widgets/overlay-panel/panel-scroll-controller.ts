@@ -44,7 +44,7 @@ export class PanelScrollController {
 		this.resizeObserver?.disconnect();
 		this.resizeObserver?.observe(this.panel);
 		for (const node of this.panel.querySelectorAll<HTMLElement>(
-			'.tm-panel__header, .tm-select-row, .tm-panel__footer, .tm-error, .tm-settings-form > .tm-control-group, .tm-tabs-list, .tm-converter-tabs-list'
+			'.tm-panel__header, .tm-panel__footer, .tm-error, .tm-settings-form > .tm-control-group, .tm-tabs-list, .tm-converter-tabs-list'
 		))
 			this.resizeObserver?.observe(node);
 	}
@@ -69,10 +69,9 @@ export class PanelScrollController {
 		const advanced = query('.tm-tabs-body > .tm-tabs-content[data-state="active"] .tm-converter-tabs');
 		const fixed =
 			boxHeight(query('.tm-panel__header')) +
-			boxHeight(query('.tm-select-row')) +
 			boxHeight(query('.tm-panel__footer')) +
 			verticalEdges(this.panel) +
-			gap(this.panel) * 3 +
+			gap(this.panel) * 2 +
 			boxHeight(query('.tm-panel-scroll-area__content > .tm-error')) +
 			verticalEdges(query('.tm-overlay-card')) +
 			boxHeight(query('.tm-overlay-card > .tm-error')) +

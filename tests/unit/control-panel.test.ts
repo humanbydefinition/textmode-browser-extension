@@ -19,7 +19,6 @@ describe('ControlPanel', () => {
 	it('mounts once in Shadow DOM and does not portal UI into the page', () => {
 		const panel = new ControlPanel({
 			headerFontUrl: HEADER_FONT_URL,
-			onStartPicking: vi.fn(),
 			onUpdateOverlay: vi.fn(),
 			onExportOverlay: vi.fn(),
 			onRemoveOverlay: vi.fn(),
@@ -51,7 +50,6 @@ describe('ControlPanel', () => {
 	it('casts the outer shadow from the rounded panel instead of the rectangular host', () => {
 		const panel = new ControlPanel({
 			headerFontUrl: HEADER_FONT_URL,
-			onStartPicking: vi.fn(),
 			onUpdateOverlay: vi.fn(),
 			onExportOverlay: vi.fn(),
 			onRemoveOverlay: vi.fn(),
@@ -101,7 +99,6 @@ describe('ControlPanel', () => {
 
 		const panel = new ControlPanel({
 			headerFontUrl: HEADER_FONT_URL,
-			onStartPicking: vi.fn(),
 			onUpdateOverlay: vi.fn(),
 			onExportOverlay: vi.fn(),
 			onRemoveOverlay: vi.fn(),
@@ -125,7 +122,6 @@ describe('ControlPanel', () => {
 	it('keeps color popovers inside the panel Shadow DOM', () => {
 		const panel = new ControlPanel({
 			headerFontUrl: HEADER_FONT_URL,
-			onStartPicking: vi.fn(),
 			onUpdateOverlay: vi.fn(),
 			onExportOverlay: vi.fn(),
 			onRemoveOverlay: vi.fn(),

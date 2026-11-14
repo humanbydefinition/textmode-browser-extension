@@ -11,6 +11,7 @@ export interface OverlayCardViewOptions {
 	allowCustomFontUpload?: boolean;
 	onUpdateOverlay: (id: string, settings: Partial<OverlaySettings>) => Promise<void> | void;
 	onExportOverlay: (id: string, format: OverlayExportFormat) => void;
+	onRemoveOverlay: (id: string) => void;
 	onUploadFont?: (file: File) => Promise<{ id: CustomFontId; displayName: string }>;
 	onRemoveCustomFont?: (id: CustomFontId) => Promise<void> | void;
 	onError?: (message: string) => void;
@@ -31,6 +32,7 @@ export class OverlayCardView {
 			allowCustomFontUpload: options.allowCustomFontUpload,
 			onChange: (settings) => options.onUpdateOverlay(this.id, settings),
 			onExport: (format) => options.onExportOverlay(this.id, format),
+			onRemove: () => options.onRemoveOverlay(this.id),
 			onUploadFont: options.onUploadFont,
 			onRemoveCustomFont: options.onRemoveCustomFont,
 			onError: options.onError,

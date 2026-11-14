@@ -30,7 +30,10 @@ vi.mock('../../src/widgets/overlay-panel/control-panel', () => ({
 		updateState() {}
 		updatePickingState() {}
 		setNotice() {}
-		focusSelectMedia() {}
+		focusPanel() {}
+		isViewportFocused() {
+			return false;
+		}
 		getPickerMount() {
 			return document.documentElement;
 		}

@@ -263,7 +263,7 @@ export class TopFrameCoordinator {
 			(frame, target) => void this.selectPickerTarget(frame, target),
 			(frame, target) => void this.highlightPickerTarget(frame, target),
 			() => void this.cancelPicking(),
-			() => this.controlPanel?.focusSelectMedia(),
+			() => this.controlPanel?.focusPanel(),
 			() => {
 				const session = this.activePickSessionId;
 				if (!session) return;
@@ -274,10 +274,11 @@ export class TopFrameCoordinator {
 					this.controlPanel?.setNotice(message);
 					broadcastError(message);
 				});
-			}
+			},
+			() => void this.startPicking(true).catch((error) => broadcastError(toUserMessage(error)))
 		);
 		this.controlPanel.updatePickingState(direct);
-		this.pickerList.mount(this.controlPanel.getPickerMount(), false);
+		this.pickerList.mount(this.controlPanel.getPickerMount(), this.controlPanel.isViewportFocused());
 		if (direct) this.pickerList.setDirectMode(true);
 		this.pickerList.update([]);
 		const session = this.activePickSessionId;
@@ -338,7 +339,6 @@ export class TopFrameCoordinator {
 		if (!this.activeOverlay && this.controlPanel) {
 			this.controlPanel.updatePickingState(false);
 			this.pickerList?.setDirectMode(false);
-			this.controlPanel.focusSelectMedia();
 			broadcastPickingCancelled();
 			try {
 				const response = await this.broadcastFrameCommand({
@@ -583,7 +583,6 @@ export class TopFrameCoordinator {
 			headerFontUrl: this.headerFontUrl,
 			initialPlacement: this.panelPlacement,
 			allowCustomFontUpload: true,
-			onStartPicking: () => void this.startPicking().catch((error) => broadcastError(toUserMessage(error))),
 			onUpdateOverlay: (id, settings) => this.updateOverlay(id, settings),
 			onExportOverlay: (id, format) =>
 				void this.exportOverlay(id, format).catch((error) => broadcastError(toUserMessage(error))),

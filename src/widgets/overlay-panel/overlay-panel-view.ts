@@ -14,7 +14,6 @@ export interface OverlayPanelViewOptions {
 	mode?: 'popup' | 'in-page';
 	customFonts?: readonly CustomFontSummary[];
 	allowCustomFontUpload?: boolean;
-	onStartPicking: () => void;
 	onUpdateOverlay: (id: string, settings: Partial<OverlaySettings>) => Promise<void> | void;
 	onExportOverlay: (id: string, format: OverlayExportFormat) => void;
 	onRemoveOverlay: (id: string) => void;
@@ -28,11 +27,8 @@ export interface OverlayPanelViewOptions {
 export class OverlayPanelView {
 	public readonly element: HTMLElement;
 	public readonly moveHandleElement: HTMLButtonElement | null;
-	private readonly selectButton: HTMLButtonElement;
-	private readonly selectButtonLabel: Text;
 	private readonly overlayList: HTMLElement;
 	private readonly pickerMount: HTMLElement;
-	private readonly removeButton: HTMLButtonElement;
 	private readonly notice: HTMLParagraphElement;
 	private readonly scrollArea: ScrollAreaView;
 	private readonly scrollController: PanelScrollController;
@@ -107,12 +103,6 @@ export class OverlayPanelView {
 		}
 		const header = h('header', { className: 'tm-panel__header' }, title, actions);
 
-		this.selectButtonLabel = document.createTextNode('select media');
-		this.selectButton = createButton('tm-button tm-button--default tm-button--default-size tm-select-button');
-		this.selectButton.append(icon('mouse-pointer'), this.selectButtonLabel);
-		this.selectButton.addEventListener('click', () => {
-			if (!this.picking) options.onStartPicking();
-		});
 		this.overlayList = h('section', { className: 'tm-overlay-list' });
 		this.pickerMount = h('div', { className: 'tm-picker-mount' });
 		this.pickerMount.hidden = true;
@@ -128,17 +118,6 @@ export class OverlayPanelView {
 		this.scrollArea.viewport.tabIndex = -1;
 		this.scrollArea.content.append(this.notice, this.overlayList, this.pickerMount);
 
-		this.removeButton = createButton(
-			'tm-button tm-button--danger tm-button--default-size tm-remove-button',
-			'remove overlay'
-		);
-		this.removeButton.append(icon('trash'));
-		this.removeButton.addEventListener('click', () => {
-			if (this.overlayId) {
-				options.onRemoveOverlay(this.overlayId);
-			}
-		});
-		const selectRow = h('div', { className: 'tm-select-row' }, this.selectButton, this.removeButton);
 		const ratingUrl = options.rateExtensionUrl === undefined ? defaultRateExtensionUrl : options.rateExtensionUrl;
 		const rateLink = ratingUrl
 			? h('a', {
@@ -173,7 +152,6 @@ export class OverlayPanelView {
 				dataset: { mode, scrollMode: 'tabs' },
 			},
 			header,
-			selectRow,
 			this.scrollArea.element,
 			footer
 		);
@@ -185,12 +163,12 @@ export class OverlayPanelView {
 		customFonts: readonly CustomFontSummary[] = this.options.customFonts ?? []
 	): void {
 		const overlay = overlays[0];
+		const activeElement = getRootActiveElement(this.element);
+		const returningFocusFromOverlay = Boolean(
+			!overlay && activeElement && this.overlayList.contains(activeElement)
+		);
 		this.overlayId = overlay?.id ?? null;
 		this.updateContentVisibility();
-		this.updateSelectButtonLabel();
-		const removingFocusedOverlay = !overlay && this.removeButton.matches(':focus');
-		this.removeButton.disabled = !overlay;
-		if (removingFocusedOverlay) this.selectButton.focus();
 
 		if (!overlay) {
 			this.overlayCard?.dispose();
@@ -198,6 +176,7 @@ export class OverlayPanelView {
 			removeChildren(this.overlayList);
 			if (this.options.mode !== 'in-page')
 				this.overlayList.append(h('p', { className: 'tm-empty-state', textContent: 'no media selected.' }));
+			if (returningFocusFromOverlay) this.focusPanel();
 			return;
 		}
 
@@ -210,6 +189,7 @@ export class OverlayPanelView {
 				allowCustomFontUpload: this.options.allowCustomFontUpload,
 				onUpdateOverlay: this.options.onUpdateOverlay,
 				onExportOverlay: this.options.onExportOverlay,
+				onRemoveOverlay: this.options.onRemoveOverlay,
 				onUploadFont: this.options.onUploadFont,
 				onRemoveCustomFont: this.options.onRemoveCustomFont,
 				onError: this.options.onError,
@@ -221,8 +201,12 @@ export class OverlayPanelView {
 		this.overlayCard.update(overlay, customFonts);
 	}
 
-	public focusSelectMedia(): void {
-		this.selectButton.focus({ preventScroll: true });
+	public focusPanel(): void {
+		this.scrollArea.viewport.focus({ preventScroll: true });
+	}
+
+	public isViewportFocused(): boolean {
+		return getRootActiveElement(this.element) === this.scrollArea.viewport;
 	}
 
 	public getPickerMount(): HTMLElement {
@@ -233,9 +217,6 @@ export class OverlayPanelView {
 		this.picking = picking;
 		this.element.dataset.picking = String(picking);
 		this.updateContentVisibility();
-		this.selectButton.setAttribute('aria-pressed', String(picking));
-		this.selectButton.setAttribute('aria-disabled', String(picking));
-		this.updateSelectButtonLabel();
 	}
 
 	public setNotice(message: string | undefined): void {
@@ -254,12 +235,10 @@ export class OverlayPanelView {
 		this.overlayList.hidden = showPicker;
 		this.pickerMount.hidden = !showPicker;
 	}
+}
 
-	private updateSelectButtonLabel(): void {
-		this.selectButtonLabel.textContent = this.picking
-			? 'selecting…'
-			: this.overlayId
-				? 'replace media'
-				: 'select media';
-	}
+function getRootActiveElement(element: HTMLElement): Element | null {
+	const root = element.getRootNode();
+	if (root instanceof Document || root instanceof ShadowRoot) return root.activeElement;
+	return element.ownerDocument.activeElement;
 }

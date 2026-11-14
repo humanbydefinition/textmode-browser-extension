@@ -61,22 +61,23 @@ export class OverlayPanelView {
 			this.moveHandleElement.setAttribute('title', moveInstructions);
 			this.moveHandleElement.append(icon('grip-vertical'));
 		}
-		const supportLink = h(
+		const discordLink = h(
 			'a',
 			{
 				className:
 					mode === 'in-page'
-						? 'tm-button tm-button--ghost tm-button--subtle tm-button--icon tm-panel__header-action tm-support-link'
-						: 'tm-button tm-button--ghost tm-button--subtle tm-panel__header-action tm-support-link',
+						? 'tm-button tm-button--ghost tm-button--subtle tm-button--icon tm-panel__header-action tm-discord-link'
+						: 'tm-button tm-button--ghost tm-button--subtle tm-button--icon tm-panel__header-action tm-discord-link',
 				attributes: {
-					href: 'https://ko-fi.com/humanbydefinition',
+					href: 'https://discord.gg/sjrw8QXNks',
 					target: '_blank',
-					rel: 'noreferrer',
-					...(mode === 'in-page' ? { title: 'Support textmode', 'aria-label': 'Support textmode' } : {}),
+					rel: 'noreferrer noopener',
+					title: 'Join the textmode.art Discord server',
+					'aria-label': 'Join the textmode.art Discord server',
 				},
 			},
-			icon('heart-handshake'),
-			mode === 'popup' ? 'support' : null
+			icon('discord'),
+			mode === 'popup' ? 'discord' : null
 		);
 		const githubLink = h(
 			'a',
@@ -93,7 +94,7 @@ export class OverlayPanelView {
 			},
 			icon('github')
 		);
-		const actions = h('div', { className: 'tm-panel__actions' }, supportLink, githubLink, this.moveHandleElement);
+		const actions = h('div', { className: 'tm-panel__actions' }, discordLink, githubLink, this.moveHandleElement);
 		if (options.onClose) {
 			const closeButton = createButton(
 				'tm-button tm-button--ghost tm-button--subtle tm-button--icon tm-panel__header-action',

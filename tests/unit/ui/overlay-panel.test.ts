@@ -45,7 +45,10 @@ describe('OverlayPanelView', () => {
 
 		expect(popupView.moveHandleElement).toBeNull();
 		expect(popupView.element.dataset.mode).toBe('popup');
-		expect(popupView.element.querySelector('.tm-support-link')?.textContent).toContain('support');
+		expect(popupView.element.querySelector('.tm-discord-link')?.textContent).toContain('discord');
+		expect(popupView.element.querySelector('.tm-discord-link')?.getAttribute('href')).toBe(
+			'https://discord.gg/sjrw8QXNks'
+		);
 
 		const inPageView = createView({ mode: 'in-page', onClose: vi.fn() });
 		inPageView.update([]);
@@ -66,10 +69,11 @@ describe('OverlayPanelView', () => {
 		expect(inPageView.moveHandleElement?.classList.contains('tm-button')).toBe(false);
 		expect(headerActions.every((action) => action.classList.contains('tm-panel__header-action'))).toBe(true);
 		expect(headerActions.every((action) => action.classList.contains('tm-button--subtle'))).toBe(true);
-		expect(inPageView.element.querySelector('.tm-support-link')?.textContent).not.toContain('support');
-		expect(inPageView.element.querySelector('.tm-support-link')?.getAttribute('aria-label')).toBe(
-			'Support textmode'
+		expect(inPageView.element.querySelector('.tm-discord-link')?.textContent).toBe('');
+		expect(inPageView.element.querySelector('.tm-discord-link')?.getAttribute('aria-label')).toBe(
+			'Join the textmode.art Discord server'
 		);
+		expect(inPageView.element.querySelector('.tm-discord-link')?.getAttribute('rel')).toBe('noreferrer noopener');
 	});
 
 	it('renders the store rating link when a rating URL is available', () => {

@@ -42,7 +42,7 @@ describe('ControlPanel', () => {
 		expect(document.querySelector('[data-testid="overlay-panel"]')).toBeNull();
 		expect(host?.shadowRoot?.querySelector('.tm-panel__move-handle')).not.toBeNull();
 		expect(host?.shadowRoot?.querySelector('.tm-panel')?.getAttribute('data-mode')).toBe('in-page');
-		expect(host?.shadowRoot?.querySelector('.tm-support-link')?.textContent).not.toContain('support');
+		expect(host?.shadowRoot?.querySelector('.tm-discord-link')?.textContent).toBe('');
 
 		panel.unmount();
 		expect(document.querySelector('#textmode-ascii-overlay-control-panel-root')).toBeNull();

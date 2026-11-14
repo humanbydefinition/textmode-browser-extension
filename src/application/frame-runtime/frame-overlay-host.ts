@@ -58,10 +58,12 @@ export class FrameOverlayHost implements FrameOverlayPort {
 				case 'FRAME_PING':
 				case 'FRAME_BEGIN_PICKING':
 				case 'FRAME_END_PICKING':
+				case 'FRAME_SELECT_TARGET':
+				case 'FRAME_HIGHLIGHT_TARGET':
 					return { ok: true, overlays: this.list() };
 			}
 		} catch (error) {
-			return { ok: false, error: toUserMessage(error), overlays: this.list() };
+			return { ok: false, error: toUserMessage(error), errorCategory: 'operation', overlays: this.list() };
 		}
 	}
 }

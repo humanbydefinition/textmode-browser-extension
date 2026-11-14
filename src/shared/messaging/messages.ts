@@ -36,10 +36,19 @@ export interface FrameAddress {
 
 export const FRAME_RUNTIME_READY_PROBE = { type: 'FRAME_PING' } as const satisfies FrameCommand;
 
+export interface PickerTargetSummary {
+	id: string;
+	label: string;
+	availability: 'ready' | 'blocked';
+	reason?: string;
+}
+
 export type FrameCommand =
 	| { type: 'FRAME_PING'; runtimeId?: string }
-	| { type: 'FRAME_BEGIN_PICKING'; pickSessionId: string }
+	| { type: 'FRAME_BEGIN_PICKING'; pickSessionId: string; direct?: boolean }
 	| { type: 'FRAME_END_PICKING'; pickSessionId: string }
+	| { type: 'FRAME_SELECT_TARGET'; pickSessionId: string; runtimeId: string; targetId: string }
+	| { type: 'FRAME_HIGHLIGHT_TARGET'; pickSessionId: string; runtimeId: string; targetId?: string }
 	| {
 			type: 'FRAME_CREATE_OVERLAY';
 			runtimeId: string;
@@ -55,10 +64,20 @@ export type FrameCommand =
 	| { type: 'FRAME_REMOVE_ALL'; runtimeId?: string };
 
 export type FrameEvent =
+	| { type: 'FRAME_PICKER_CLOSED'; pickSessionId: string; runtimeId: string }
+	| { type: 'FRAME_STRUCTURE_CHANGED'; pickSessionId: string; runtimeId: string }
+	| {
+			type: 'FRAME_PICKER_TARGETS';
+			pickSessionId: string;
+			runtimeId: string;
+			frameTitle: string;
+			revision: number;
+			targets: PickerTargetSummary[];
+	  }
 	| { type: 'FRAME_TARGET_PICKED'; pickSessionId: string; runtimeId: string; targetToken: string }
 	| { type: 'FRAME_PICKING_CANCELLED'; pickSessionId: string; runtimeId: string }
 	| { type: 'FRAME_UNAVAILABLE_IFRAME'; pickSessionId: string; runtimeId: string; reason: string }
-	| { type: 'FRAME_OVERLAY_STATE'; runtimeId: string; overlays: OverlayDescriptor[] }
+	| { type: 'FRAME_OVERLAY_STATE'; runtimeId: string; revision: number; overlays: OverlayDescriptor[] }
 	| { type: 'FRAME_DISPOSING'; runtimeId: string };
 
 export type FrameRoutingMessage =
@@ -106,8 +125,10 @@ export type RuntimeMessage =
 export interface RuntimeAck {
 	ok: boolean;
 	error?: string;
+	errorCategory?: 'stale-runtime' | 'operation' | 'transport';
 	overlays?: OverlayDescriptor[];
 	runtimeId?: string;
+	stateRevision?: number;
 }
 
 export function isRuntimeMessage(value: unknown): value is RuntimeMessage {
@@ -131,8 +152,24 @@ export function isFrameCommand(value: unknown): value is FrameCommand {
 		case 'FRAME_PING':
 			return value.runtimeId === undefined || typeof value.runtimeId === 'string';
 		case 'FRAME_BEGIN_PICKING':
+			return (
+				typeof value.pickSessionId === 'string' &&
+				(value.direct === undefined || typeof value.direct === 'boolean')
+			);
 		case 'FRAME_END_PICKING':
 			return typeof value.pickSessionId === 'string';
+		case 'FRAME_SELECT_TARGET':
+			return (
+				typeof value.pickSessionId === 'string' &&
+				typeof value.runtimeId === 'string' &&
+				typeof value.targetId === 'string'
+			);
+		case 'FRAME_HIGHLIGHT_TARGET':
+			return (
+				typeof value.pickSessionId === 'string' &&
+				typeof value.runtimeId === 'string' &&
+				(value.targetId === undefined || typeof value.targetId === 'string')
+			);
 		case 'FRAME_CREATE_OVERLAY':
 			return (
 				typeof value.runtimeId === 'string' &&
@@ -169,6 +206,25 @@ export function isFrameCommand(value: unknown): value is FrameCommand {
 export function isFrameEvent(value: unknown): value is FrameEvent {
 	if (!isRecord(value) || typeof value.type !== 'string') return false;
 	switch (value.type) {
+		case 'FRAME_PICKER_CLOSED':
+		case 'FRAME_STRUCTURE_CHANGED':
+			return typeof value.pickSessionId === 'string' && typeof value.runtimeId === 'string';
+		case 'FRAME_PICKER_TARGETS':
+			return (
+				typeof value.pickSessionId === 'string' &&
+				typeof value.runtimeId === 'string' &&
+				typeof value.frameTitle === 'string' &&
+				Number.isSafeInteger(value.revision) &&
+				Array.isArray(value.targets) &&
+				value.targets.every(
+					(target: unknown) =>
+						isRecord(target) &&
+						typeof target.id === 'string' &&
+						typeof target.label === 'string' &&
+						(target.availability === 'ready' || target.availability === 'blocked') &&
+						(target.reason === undefined || typeof target.reason === 'string')
+				)
+			);
 		case 'FRAME_TARGET_PICKED':
 			return (
 				typeof value.pickSessionId === 'string' &&
@@ -184,7 +240,11 @@ export function isFrameEvent(value: unknown): value is FrameEvent {
 				typeof value.reason === 'string'
 			);
 		case 'FRAME_OVERLAY_STATE':
-			return typeof value.runtimeId === 'string' && Array.isArray(value.overlays);
+			return (
+				typeof value.runtimeId === 'string' &&
+				Number.isSafeInteger(value.revision) &&
+				Array.isArray(value.overlays)
+			);
 		case 'FRAME_DISPOSING':
 			return typeof value.runtimeId === 'string';
 		default:

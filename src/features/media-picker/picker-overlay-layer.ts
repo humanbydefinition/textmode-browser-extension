@@ -2,21 +2,19 @@ import pickerStyles from './picker-overlay.css?inline';
 import type { PickerTarget } from './picker-target-registry';
 
 export interface PickerOverlayLayerOptions {
-	showStatus: boolean;
 	onActivate: (targetId: string) => void;
 }
 
 const PICKER_HOST_CLASS = 'textmode-ascii-overlay-picker';
-const PICKER_BLOCKER_CLASS = 'textmode-ascii-overlay-iframe-blocker';
 const PICKER_Z_INDEX = '2147483645';
 
 export class PickerOverlayLayer {
 	public readonly host = document.createElement('div');
 	private readonly shadowRoot: ShadowRoot;
 	private readonly layer = document.createElement('div');
-	private readonly status = document.createElement('div');
 	private readonly markers = new Map<string, HTMLButtonElement>();
 	private activeTargetId?: string;
+	private previewTargetId?: string;
 
 	public constructor(private readonly options: PickerOverlayLayerOptions) {
 		this.host.className = PICKER_HOST_CLASS;
@@ -37,11 +35,7 @@ export class PickerOverlayLayer {
 		const style = document.createElement('style');
 		style.textContent = pickerStyles;
 		this.layer.className = 'tm-picker-layer';
-		this.status.className = 'tm-picker-status';
-		this.status.setAttribute('role', 'status');
-		this.status.setAttribute('aria-live', 'polite');
-		this.status.hidden = !options.showStatus;
-		this.layer.append(this.status);
+		this.layer.dataset.direct = 'false';
 		this.shadowRoot.append(style, this.layer);
 	}
 
@@ -49,41 +43,23 @@ export class PickerOverlayLayer {
 		if (!this.host.isConnected) document.documentElement.append(this.host);
 	}
 
+	public setDirectMode(direct: boolean): void {
+		this.layer.dataset.direct = String(direct);
+	}
+
 	public updateTargets(targets: readonly PickerTarget[]): void {
-		const currentIds = new Set(targets.map((target) => target.id));
+		const selectableTargets = targets.filter((target) => target.availability === 'ready');
+		const currentIds = new Set(selectableTargets.map((target) => target.id));
 		for (const [id, marker] of this.markers) {
 			if (currentIds.has(id)) continue;
 			marker.remove();
 			this.markers.delete(id);
 		}
 
-		for (const target of targets) {
+		for (const target of selectableTargets) {
 			const marker = this.markers.get(target.id) ?? this.createMarker(target);
 			this.updateMarker(marker, target);
 		}
-	}
-
-	public updateStatus(readyCount: number, blockedCount: number): void {
-		const instruction = document.createElement('span');
-		instruction.className = 'tm-picker-status__instruction';
-		instruction.append(
-			document.createTextNode('Select a '),
-			createCodeToken('<canvas>'),
-			document.createTextNode(' or '),
-			createCodeToken('<video>'),
-			document.createTextNode(' element')
-		);
-		const metrics = document.createElement('span');
-		metrics.className = 'tm-picker-status__metrics';
-		metrics.append(
-			createMetric(createCodeToken(String(readyCount)), ` selectable ${pluralize(readyCount, 'element')}`),
-			createMetric(
-				createCodeToken(String(blockedCount)),
-				` non-selectable ${pluralize(blockedCount, 'element')}`
-			),
-			createMetric(createCodeToken('Esc'), ' to cancel')
-		);
-		this.status.replaceChildren(instruction, metrics);
 	}
 
 	public setGeometry(targetId: string, rect: DOMRect): void {
@@ -115,6 +91,19 @@ export class PickerOverlayLayer {
 		}
 	}
 
+	public setPreview(targetId: string | undefined): void {
+		if (this.previewTargetId === targetId) return;
+		if (this.previewTargetId) {
+			const previous = this.markers.get(this.previewTargetId);
+			if (previous) previous.dataset.preview = 'false';
+		}
+		this.previewTargetId = targetId;
+		if (targetId) {
+			const marker = this.markers.get(targetId);
+			if (marker) marker.dataset.preview = 'true';
+		}
+	}
+
 	public unmount(): void {
 		this.markers.clear();
 		this.host.remove();
@@ -126,7 +115,7 @@ export class PickerOverlayLayer {
 		marker.className = 'tm-picker-marker';
 		marker.tabIndex = -1;
 		marker.dataset.pickerTargetId = target.id;
-		marker.setAttribute('aria-hidden', target.availability === 'ready' ? 'true' : 'false');
+		marker.setAttribute('aria-hidden', 'true');
 		marker.addEventListener('click', (event) => {
 			event.preventDefault();
 			this.options.onActivate(target.id);
@@ -139,33 +128,10 @@ export class PickerOverlayLayer {
 	private updateMarker(marker: HTMLButtonElement, target: PickerTarget): void {
 		marker.dataset.availability = target.availability;
 		marker.dataset.kind = target.kind;
-		marker.classList.toggle(PICKER_BLOCKER_CLASS, target.availability === 'blocked');
-		marker.setAttribute('aria-hidden', target.availability === 'ready' ? 'true' : 'false');
-		if (target.availability === 'blocked') marker.setAttribute('aria-label', formatAccessibleLabel(target));
-		else marker.removeAttribute('aria-label');
-		marker.title = target.reasonText ?? target.label;
+		marker.dataset.active = String(target.id === this.activeTargetId);
+		marker.dataset.preview = String(target.id === this.previewTargetId);
+		marker.title = target.label;
 	}
-}
-
-function formatAccessibleLabel(target: PickerTarget): string {
-	return target.reasonText ?? 'Iframe unavailable';
-}
-
-function createCodeToken(value: string): HTMLElement {
-	const code = document.createElement('code');
-	code.textContent = value;
-	return code;
-}
-
-function pluralize(count: number, noun: string): string {
-	return `${noun}${count === 1 ? '' : 's'}`;
-}
-
-function createMetric(content: Node | string, suffix = ''): HTMLElement {
-	const metric = document.createElement('span');
-	metric.className = 'tm-picker-status__metric';
-	metric.append(content, suffix);
-	return metric;
 }
 
 function setImportantStyles(element: HTMLElement, declarations: Record<string, string>): void {

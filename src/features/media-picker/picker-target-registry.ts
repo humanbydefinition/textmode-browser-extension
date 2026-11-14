@@ -84,6 +84,16 @@ export function isSelectableElement(element: Element): element is SelectableElem
 		return false;
 	}
 
+	if (
+		element instanceof HTMLVideoElement &&
+		(element.error ||
+			element.readyState < element.HAVE_CURRENT_DATA ||
+			element.videoWidth <= 0 ||
+			element.videoHeight <= 0)
+	) {
+		return false;
+	}
+
 	const rect = element.getBoundingClientRect();
 	if (rect.width < 8 || rect.height < 8) {
 		return false;
@@ -161,5 +171,6 @@ function createElementLabel(element: SelectableElement): string {
 		.join('');
 	const rect = element.getBoundingClientRect();
 	const size = `${Math.round(rect.width)}x${Math.round(rect.height)}`;
-	return `${element.tagName.toLowerCase()}${id}${classes} ${size}`.trim();
+	const name = (element.getAttribute('aria-label') || element.getAttribute('title') || '').trim();
+	return `${element.tagName.toLowerCase()}${name ? ` ${name}` : `${id}${classes}`} ${size}`.trim();
 }

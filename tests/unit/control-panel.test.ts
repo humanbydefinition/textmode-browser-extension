@@ -151,6 +151,41 @@ describe('ControlPanel', () => {
 
 		panel.unmount();
 	});
+
+	it('shows and clears the panel notice across state renders', () => {
+		const panel = new ControlPanel({
+			headerFontUrl: HEADER_FONT_URL,
+			onUpdateOverlay: vi.fn(),
+			onExportOverlay: vi.fn(),
+			onRemoveOverlay: vi.fn(),
+			onClose: vi.fn(),
+		});
+		panel.mount();
+
+		const host = document.querySelector<HTMLElement>('#textmode-ascii-overlay-control-panel-root');
+		const notice = host?.shadowRoot?.querySelector<HTMLParagraphElement>(
+			'.tm-panel-scroll-area__content > .tm-error'
+		);
+		expect(notice?.hidden).toBe(true);
+
+		panel.setNotice('Cross-origin video blocked.');
+		expect(notice?.hidden).toBe(false);
+		expect(notice?.textContent).toBe('Cross-origin video blocked.');
+
+		panel.setNotice(undefined);
+		panel.updateState([
+			{
+				id: 'overlay-1',
+				elementLabel: 'canvas#demo-canvas 320x180',
+				settings: DEFAULT_OVERLAY_SETTINGS,
+				status: 'active',
+			},
+		]);
+		expect(notice?.hidden).toBe(true);
+		expect(notice?.textContent).toBe('');
+
+		panel.unmount();
+	});
 });
 
 class MockFontFace {

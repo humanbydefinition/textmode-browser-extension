@@ -23,13 +23,17 @@ vi.mock('../../src/shared/fonts/runtime-font-registry', () => ({
 	removeCustomFont: vi.fn(),
 }));
 
+const setNoticeSpy = vi.fn();
+
 vi.mock('../../src/widgets/overlay-panel/control-panel', () => ({
 	ControlPanel: class {
 		mount() {}
 		unmount() {}
 		updateState() {}
 		updatePickingState() {}
-		setNotice() {}
+		setNotice(message: string | undefined) {
+			setNoticeSpy(message);
+		}
 		focusPanel() {}
 		isViewportFocused() {
 			return false;
@@ -289,5 +293,90 @@ describe('top frame coordinator', () => {
 		await vi.waitFor(() =>
 			expect(stale).toHaveBeenCalledWith(expect.objectContaining({ ok: false, overlays: [] }))
 		);
+	});
+
+	it('preserves target errors in passive picker and clears them when selecting or starting direct picking', async () => {
+		const descriptor: OverlayDescriptor = {
+			id: 'overlay-2',
+			elementLabel: 'canvas',
+			settings: DEFAULT_OVERLAY_SETTINGS,
+			status: 'active',
+		};
+		let failCreate = true;
+		vi.mocked(sendMessageToRuntime).mockImplementation(async (message: unknown) => {
+			const request = message as { type: string; command?: { type: string } };
+			if (request.type === 'PREPARE_FRAME_OVERLAY') {
+				return failCreate
+					? { ok: false, error: 'Cross-origin video blocked.' }
+					: { ok: true, overlays: [descriptor] };
+			}
+			if (request.type === 'SEND_FRAME_COMMAND' && request.command?.type === 'FRAME_REMOVE_OVERLAY') {
+				return { ok: true, overlays: [] };
+			}
+			return { ok: true };
+		});
+
+		new TopFrameCoordinator({ pageUrl, presetStore, panelPlacementStore: placementStore });
+		const opened = vi.fn();
+		listener({ type: 'TOGGLE_OVERLAY' }, {}, opened);
+		await vi.waitFor(() => expect(opened).toHaveBeenCalledWith({ ok: true, overlays: [] }));
+
+		const pickSessions = () =>
+			vi
+				.mocked(sendMessageToRuntime)
+				.mock.calls.map(([msg]) => msg as { type: string; command?: { type: string; pickSessionId?: string } })
+				.filter((msg) => msg.type === 'BROADCAST_FRAME_COMMAND' && msg.command?.type === 'FRAME_BEGIN_PICKING')
+				.map((msg) => msg.command!.pickSessionId!);
+
+		await vi.waitFor(() => expect(pickSessions().length).toBeGreaterThan(0));
+		const firstSession = pickSessions().at(-1)!;
+		setNoticeSpy.mockClear();
+
+		listener(
+			{
+				type: 'ROUTED_FRAME_EVENT',
+				frameId: 0,
+				event: {
+					type: 'FRAME_TARGET_PICKED',
+					pickSessionId: firstSession,
+					runtimeId: 'runtime-1',
+					targetToken: 'tainted-video',
+				},
+			},
+			{},
+			vi.fn()
+		);
+
+		await vi.waitFor(() => expect(setNoticeSpy).toHaveBeenCalledWith('Cross-origin video blocked.'));
+		await vi.waitFor(() => expect(pickSessions().length).toBeGreaterThan(1));
+		expect(setNoticeSpy.mock.calls.at(-1)?.[0]).toBe('Cross-origin video blocked.');
+
+		failCreate = false;
+		const secondSession = pickSessions().at(-1)!;
+		listener(
+			{
+				type: 'ROUTED_FRAME_EVENT',
+				frameId: 0,
+				event: {
+					type: 'FRAME_TARGET_PICKED',
+					pickSessionId: secondSession,
+					runtimeId: 'runtime-1',
+					targetToken: 'clean-canvas',
+				},
+			},
+			{},
+			vi.fn()
+		);
+
+		await vi.waitFor(() => expect(setNoticeSpy.mock.calls.at(-1)?.[0]).toBeUndefined());
+
+		listener({ type: 'REMOVE_OVERLAY', id: descriptor.id }, {}, vi.fn());
+		await vi.waitFor(() => expect(pickSessions().length).toBeGreaterThan(2));
+
+		setNoticeSpy.mockClear();
+		const startedDirect = vi.fn();
+		listener({ type: 'START_PICKING' }, {}, startedDirect);
+		await vi.waitFor(() => expect(startedDirect).toHaveBeenCalled());
+		expect(setNoticeSpy).toHaveBeenCalledWith(undefined);
 	});
 });

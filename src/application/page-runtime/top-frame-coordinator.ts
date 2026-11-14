@@ -190,7 +190,7 @@ export class TopFrameCoordinator {
 				}
 				break;
 			case 'FRAME_UNAVAILABLE_IFRAME':
-				if (event.pickSessionId === this.activePickSessionId) broadcastError(event.reason);
+				if (event.pickSessionId === this.activePickSessionId) this.reportPanelError(event.reason);
 				break;
 			case 'FRAME_OVERLAY_STATE':
 				if (
@@ -231,6 +231,7 @@ export class TopFrameCoordinator {
 		if (direct) await this.ensureControlPanel();
 		if (direct && this.passiveStartup) await this.passiveStartup;
 		if (!this.controlPanel || (!direct && this.activeOverlay)) return;
+		if (direct) this.clearPanelNotice();
 		if (this.activePickSessionId) {
 			if (!direct) return;
 			this.directPicking = true;
@@ -267,15 +268,13 @@ export class TopFrameCoordinator {
 			() => {
 				const session = this.activePickSessionId;
 				if (!session) return;
-				this.controlPanel?.setNotice(undefined);
+				this.clearPanelNotice();
 				void this.refreshPickerTargets(session).catch((error) => {
 					if (this.activePickSessionId !== session) return;
-					const message = toUserMessage(error);
-					this.controlPanel?.setNotice(message);
-					broadcastError(message);
+					this.reportPanelError(toUserMessage(error));
 				});
 			},
-			() => void this.startPicking(true).catch((error) => broadcastError(toUserMessage(error)))
+			() => void this.startPicking(true).catch((error) => this.reportPanelError(toUserMessage(error)))
 		);
 		this.controlPanel.updatePickingState(direct);
 		this.pickerList.mount(this.controlPanel.getPickerMount(), this.controlPanel.isViewportFocused());
@@ -307,7 +306,9 @@ export class TopFrameCoordinator {
 		if (this.frameRefreshTimer) clearTimeout(this.frameRefreshTimer);
 		this.frameRefreshTimer = setTimeout(() => {
 			this.frameRefreshTimer = undefined;
-			void this.refreshPickerTargets(session).catch((error) => broadcastError(toUserMessage(error)));
+			void this.refreshPickerTargets(session).catch((error) => {
+				if (this.activePickSessionId === session) this.reportPanelError(toUserMessage(error));
+			});
 		}, 100);
 	}
 
@@ -336,6 +337,7 @@ export class TopFrameCoordinator {
 		const session = this.activePickSessionId;
 		if (!session) return;
 		this.directPicking = false;
+		this.clearPanelNotice();
 		if (!this.activeOverlay && this.controlPanel) {
 			this.controlPanel.updatePickingState(false);
 			this.pickerList?.setDirectMode(false);
@@ -367,6 +369,7 @@ export class TopFrameCoordinator {
 		const session = this.activePickSessionId;
 		if (!session || this.pickResolved || this.pickerFrames.get(frame.frameId)?.runtimeId !== frame.runtimeId)
 			return;
+		this.clearPanelNotice();
 		const response = await this.route({
 			type: 'SEND_FRAME_COMMAND',
 			frameId: frame.frameId,
@@ -389,8 +392,7 @@ export class TopFrameCoordinator {
 				this.pickerFrames.delete(frame.frameId);
 				this.pickerList?.update([...this.pickerFrames.values()]);
 			}
-			this.controlPanel?.setNotice(response.error ?? 'The selected media is unavailable.');
-			broadcastError(response.error ?? 'The selected media is unavailable.');
+			this.reportPanelError(response.error ?? 'The selected media is unavailable.');
 		}
 	}
 
@@ -454,6 +456,7 @@ export class TopFrameCoordinator {
 		this.ownerVersion++;
 		this.ownerStateRevision = response.stateRevision ?? -1;
 		this.activeOverlay = { owner, descriptor: markEmbedded(response.overlays[0], frameId) };
+		this.clearPanelNotice();
 		this.saveActiveOverlayPreset();
 		this.sync();
 	}
@@ -513,6 +516,11 @@ export class TopFrameCoordinator {
 					/* Preserve ownership when the frame cannot be reached. */
 				}
 			}
+			if (response.ok) {
+				this.clearPanelNotice();
+			} else {
+				this.controlPanel?.setNotice(response.error ?? 'The overlay command failed. Try again.');
+			}
 			if (this.activeOverlay?.owner === active.owner && this.ownerVersion === version) {
 				if (response.errorCategory === 'stale-runtime') {
 					this.activeOverlay = undefined;
@@ -531,9 +539,7 @@ export class TopFrameCoordinator {
 				this.sync();
 			}
 			if (!response.ok) {
-				const message = response.error ?? 'The overlay command failed. Try again.';
-				this.controlPanel?.setNotice(message);
-				throw new Error(message);
+				throw new Error(response.error ?? 'The overlay command failed. Try again.');
 			}
 			return response;
 		});
@@ -585,11 +591,19 @@ export class TopFrameCoordinator {
 			allowCustomFontUpload: true,
 			onUpdateOverlay: (id, settings) => this.updateOverlay(id, settings),
 			onExportOverlay: (id, format) =>
-				void this.exportOverlay(id, format).catch((error) => broadcastError(toUserMessage(error))),
-			onRemoveOverlay: (id) => void this.removeOverlay(id).catch((error) => broadcastError(toUserMessage(error))),
-			onUploadFont: (file) => runtimeFontRegistry.addCustomFont(file),
-			onRemoveCustomFont: (id) => runtimeFontRegistry.removeCustomFont(id),
-			onError: broadcastError,
+				void this.exportOverlay(id, format).catch((error) => this.reportPanelError(toUserMessage(error))),
+			onRemoveOverlay: (id) =>
+				void this.removeOverlay(id).catch((error) => this.reportPanelError(toUserMessage(error))),
+			onUploadFont: async (file) => {
+				const uploaded = await runtimeFontRegistry.addCustomFont(file);
+				this.clearPanelNotice();
+				return uploaded;
+			},
+			onRemoveCustomFont: async (id) => {
+				await runtimeFontRegistry.removeCustomFont(id);
+				this.clearPanelNotice();
+			},
+			onError: (message) => this.reportPanelError(message),
 			onClose: () => this.destroyControlPanel(),
 			onPlacementCommit: (placement) => this.savePanelPlacement(placement),
 			onPlacementReset: () => this.resetPanelPlacement(),
@@ -601,9 +615,17 @@ export class TopFrameCoordinator {
 	private reportTargetError(error: unknown): void {
 		const message = toUserMessage(error);
 		this.activeOverlay = undefined;
-		broadcastError(message);
-		this.controlPanel?.setNotice(message);
+		this.reportPanelError(message);
 		this.sync();
+	}
+
+	private reportPanelError(message: string): void {
+		this.controlPanel?.setNotice(message);
+		broadcastError(message);
+	}
+
+	private clearPanelNotice(): void {
+		this.controlPanel?.setNotice(undefined);
 	}
 
 	private destroyControlPanel(): void {
@@ -672,9 +694,7 @@ export class TopFrameCoordinator {
 		if (!this.passiveStartup) {
 			this.passiveStartup = this.startPicking(false)
 				.catch((error) => {
-					const message = toUserMessage(error);
-					this.controlPanel?.setNotice(message);
-					broadcastError(message);
+					this.reportPanelError(toUserMessage(error));
 				})
 				.finally(() => {
 					this.passiveStartup = undefined;

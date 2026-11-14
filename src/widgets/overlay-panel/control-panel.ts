@@ -160,8 +160,10 @@ export class ControlPanel {
 	}
 
 	public setNotice(message: string | undefined): void {
+		if (this.notice === message) return;
 		this.notice = message;
 		this.view.setNotice(message);
+		this.placementController.scheduleRender();
 	}
 
 	private render(): void {

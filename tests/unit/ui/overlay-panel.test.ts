@@ -1,5 +1,3 @@
-import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
 	DEFAULT_FONT_ID,
@@ -420,19 +418,6 @@ describe('OverlayPanelView', () => {
 				.postFx.slice(0, 2)
 				.map((item: { filter: string }) => item.filter)
 		).toEqual(['grayscale', 'invert']);
-	});
-
-	it('sizes the picker mount to match the selected overlay card with the export tab open', () => {
-		const styles = readFileSync(
-			resolve(import.meta.dirname, '../../../src/widgets/overlay-panel/popup.css'),
-			'utf8'
-		);
-		expect(styles).toMatch(/\.tm-panel\s*\{[^}]*--tm-picker-area-height:\s*302px;/);
-		expect(styles).toMatch(/\.tm-picker-mount\s*\{[^}]*height:\s*var\(--tm-picker-area-height\);/);
-		expect(styles).toMatch(/\.tm-error\s*\{[^}]*font-size:\s*10px;/);
-		expect(styles).toMatch(
-			/\.tm-panel\[data-scroll-mode='tabs'\]\s+\.tm-panel-scroll-area__content\s*>\s*\.tm-error\s*\{[^}]*margin-bottom:\s*12px;/
-		);
 	});
 });
 

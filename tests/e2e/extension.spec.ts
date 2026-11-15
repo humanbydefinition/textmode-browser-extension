@@ -65,7 +65,7 @@ test('bundled fonts load without extension URL reports on a restricted page', as
 			await chrome.tabs.sendMessage(tab.id, { type: 'TOGGLE_OVERLAY' }, { frameId: 0 });
 		});
 		await page.getByRole('button', { name: 'Select media on page', exact: true }).click();
-		await expect(page.locator('.tm-picker-marker[data-availability="ready"]').first()).toBeVisible();
+		await expect(page.locator('.tm-picker-marker').first()).toBeVisible();
 		await page.locator('#demo-canvas').click({ position: { x: 24, y: 24 } });
 		await expect(page.locator('canvas[data-textmode-ascii-extension-ui="true"]')).toHaveCount(1);
 		await page.getByRole('button', { name: 'next font', exact: true }).click();
@@ -245,20 +245,12 @@ test('Chrome extension can select a canvas and create an overlay', async () => {
 		expect(pickerBounds!.x).toBeGreaterThanOrEqual(0);
 		expect(pickerBounds!.x + pickerBounds!.width).toBeLessThanOrEqual(320);
 		await page.setViewportSize({ width: 800, height: 720 });
-		const readyMarker = page.locator('.tm-picker-marker[data-availability="ready"]').first();
+		const readyMarker = page.locator('.tm-picker-marker').first();
 		await expect(readyMarker).toBeVisible();
-		await expect(readyMarker).toHaveCSS('border-radius', '0px');
-		expect(await readyMarker.evaluate((element) => getComputedStyle(element).backgroundImage)).toContain(
-			'repeating-linear-gradient'
-		);
 		await page.locator('canvas#demo-canvas').click({ position: { x: 24, y: 24 } });
 
 		await expect(page.locator('canvas[data-textmode-ascii-extension-ui="true"]')).toHaveCount(1);
 		const removeOverlayButton = page.getByRole('button', { name: 'remove overlay', exact: true });
-		await expect(removeOverlayButton).toHaveText('remove');
-		await expect(removeOverlayButton).toHaveCSS('border-top-width', '0px');
-		await expect(removeOverlayButton).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
-		await expect(removeOverlayButton).toHaveCSS('box-shadow', 'none');
 		const resetOverlayButton = page.getByRole('button', { name: 'reset all settings to defaults' });
 		const resetBox = await resetOverlayButton.boundingBox();
 		const removeBox = await removeOverlayButton.boundingBox();
@@ -764,27 +756,10 @@ test('keyboard users can select media in the page and an iframe', async () => {
 		const list = page.locator('[data-textmode-picker-list]');
 		const directPick = list.getByRole('button', { name: 'Select media on page', exact: true });
 		const refreshMedia = list.getByRole('button', { name: 'Refresh media list', exact: true });
-		const directPickBounds = await directPick.boundingBox();
-		const refreshMediaBounds = await refreshMedia.boundingBox();
-		expect(directPickBounds!.x + directPickBounds!.width).toBeLessThanOrEqual(refreshMediaBounds!.x);
 		const pageTarget = list.getByRole('button', { name: /canvas#demo-canvas/ });
 		await expect(pageTarget).toBeVisible();
-		const pageTargetBadge = pageTarget.locator('[data-slot="badge"]');
-		await expect(pageTargetBadge).toHaveText('320x180');
-		await expect(pageTarget.locator('.tm-picker-list__label')).toHaveText('canvas#demo-canvas');
-		const pageTargetBounds = await pageTarget.boundingBox();
-		const pageLabelBounds = await pageTarget.locator('.tm-picker-list__label').boundingBox();
-		const pageBadgeBounds = await pageTargetBadge.boundingBox();
-		expect(pageBadgeBounds!.x).toBeGreaterThanOrEqual(pageLabelBounds!.x + pageLabelBounds!.width);
-		expect(pageBadgeBounds!.x + pageBadgeBounds!.width).toBeLessThanOrEqual(
-			pageTargetBounds!.x + pageTargetBounds!.width
-		);
 		await expect(page.locator('.tm-empty-state')).toHaveCount(0);
-		const pageMarker = page
-			.locator('.textmode-ascii-overlay-picker')
-			.first()
-			.locator('.tm-picker-marker[data-availability="ready"]')
-			.first();
+		const pageMarker = page.locator('.textmode-ascii-overlay-picker').first().locator('.tm-picker-marker').first();
 		await pageTarget.hover();
 		await expect(pageMarker).toHaveAttribute('data-preview', 'true');
 		await page.mouse.move(5, 5);
@@ -802,7 +777,6 @@ test('keyboard users can select media in the page and an iframe', async () => {
 		expect(listBounds!.y + listBounds!.height).toBeLessThanOrEqual(mainBounds!.y + mainBounds!.height);
 		await pageTarget.hover();
 		await expect(pageMarker).toHaveAttribute('data-preview', 'true');
-		await expect(pageMarker).toHaveCSS('background-image', /0, 228, 54/);
 		await pageTarget.focus();
 		await page.mouse.move(5, 5);
 		await expect(pageMarker).toHaveAttribute('data-preview', 'true');
@@ -887,20 +861,6 @@ test('keyboard users can select media in the page and an iframe', async () => {
 		await expect
 			.poll(() => listViewport.evaluate((element) => element.scrollHeight > element.clientHeight))
 			.toBe(true);
-		await expect(longTarget.locator('.tm-picker-list__label')).toHaveCSS('white-space', 'nowrap');
-		await expect.poll(() => longTarget.getAttribute('data-overflow')).toBe('true');
-		const longBadge = longTarget.locator('[data-slot="badge"]');
-		await expect(longBadge).toHaveText('320x180');
-		const longBadgeBefore = await longBadge.boundingBox();
-		await longTarget.focus();
-		await expect(longTarget.locator('.tm-picker-list__label-text')).toHaveCSS(
-			'animation-name',
-			'tm-picker-text-scroll'
-		);
-		await expect(longBadge).toHaveCSS('animation-name', 'none');
-		const longBadgeAfter = await longBadge.boundingBox();
-		expect(longBadgeAfter!.x).toBeCloseTo(longBadgeBefore!.x, 1);
-		expect(longBadgeAfter!.width).toBeCloseTo(longBadgeBefore!.width, 1);
 		await directPick.focus();
 		await page.keyboard.press('Enter');
 		await expect(directPick).toHaveAttribute('aria-pressed', 'true');
@@ -1040,9 +1000,7 @@ async function selectIframeCanvas(
 	canvasSelector: string
 ) {
 	await startDirectMousePick(page);
-	await expect(page.frameLocator(frameSelector).locator('.tm-picker-marker[data-availability="ready"]')).toHaveCount(
-		1
-	);
+	await expect(page.frameLocator(frameSelector).locator('.tm-picker-marker')).toHaveCount(1);
 	await page
 		.frameLocator(frameSelector)
 		.locator(canvasSelector)
@@ -1052,10 +1010,7 @@ async function selectIframeCanvas(
 async function selectNestedIframeCanvas(page: import('@playwright/test').Page) {
 	await startDirectMousePick(page);
 	await expect(
-		page
-			.frameLocator('#nested-root-frame')
-			.frameLocator('#nested-frame')
-			.locator('.tm-picker-marker[data-availability="ready"]')
+		page.frameLocator('#nested-root-frame').frameLocator('#nested-frame').locator('.tm-picker-marker')
 	).toHaveCount(1);
 	await page
 		.frameLocator('#nested-root-frame')

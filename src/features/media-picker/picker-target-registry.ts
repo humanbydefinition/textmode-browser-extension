@@ -1,9 +1,6 @@
 import type { ElementKind } from '../../domain/overlay/overlay-settings';
 
 export type SelectableElement = HTMLCanvasElement | HTMLVideoElement;
-export type PickerTargetElement = SelectableElement | HTMLIFrameElement;
-export type PickerAvailability = 'ready' | 'blocked';
-export type PickerBlockReason = 'cross-origin' | 'sandboxed' | 'unavailable';
 
 export interface CandidateInfo {
 	element: SelectableElement;
@@ -15,13 +12,9 @@ export interface CandidateInfo {
 
 export interface PickerTarget {
 	id: string;
-	element: PickerTargetElement;
-	kind: ElementKind | 'iframe';
-	availability: PickerAvailability;
+	element: SelectableElement;
 	label: string;
 	dimensions?: string;
-	blockReason?: PickerBlockReason;
-	reasonText?: string;
 }
 
 const EXTENSION_UI_SELECTOR = '[data-textmode-ascii-extension-ui="true"]';
@@ -52,7 +45,7 @@ export class PickerTargetRegistry {
 
 	public discover(root: ParentNode = document): PickerTarget[] {
 		const targets: PickerTarget[] = [];
-		for (const element of root.querySelectorAll('canvas, video, iframe')) {
+		for (const element of root.querySelectorAll('canvas, video')) {
 			if (element.closest(EXTENSION_UI_SELECTOR)) continue;
 
 			if (isSelectableElementWithCache(element, this.videoReadability, this.taintedCanvases)) {
@@ -60,26 +53,10 @@ export class PickerTargetRegistry {
 				targets.push({
 					id: this.getId(element),
 					element,
-					kind: info.kind,
-					availability: 'ready',
 					label: info.targetLabel,
 					dimensions: info.dimensions,
 				});
 				continue;
-			}
-
-			if (element instanceof HTMLIFrameElement && isVisibleFrame(element)) {
-				const blockReason = classifyUnavailableFrame(element);
-				if (!blockReason) continue;
-				targets.push({
-					id: this.getId(element),
-					element,
-					kind: 'iframe',
-					availability: 'blocked',
-					blockReason,
-					label: 'iframe unavailable',
-					reasonText: getBlockReasonText(blockReason),
-				});
 			}
 		}
 		return targets;
@@ -252,53 +229,6 @@ export function describeElement(element: SelectableElement): CandidateInfo {
 		targetLabel,
 		dimensions,
 	};
-}
-
-export function getBlockReasonText(reason: PickerBlockReason): string {
-	switch (reason) {
-		case 'cross-origin':
-			return 'Cross-origin iframe — Textmode Overlay can only inspect frames that share the page origin.';
-		case 'sandboxed':
-			return 'Sandboxed iframe — this frame does not grant access to its document.';
-		case 'unavailable':
-			return 'Iframe unavailable — the browser did not grant access to this frame.';
-	}
-}
-
-function classifyUnavailableFrame(iframe: HTMLIFrameElement): PickerBlockReason | undefined {
-	if (isSameOriginFrame(iframe)) return undefined;
-	const sandbox = iframe.getAttribute('sandbox');
-	const sandboxTokens = sandbox?.toLowerCase().split(/\s+/) ?? [];
-	if (sandbox !== null && !sandboxTokens.includes('allow-same-origin')) {
-		return 'sandboxed';
-	}
-	try {
-		const url = new URL(iframe.src, document.baseURI);
-		if (url.origin !== window.location.origin) return 'cross-origin';
-	} catch {
-		return 'unavailable';
-	}
-	return 'unavailable';
-}
-
-function isSameOriginFrame(iframe: HTMLIFrameElement): boolean {
-	try {
-		return Boolean(iframe.contentDocument?.documentElement);
-	} catch {
-		return false;
-	}
-}
-
-function isVisibleFrame(iframe: HTMLIFrameElement): boolean {
-	if (!iframe.isConnected) return false;
-	const rect = iframe.getBoundingClientRect();
-	if (rect.width < 1 || rect.height < 1) return false;
-	const styles = window.getComputedStyle(iframe);
-	return (
-		styles.display !== 'none' &&
-		styles.visibility !== 'hidden' &&
-		(styles.opacity === '' || Number(styles.opacity) > 0)
-	);
 }
 
 function createElementDescription(element: SelectableElement): { targetLabel: string; dimensions: string } {

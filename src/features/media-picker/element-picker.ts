@@ -1,3 +1,4 @@
+import { deepActiveElement } from '../../shared/ui/focus';
 import {
 	PickerTargetRegistry,
 	isSelectableElement,
@@ -13,7 +14,6 @@ export interface ElementPickerOptions {
 	onPick: (element: SelectableElement) => void;
 	onCancel: () => void;
 	onDirectCancel?: () => void;
-	onUnavailableFrame?: (reason: string) => void;
 	restoreFocus?: boolean;
 	onFrameStructureChanged?: () => void;
 	onTargetsChanged?: (targets: import('../../shared/messaging/messages').PickerTargetSummary[]) => void;
@@ -47,7 +47,7 @@ export class ElementPicker {
 		if (this.active) return;
 		this.active = true;
 		this.previousCursor = document.documentElement.style.cursor;
-		this.previousFocus = getDeepActiveElement();
+		this.previousFocus = deepActiveElement();
 		this.setDirectMode(direct);
 		this.overlay.mount();
 		this.refreshTargets();
@@ -94,21 +94,13 @@ export class ElementPicker {
 		if (!this.active) return false;
 		const target = this.targets.get(targetId);
 		if (!target) return false;
-		if (target.availability === 'blocked') {
-			const reason = target.reasonText ?? 'This iframe is unavailable.';
-			this.options.onUnavailableFrame?.(reason);
+		if (!isSelectableElement(target.element)) {
+			this.refreshTargets();
 			return false;
 		}
-		if (target.element instanceof HTMLCanvasElement || target.element instanceof HTMLVideoElement) {
-			if (!isSelectableElement(target.element)) {
-				this.refreshTargets();
-				return false;
-			}
-			this.stop(false);
-			this.options.onPick(target.element);
-			return true;
-		}
-		return false;
+		this.stop(false);
+		this.options.onPick(target.element);
+		return true;
 	}
 
 	public highlightTarget(targetId?: string): void {
@@ -216,12 +208,10 @@ export class ElementPicker {
 		if (this.activeTargetId && !this.targets.has(this.activeTargetId)) this.setActiveTarget(undefined);
 		this.overlay.updateTargets(discovered);
 		this.options.onTargetsChanged?.(
-			discovered.map(({ id, label, dimensions, availability, reasonText }) => ({
+			discovered.map(({ id, label, dimensions }) => ({
 				id,
 				label,
 				...(dimensions ? { dimensions } : {}),
-				availability,
-				...(reasonText ? { reason: reasonText } : {}),
 			}))
 		);
 		this.syncResizeObserver(discovered);
@@ -316,9 +306,7 @@ export class ElementPicker {
 
 	private findTargetAtPoint(clientX: number, clientY: number): PickerTarget | undefined {
 		for (const element of document.elementsFromPoint(clientX, clientY)) {
-			const target = [...this.targets.values()].find(
-				(item) => item.availability === 'ready' && item.element === element
-			);
+			const target = [...this.targets.values()].find((item) => item.element === element);
 			if (target) return target;
 		}
 		return undefined;
@@ -350,10 +338,4 @@ function findMarkerTargetId(event: Event): string | undefined {
 		if (item instanceof HTMLElement && item.dataset.pickerTargetId) return item.dataset.pickerTargetId;
 	}
 	return undefined;
-}
-
-function getDeepActiveElement(): HTMLElement | undefined {
-	let active: Element | null = document.activeElement;
-	while (active?.shadowRoot?.activeElement) active = active.shadowRoot.activeElement;
-	return active instanceof HTMLElement ? active : undefined;
 }

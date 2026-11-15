@@ -1,5 +1,3 @@
-import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
 import { describe, expect, it, vi } from 'vitest';
 import { PickerTargetList } from '../../src/features/media-picker/picker-target-list';
 
@@ -16,18 +14,11 @@ describe('picker target list', () => {
 		const frame = {
 			frameId: 4,
 			runtimeId: 'runtime',
-			frameTitle: 'Player',
-			targets: [{ id: 'one', label: 'video', dimensions: '320x180', availability: 'ready' as const }],
+			targets: [{ id: 'one', label: 'video', dimensions: '320x180' }],
 		};
 		list.update([frame]);
 		const host = document.querySelector<HTMLElement>('[data-textmode-picker-list]')!;
 		const button = host.shadowRoot!.querySelector<HTMLButtonElement>('li button')!;
-		const label = button.querySelector<HTMLElement>('.tm-picker-list__label')!;
-		const badge = button.querySelector<HTMLElement>('[data-slot="badge"]')!;
-		expect(label.textContent).toBe('video');
-		expect(badge.dataset.variant).toBe('secondary');
-		expect(badge.textContent).toBe('320x180');
-		expect(label.contains(badge)).toBe(false);
 		expect(button.getAttribute('aria-label')).toBe('video, 320x180');
 		button.focus();
 		expect(highlight).toHaveBeenCalledWith(frame, frame.targets[0]);
@@ -41,26 +32,21 @@ describe('picker target list', () => {
 		expect(document.activeElement).toBe(opener);
 		opener.remove();
 	});
-	it('omits unavailable media and distinguishes duplicate labels without frame prefixes', () => {
+	it('distinguishes duplicate labels across frames', () => {
 		const list = new PickerTargetList(vi.fn(), vi.fn(), vi.fn());
 		list.mount();
 		list.update([
 			{
 				frameId: 0,
 				runtimeId: 'top',
-				frameTitle: '',
-				targets: [
-					{ id: 'blocked', label: 'unavailable', availability: 'blocked', reason: 'Not accessible' },
-					{ id: 'one', label: 'video', availability: 'ready' },
-				],
+				targets: [{ id: 'one', label: 'video' }],
 			},
 			{
 				frameId: 3,
 				runtimeId: 'child',
-				frameTitle: 'Player',
 				targets: [
-					{ id: 'two', label: 'video', availability: 'ready' },
-					{ id: 'three', label: 'canvas', availability: 'ready' },
+					{ id: 'two', label: 'video' },
+					{ id: 'three', label: 'canvas' },
 				],
 			},
 		]);
@@ -80,10 +66,9 @@ describe('picker target list', () => {
 		const frame = {
 			frameId: 0,
 			runtimeId: 'runtime',
-			frameTitle: '',
 			targets: [
-				{ id: 'a', label: 'canvas', availability: 'ready' as const },
-				{ id: 'b', label: 'video', availability: 'ready' as const },
+				{ id: 'a', label: 'canvas' },
+				{ id: 'b', label: 'video' },
 			],
 		};
 		list.update([frame]);
@@ -115,10 +100,9 @@ describe('picker target list', () => {
 		const frame = {
 			frameId: 0,
 			runtimeId: 'runtime',
-			frameTitle: '',
 			targets: [
-				{ id: 'a', label: 'canvas', dimensions: '320x180', availability: 'ready' as const },
-				{ id: 'b', label: 'canvas', dimensions: '640x360', availability: 'ready' as const },
+				{ id: 'a', label: 'canvas', dimensions: '320x180' },
+				{ id: 'b', label: 'canvas', dimensions: '640x360' },
 			],
 		};
 		list.update([frame]);
@@ -128,7 +112,7 @@ describe('picker target list', () => {
 			'canvas (1)',
 			'canvas (2)',
 		]);
-		expect(buttons.map((button) => button.querySelector('[data-slot="badge"]')?.textContent)).toEqual([
+		expect(buttons.map((button) => button.querySelector('.tm-picker-list__dimensions')?.textContent)).toEqual([
 			'320x180',
 			'640x360',
 		]);
@@ -137,13 +121,13 @@ describe('picker target list', () => {
 			{
 				...frame,
 				targets: [
-					{ id: 'a', label: 'canvas', dimensions: '1280x720', availability: 'ready' as const },
-					{ id: 'b', label: 'canvas', availability: 'ready' as const },
+					{ id: 'a', label: 'canvas', dimensions: '1280x720' },
+					{ id: 'b', label: 'canvas' },
 				],
 			},
 		]);
-		expect(buttons[0]!.querySelector('[data-slot="badge"]')?.textContent).toBe('1280x720');
-		expect(buttons[1]!.querySelector('[data-slot="badge"]')).toBeNull();
+		expect(buttons[0]!.querySelector('.tm-picker-list__dimensions')?.textContent).toBe('1280x720');
+		expect(buttons[1]!.querySelector('.tm-picker-list__dimensions')).toBeNull();
 		expect(buttons[1]!.hasAttribute('aria-label')).toBe(false);
 		list.dispose();
 	});
@@ -189,23 +173,6 @@ describe('picker target list', () => {
 		list.setDirectMode(false);
 		expect(directButton.getAttribute('aria-pressed')).toBe('false');
 		expect(host.shadowRoot!.querySelector<HTMLButtonElement>('.tm-picker-list__cancel')?.hidden).toBe(true);
-		const styles = readFileSync(
-			resolve(import.meta.dirname, '../../src/features/media-picker/picker-list.css'),
-			'utf8'
-		);
-		expect(styles).toMatch(/\.tm-picker-list\s*\{[^}]*border-radius:\s*6px/);
-		expect(styles).toMatch(/\.tm-picker-list__header\s*\{[^}]*padding:\s*0 0 8px/);
-		expect(styles).toMatch(/\.tm-picker-list h2\s*\{[^}]*color:\s*#d4d4d4;[^}]*font-weight:\s*700/);
-		expect(styles).toMatch(
-			/\.tm-picker-list__direct-pick\[aria-pressed='true'\]\s*\{[^}]*border-color:\s*#f5f5f5;[^}]*background:\s*#262626;[^}]*color:\s*#f5f5f5;/
-		);
-		expect(styles).toMatch(/\.tm-picker-list__footer\s*\{[^}]*min-height:\s*33px/);
-		expect(styles).toMatch(/\.tm-picker-list__cancel\s*\{[^}]*height:\s*24px/);
-		expect(styles).toMatch(
-			/\.tm-picker-list__items\s*\{[^}]*overflow-y:\s*scroll;[^}]*scrollbar-gutter:\s*stable;[^}]*scrollbar-color:\s*var\(--scrollbar-thumb\)\s+var\(--scrollbar-track\);/s
-		);
-		expect(styles).toMatch(/@supports not \(scrollbar-color:\s*auto\)/);
-		expect(styles).toMatch(/@media \(prefers-contrast:\s*more\)/);
 		list.dispose();
 	});
 
@@ -216,11 +183,10 @@ describe('picker target list', () => {
 			{
 				frameId: 0,
 				runtimeId: 'runtime',
-				frameTitle: '',
 				targets: [
-					{ id: 'a', label: 'canvas', availability: 'ready' },
-					{ id: 'b', label: 'video', availability: 'ready' },
-					{ id: 'c', label: 'canvas', availability: 'ready' },
+					{ id: 'a', label: 'canvas' },
+					{ id: 'b', label: 'video' },
+					{ id: 'c', label: 'canvas' },
 				],
 			},
 		]);

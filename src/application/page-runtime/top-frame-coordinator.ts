@@ -174,7 +174,6 @@ export class TopFrameCoordinator {
 					this.pickerFrames.set(frameId, {
 						frameId,
 						runtimeId: event.runtimeId,
-						frameTitle: event.frameTitle,
 						revision: event.revision,
 						targets: event.targets,
 					});
@@ -191,9 +190,6 @@ export class TopFrameCoordinator {
 				if (event.pickSessionId === this.activePickSessionId && !this.pickResolved) {
 					await this.cancelPicking();
 				}
-				break;
-			case 'FRAME_UNAVAILABLE_IFRAME':
-				if (event.pickSessionId === this.activePickSessionId) this.reportPanelError(event.reason);
 				break;
 			case 'FRAME_OVERLAY_STATE':
 				if (

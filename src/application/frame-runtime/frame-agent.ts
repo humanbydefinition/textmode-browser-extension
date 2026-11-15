@@ -48,7 +48,7 @@ export class FrameAgent {
 			type: 'FRAME_OVERLAY_STATE',
 			runtimeId: this.runtimeId,
 			revision: ++this.stateRevision,
-			overlays: markEmbeddedDescriptors(overlays),
+			overlays,
 		});
 	}
 
@@ -110,7 +110,6 @@ export class FrameAgent {
 					type: 'FRAME_PICKER_TARGETS',
 					pickSessionId,
 					runtimeId: this.runtimeId,
-					frameTitle: getFrameTitle(),
 					revision: ++this.pickerRevision,
 					targets,
 				}),
@@ -134,14 +133,6 @@ export class FrameAgent {
 				this.picker = undefined;
 				this.activePickSessionId = undefined;
 				this.emit({ type: 'FRAME_PICKING_CANCELLED', pickSessionId, runtimeId: this.runtimeId });
-			},
-			onUnavailableFrame: (reason) => {
-				this.emit({
-					type: 'FRAME_UNAVAILABLE_IFRAME',
-					pickSessionId,
-					runtimeId: this.runtimeId,
-					reason,
-				});
 			},
 		});
 		this.picker.start(direct);
@@ -192,24 +183,4 @@ function createRuntimeId(): string {
 	return typeof crypto.randomUUID === 'function'
 		? crypto.randomUUID()
 		: `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
-}
-
-function markEmbeddedDescriptors(
-	overlays: readonly import('../../domain/overlay/overlay-settings').OverlayDescriptor[]
-) {
-	if (window === window.top) return [...overlays];
-	return overlays.map((overlay) => ({
-		...overlay,
-		elementLabel: overlay.elementLabel.includes('— iframe')
-			? overlay.elementLabel
-			: `${overlay.elementLabel} — iframe`,
-	}));
-}
-
-function getFrameTitle(): string {
-	try {
-		return window === window.top ? '' : (window.frameElement?.getAttribute('title')?.trim() ?? '');
-	} catch {
-		return '';
-	}
 }

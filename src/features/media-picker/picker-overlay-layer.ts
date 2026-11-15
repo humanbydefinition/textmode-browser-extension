@@ -48,15 +48,14 @@ export class PickerOverlayLayer {
 	}
 
 	public updateTargets(targets: readonly PickerTarget[]): void {
-		const selectableTargets = targets.filter((target) => target.availability === 'ready');
-		const currentIds = new Set(selectableTargets.map((target) => target.id));
+		const currentIds = new Set(targets.map((target) => target.id));
 		for (const [id, marker] of this.markers) {
 			if (currentIds.has(id)) continue;
 			marker.remove();
 			this.markers.delete(id);
 		}
 
-		for (const target of selectableTargets) {
+		for (const target of targets) {
 			const marker = this.markers.get(target.id) ?? this.createMarker(target);
 			this.updateMarker(marker, target);
 		}
@@ -126,8 +125,6 @@ export class PickerOverlayLayer {
 	}
 
 	private updateMarker(marker: HTMLButtonElement, target: PickerTarget): void {
-		marker.dataset.availability = target.availability;
-		marker.dataset.kind = target.kind;
 		marker.dataset.active = String(target.id === this.activeTargetId);
 		marker.dataset.preview = String(target.id === this.previewTargetId);
 		marker.title = target.label;

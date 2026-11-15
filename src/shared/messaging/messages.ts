@@ -40,8 +40,6 @@ export interface PickerTargetSummary {
 	id: string;
 	label: string;
 	dimensions?: string;
-	availability: 'ready' | 'blocked';
-	reason?: string;
 }
 
 export type FrameCommand =
@@ -71,13 +69,11 @@ export type FrameEvent =
 			type: 'FRAME_PICKER_TARGETS';
 			pickSessionId: string;
 			runtimeId: string;
-			frameTitle: string;
 			revision: number;
 			targets: PickerTargetSummary[];
 	  }
 	| { type: 'FRAME_TARGET_PICKED'; pickSessionId: string; runtimeId: string; targetToken: string }
 	| { type: 'FRAME_PICKING_CANCELLED'; pickSessionId: string; runtimeId: string }
-	| { type: 'FRAME_UNAVAILABLE_IFRAME'; pickSessionId: string; runtimeId: string; reason: string }
 	| { type: 'FRAME_OVERLAY_STATE'; runtimeId: string; revision: number; overlays: OverlayDescriptor[] }
 	| { type: 'FRAME_DISPOSING'; runtimeId: string };
 
@@ -214,7 +210,6 @@ export function isFrameEvent(value: unknown): value is FrameEvent {
 			return (
 				typeof value.pickSessionId === 'string' &&
 				typeof value.runtimeId === 'string' &&
-				typeof value.frameTitle === 'string' &&
 				Number.isSafeInteger(value.revision) &&
 				Array.isArray(value.targets) &&
 				value.targets.every(
@@ -222,9 +217,7 @@ export function isFrameEvent(value: unknown): value is FrameEvent {
 						isRecord(target) &&
 						typeof target.id === 'string' &&
 						typeof target.label === 'string' &&
-						(target.dimensions === undefined || typeof target.dimensions === 'string') &&
-						(target.availability === 'ready' || target.availability === 'blocked') &&
-						(target.reason === undefined || typeof target.reason === 'string')
+						(target.dimensions === undefined || typeof target.dimensions === 'string')
 				)
 			);
 		case 'FRAME_TARGET_PICKED':
@@ -235,12 +228,6 @@ export function isFrameEvent(value: unknown): value is FrameEvent {
 			);
 		case 'FRAME_PICKING_CANCELLED':
 			return typeof value.pickSessionId === 'string' && typeof value.runtimeId === 'string';
-		case 'FRAME_UNAVAILABLE_IFRAME':
-			return (
-				typeof value.pickSessionId === 'string' &&
-				typeof value.runtimeId === 'string' &&
-				typeof value.reason === 'string'
-			);
 		case 'FRAME_OVERLAY_STATE':
 			return (
 				typeof value.runtimeId === 'string' &&

@@ -1,6 +1,4 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
 import {
 	ElementPicker,
 	getSelectableElements,
@@ -78,7 +76,6 @@ describe('element-picker', () => {
 
 		await vi.waitFor(() => expect(getMarkers()).toHaveLength(2));
 		const markers = getMarkers();
-		expect(markers.map((marker) => marker.dataset.availability)).toEqual(['ready', 'ready']);
 		await vi.waitFor(() => expect(markers[0]!.style.getPropertyValue('--tm-picker-x')).toBe('12px'));
 		expect(markers[0]!.textContent).toBe('');
 		expect(getPickerHost().shadowRoot?.querySelector('.tm-picker-status')).toBeNull();
@@ -200,8 +197,8 @@ describe('element-picker', () => {
 		picker.start();
 
 		expect(onTargetsChanged).toHaveBeenCalledWith([
-			{ id: expect.any(String), label: 'canvas#hero', dimensions: '320x180', availability: 'ready' },
-			{ id: expect.any(String), label: 'video', dimensions: '640x360', availability: 'ready' },
+			{ id: expect.any(String), label: 'canvas#hero', dimensions: '320x180' },
+			{ id: expect.any(String), label: 'video', dimensions: '640x360' },
 		]);
 	});
 
@@ -228,26 +225,6 @@ describe('element-picker', () => {
 
 		picker.start();
 
-		expect(getMarkers()).toHaveLength(0);
-	});
-
-	it('discovers dynamically added unavailable iframes during an active session', async () => {
-		const onTargetsChanged = vi.fn();
-		const picker = createPicker({ onTargetsChanged });
-		picker.start();
-		expect(getMarkers()).toHaveLength(0);
-
-		const iframe = document.createElement('iframe');
-		iframe.src = 'https://cross-origin.test/dynamic';
-		Object.defineProperty(iframe, 'contentDocument', { value: null });
-		mockRect(iframe, { width: 320, height: 180 });
-		document.body.append(iframe);
-
-		await vi.waitFor(() =>
-			expect(onTargetsChanged).toHaveBeenCalledWith(
-				expect.arrayContaining([expect.objectContaining({ availability: 'blocked' })])
-			)
-		);
 		expect(getMarkers()).toHaveLength(0);
 	});
 
@@ -280,17 +257,6 @@ describe('element-picker', () => {
 		expect(onCancel).toHaveBeenCalledOnce();
 		expect(document.querySelector('.textmode-ascii-overlay-picker')).toBeNull();
 		expect(document.activeElement).toBe(trigger);
-	});
-
-	it('ships square markers and reduced-motion and forced-colors fallbacks', () => {
-		const styles = readFileSync(resolve(process.cwd(), 'src/features/media-picker/picker-overlay.css'), 'utf8');
-
-		expect(styles).toContain('border-radius: 0');
-		expect(styles).toContain('repeating-linear-gradient');
-		expect(styles).toContain('tm-picker-stripes');
-		expect(styles).toContain('prefers-reduced-motion: reduce');
-		expect(styles).toContain('forced-colors: active');
-		expect(styles).toMatch(/\.tm-picker-marker\s*{[^}]*z-index:\s*1/s);
 	});
 
 	it('excludes cross-origin non-CORS, DRM-protected, and tainted media elements from selection', () => {

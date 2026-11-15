@@ -1,13 +1,11 @@
-import badgeStyles from '../../shared/ui/badge.css?inline';
 import pickerStyles from './picker-list.css?inline';
 import type { PickerTargetSummary } from '../../shared/messaging/messages';
-import { createBadge } from '../../shared/ui/badge';
+import { deepActiveElement } from '../../shared/ui/focus';
 import { icon } from '../../shared/ui/icons';
 
 export interface FrameTargets {
 	frameId: number;
 	runtimeId: string;
-	frameTitle: string;
 	revision?: number;
 	targets: PickerTargetSummary[];
 }
@@ -53,7 +51,7 @@ export class PickerTargetList {
 			minHeight: '0',
 		});
 		const style = document.createElement('style');
-		style.textContent = `${badgeStyles}\n${pickerStyles}`;
+		style.textContent = pickerStyles;
 		const region = this.region;
 		region.className = 'tm-picker-list';
 		region.setAttribute('aria-labelledby', 'tm-picker-list-heading');
@@ -146,15 +144,13 @@ export class PickerTargetList {
 		const labelOrdinals = new Map<string, number>();
 		for (const frame of frames) {
 			for (const target of frame.targets) {
-				if (target.availability === 'ready')
-					labelCounts.set(target.label, (labelCounts.get(target.label) ?? 0) + 1);
+				labelCounts.set(target.label, (labelCounts.get(target.label) ?? 0) + 1);
 			}
 		}
 		let ready = 0;
 		let position = 0;
 		for (const frame of [...frames].sort((a, b) => a.frameId - b.frameId)) {
 			for (const target of frame.targets) {
-				if (target.availability !== 'ready') continue;
 				const key = `${frame.frameId}:${frame.runtimeId}:${target.id}`;
 				wanted.add(key);
 				let item = this.items.get(key);
@@ -198,18 +194,15 @@ export class PickerTargetList {
 				const labelText =
 					(labelCounts.get(target.label) ?? 0) > 1 ? `${target.label} (${ordinal})` : target.label;
 				text.textContent = labelText;
-				const existingBadge = control.querySelector<HTMLSpanElement>('[data-slot="badge"]');
+				const existingBadge = control.querySelector<HTMLSpanElement>('.tm-picker-list__dimensions');
 				if (target.dimensions) {
 					if (existingBadge) {
 						existingBadge.textContent = target.dimensions;
 					} else {
-						control.append(
-							createBadge({
-								text: target.dimensions,
-								variant: 'secondary',
-								className: 'tm-picker-list__dimensions',
-							})
-						);
+						const badge = document.createElement('span');
+						badge.className = 'tm-picker-list__dimensions';
+						badge.textContent = target.dimensions;
+						control.append(badge);
 					}
 					control.setAttribute('aria-label', `${labelText}, ${target.dimensions}`);
 					control.setAttribute('title', `${labelText} (${target.dimensions})`);
@@ -306,10 +299,4 @@ export class PickerTargetList {
 			if (!this.previousFocus?.isConnected || deepActiveElement() !== this.previousFocus) this.onFocusFallback();
 		}
 	}
-}
-
-function deepActiveElement(): HTMLElement | undefined {
-	let element: Element | null = document.activeElement;
-	while (element?.shadowRoot?.activeElement) element = element.shadowRoot.activeElement;
-	return element instanceof HTMLElement ? element : undefined;
 }

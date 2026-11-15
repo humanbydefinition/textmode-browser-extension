@@ -65,9 +65,8 @@ describe('isRuntimeMessage', () => {
 					type: 'FRAME_PICKER_TARGETS',
 					pickSessionId: 'pick-1',
 					runtimeId: 'runtime-1',
-					frameTitle: '',
 					revision: 1,
-					targets: [{ id: 'target-1', label: 'canvas#demo', dimensions: '320x180', availability: 'ready' }],
+					targets: [{ id: 'target-1', label: 'canvas#demo', dimensions: '320x180' }],
 				},
 			})
 		).toBe(true);
@@ -173,9 +172,8 @@ describe('isRuntimeMessage', () => {
 					type: 'FRAME_PICKER_TARGETS',
 					pickSessionId: 'pick-1',
 					runtimeId: 'runtime-1',
-					frameTitle: '',
 					revision: 1,
-					targets: [{ id: 'target-1', label: 'canvas#demo', dimensions: 320, availability: 'ready' }],
+					targets: [{ id: 'target-1', label: 'canvas#demo', dimensions: 320 }],
 				},
 			})
 		).toBe(false);

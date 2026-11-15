@@ -91,7 +91,6 @@ describe('frame agent', () => {
 				runtimeId: agent.runtimeId,
 				targets: [
 					expect.objectContaining({
-						availability: 'ready',
 						label: 'video',
 						dimensions: '320x180',
 					}),

@@ -9,7 +9,7 @@ import type { CustomFontId, FontId, OverlayExportFormat, OverlaySettings } from 
 import { DEFAULT_FONT_ID, createDefaultOverlaySettings, isBundledFontId } from '../../domain/overlay/overlay-settings';
 import { toUserMessage } from '../../shared/errors/errors';
 import { h } from './dom';
-import { icon } from './icons';
+import { icon } from '../../shared/ui/icons';
 import { TabsView } from './components/tabs-view';
 import { ConverterTabsView } from './components/converter-tabs-view';
 import { FontComboboxView, type FontEntry } from './font-combobox/font-combobox-view';
@@ -30,6 +30,7 @@ interface OverlaySettingsFormViewOptions {
 	allowCustomFontUpload?: boolean;
 	onChange: (settings: Partial<OverlaySettings>) => Promise<void> | void;
 	onExport: (format: OverlayExportFormat) => void;
+	onRemove?: () => void;
 	onUploadFont?: (file: File) => Promise<{ id: CustomFontId; displayName: string }>;
 	onRemoveCustomFont?: (id: CustomFontId) => Promise<void> | void;
 	onError?: (message: string) => void;
@@ -51,6 +52,7 @@ export class OverlaySettingsFormView {
 	private readonly converterTabs: ConverterTabsView;
 	private readonly tabs: TabsView;
 	private readonly resetButton: HTMLButtonElement;
+	private readonly removeButton: HTMLButtonElement;
 	private availableFonts: readonly FontEntry[];
 	private customFontSummaries: readonly CustomFontSummary[];
 
@@ -65,6 +67,12 @@ export class OverlaySettingsFormView {
 		);
 		this.resetButton.append(icon('rotate-ccw'), 'reset');
 		this.resetButton.addEventListener('click', () => void this.resetSettings());
+		this.removeButton = createButton(
+			'tm-button tm-button--ghost tm-button--subtle tm-settings-remove',
+			'remove overlay'
+		);
+		this.removeButton.append(icon('trash'), 'remove');
+		this.removeButton.addEventListener('click', () => this.options.onRemove?.());
 		const overlayRow = h(
 			'div',
 			{ className: 'tm-toggle-row tm-overlay-toggle-row' },
@@ -72,7 +80,8 @@ export class OverlaySettingsFormView {
 				'div',
 				{ className: 'tm-overlay-toggle-actions' },
 				h('span', { textContent: 'overlay' }),
-				this.resetButton
+				this.resetButton,
+				this.removeButton
 			),
 			h('label', { className: 'tm-overlay-toggle-control' }, this.overlayToggle)
 		);

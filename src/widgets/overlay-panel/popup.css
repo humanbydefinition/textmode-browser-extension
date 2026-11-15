@@ -63,8 +63,9 @@ select {
 }
 
 .tm-panel {
+	--tm-picker-area-height: 302px;
 	display: grid;
-	grid-template-rows: auto auto minmax(0, 1fr) auto;
+	grid-template-rows: auto minmax(0, 1fr) auto;
 	gap: 12px;
 	width: 100%;
 	max-width: var(--tm-panel-width);
@@ -304,24 +305,6 @@ select {
 	outline-offset: 1px;
 }
 
-.tm-select-row {
-	display: flex;
-	align-items: stretch;
-	gap: 8px;
-	min-width: 0;
-}
-
-.tm-select-button {
-	flex: 1 1 auto;
-}
-
-.tm-remove-button {
-	flex: 0 0 auto;
-	width: 34px;
-	min-width: 34px;
-	padding: 0;
-}
-
 [data-slot='scroll-area'] {
 	position: relative;
 	display: flex;
@@ -515,11 +498,14 @@ select {
 
 .tm-overlay-toggle-actions {
 	display: flex;
+	flex-wrap: wrap;
 	align-items: center;
 	gap: 5px;
+	min-width: 0;
 }
 
-.tm-settings-reset {
+.tm-settings-reset,
+.tm-settings-remove {
 	min-height: 18px;
 	border-radius: 3px;
 	padding: 0 4px;
@@ -528,13 +514,15 @@ select {
 	font-size: 10px;
 }
 
-.tm-settings-reset svg {
+.tm-settings-reset svg,
+.tm-settings-remove svg {
 	width: 12px;
 	height: 12px;
 }
 
 .tm-overlay-toggle-control {
 	display: inline-flex;
+	flex: 0 0 auto;
 }
 
 .tm-popover-layer {
@@ -702,12 +690,27 @@ select {
 .tm-panel-scroll-area__content {
 	display: grid;
 	grid-template-rows: auto minmax(0, 1fr);
+	grid-template-columns: minmax(0, 1fr);
+	min-width: 0;
 	height: 100%;
 }
 
 .tm-panel-scroll-area__content > .tm-overlay-list {
 	grid-row: 2;
 	height: 100%;
+}
+
+.tm-picker-mount {
+	grid-row: 2;
+	min-width: 0;
+	min-height: 0;
+	height: var(--tm-picker-area-height);
+	max-height: 100%;
+}
+
+.tm-overlay-list[hidden],
+.tm-picker-mount[hidden] {
+	display: none;
 }
 
 .tm-panel[data-scroll-mode='tabs'] .tm-panel-scroll-area__viewport {
@@ -1584,9 +1587,13 @@ textarea,
 .tm-error {
 	margin: 0;
 	color: #ffd0d0;
-	font-size: 11px;
+	font-size: 10px;
 	line-height: 1.45;
 	overflow-wrap: anywhere;
+}
+
+.tm-panel[data-scroll-mode='tabs'] .tm-panel-scroll-area__content > .tm-error {
+	margin-bottom: 12px;
 }
 
 .tm-overlay-card > .tm-error {

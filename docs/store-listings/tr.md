@@ -19,27 +19,15 @@ Sayfa uyumlu bir canvas veya HTML5 video sunduğunda [Textmode Overlay]'i her ye
   ▸ p5.js, Three.js, üretici sanat ve creative coding eskizlerini keşfedin
   ▸ canvas veya video öğelerini kendi sitelerinizde test edin
 
-Bazı korumalı, kökenler arası veya sanal alandaki medyalar kullanılamayabilir. [Textmode Overlay] erişilemeyen kareleri işaretler ve sayfayı kesintiye uğratmadan örnekleme hatalarını bildirir.
-
-
 ─── BİR KATMAN OLUŞTURUN
 
 Görünür bir canvas veya video içeren bir sayfa açın.
 
-Araç çubuğu:
-  1  Araç çubuğundaki [Textmode Overlay] simgesine tıklayın
-  2  "select media" seçeneğini seçin
-  3  Kullanılabilir hedefleri önizleyin
-  4  Bir hedefe tıklayın
+  1  Araç çubuğundaki [Textmode Overlay] simgesine tıklayarak veya bağlam menüsünden "Open Textmode Overlay" seçeneğini seçerek paneli açın.
+  2  Kullanılabilir bir video veya canvas öğesinin üzerine gelerek ya da odağı öğeye getirerek önizleyin.
+  3  Katmanı uygulamak için listedeki öğeye tıklayın veya öğeyi klavyeyle seçin.
 
-Bağlam menüsü:
-  1  Sayfanın herhangi bir yerine veya doğrudan bir videoya sağ tıklayın
-  2  "Open Textmode Overlay" seçeneğini seçin
-  3  Katman panelinde "select media" seçeneğini seçin
-  4  Vurgulanan bir canvas veya videoya tıklayın
-
-Medya seçimini iptal etmek istediğinizde Esc tuşuna basın.
-
+Bir öğeyi doğrudan sayfadan seçmek için "Select media on page" seçeneğini etkinleştirin ve öğeye tıklayın.
 
 ─── IŞIK, KONTUR VEYA HER İKİSİYLE ÇİZİN
 
@@ -115,8 +103,3 @@ Kullanılan izinler:
 
   ▸ contextMenus
     ▹ "Open Textmode Overlay" sağ tık eylemini ekler
-
-
-─── UYUMLULUK
-
-Aynı kökene ait, iç içe, srcdoc ve dinamik olarak eklenen iframe'ler desteklenir. Kökenler arası veya opak sanal alan iframe'lerindeki medyalar hedeflenemez. Bozulmuş canvas'lar (tainted canvas), DRM videolar ve diğer korumalı kaynaklar da normal tarayıcı güvenlik kuralları uyarınca piksel örneklemeyi engelleyebilir.

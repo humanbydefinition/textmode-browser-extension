@@ -19,27 +19,13 @@
   ▸ 探索 p5.js、Three.js、生成藝術與創意程式設計草稿
   ▸ 在自己的網站上測試 canvas 或影片元素
 
-部分受保護、跨網域或沙箱中的媒體可能無法使用。[Textmode Overlay] 會標示無法存取的影格，並在不中斷網頁的情況下回報取樣錯誤。
-
-
 ─── 建立疊加層
 
-開啟包含可見 canvas 或影片的網頁。
+1  點擊 [Textmode Overlay] 工具列圖示，或在網頁上按右鍵並選擇「Open Textmode Overlay」，開啟面板。
+2  將游標停在清單中的影片或 canvas 上，或將其聚焦，以預覽媒體。
+3  點擊想使用的清單項目，或用鍵盤選取，即可套用。
 
-工具列：
-  1  點擊 [Textmode Overlay] 工具列圖示
-  2  選擇「select media」
-  3  預覽可用目標
-  4  點擊一個目標
-
-右鍵選單：
-  1  在網頁任意位置或直接在影片上按右鍵
-  2  選擇「Open Textmode Overlay」
-  3  在疊加層面板中選擇「select media」
-  4  點擊標示的 canvas 或影片
-
-隨時按 Esc 取消媒體選取。
-
+也可以選擇「Select media on page」，然後點擊網頁上的影片或 canvas 進行選取。
 
 ─── 用光、輪廓或兩者繪製
 
@@ -115,8 +101,3 @@
 
   ▸ contextMenus
     ▹ 新增「Open Textmode Overlay」右鍵動作
-
-
-─── 相容性
-
-支援同源、巢狀、srcdoc 以及動態新增的 iframe。跨網域或不透明沙箱 iframe 中的媒體無法作為目標。受汙染的 canvas（tainted canvas）、DRM 影片與其他受保護來源，也可能在瀏覽器一般安全規則下阻止像素取樣。

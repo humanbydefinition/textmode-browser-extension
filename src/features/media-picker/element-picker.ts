@@ -1,4 +1,10 @@
-import { PickerTargetRegistry, type PickerTarget, type SelectableElement } from './picker-target-registry';
+import { deepActiveElement } from '../../shared/ui/focus';
+import {
+	PickerTargetRegistry,
+	isSelectableElement,
+	type PickerTarget,
+	type SelectableElement,
+} from './picker-target-registry';
 import { PickerOverlayLayer } from './picker-overlay-layer';
 
 export type { CandidateInfo, SelectableElement } from './picker-target-registry';
@@ -7,9 +13,10 @@ export { describeElement, getSelectableElements, isSelectableElement } from './p
 export interface ElementPickerOptions {
 	onPick: (element: SelectableElement) => void;
 	onCancel: () => void;
-	onUnavailableFrame?: (reason: string) => void;
-	showStatus?: boolean;
+	onDirectCancel?: () => void;
 	restoreFocus?: boolean;
+	onFrameStructureChanged?: () => void;
+	onTargetsChanged?: (targets: import('../../shared/messaging/messages').PickerTargetSummary[]) => void;
 }
 
 export class ElementPicker {
@@ -17,29 +24,31 @@ export class ElementPicker {
 	private readonly overlay: PickerOverlayLayer;
 	private readonly targets = new Map<string, PickerTarget>();
 	private active = false;
+	private direct = false;
 	private previousCursor = '';
 	private previousFocus?: HTMLElement;
 	private activeTargetId?: string;
+	private focusedTargetId?: string;
 	private lastPointer?: { x: number; y: number };
 	private mutationObserver?: MutationObserver;
 	private resizeObserver?: ResizeObserver;
 	private animationFrame?: number;
+	private refreshFrame?: number;
 	private readonly observedTargets = new Set<Element>();
 	private readonly frameLoadListeners = new Map<HTMLIFrameElement, EventListener>();
 
 	public constructor(private readonly options: ElementPickerOptions) {
 		this.overlay = new PickerOverlayLayer({
-			showStatus: options.showStatus ?? window === window.top,
 			onActivate: (targetId) => this.activateTarget(targetId),
 		});
 	}
 
-	public start(): void {
+	public start(direct = true): void {
 		if (this.active) return;
 		this.active = true;
 		this.previousCursor = document.documentElement.style.cursor;
-		this.previousFocus = getDeepActiveElement();
-		document.documentElement.style.cursor = 'crosshair';
+		this.previousFocus = deepActiveElement();
+		this.setDirectMode(direct);
 		this.overlay.mount();
 		this.refreshTargets();
 		this.mountObservers();
@@ -48,6 +57,7 @@ export class ElementPicker {
 		window.addEventListener('keydown', this.onKeyDown, true);
 		window.addEventListener('scroll', this.onViewportChange, true);
 		window.addEventListener('resize', this.onViewportChange, true);
+		for (const name of MEDIA_EVENTS) document.addEventListener(name, this.onMediaChange, true);
 		window.visualViewport?.addEventListener('resize', this.onViewportChange);
 		window.visualViewport?.addEventListener('scroll', this.onViewportChange);
 		this.scheduleGeometryUpdate();
@@ -56,7 +66,7 @@ export class ElementPicker {
 	public stop(cancelled = true): void {
 		if (!this.active) return;
 		this.active = false;
-		document.documentElement.style.cursor = this.previousCursor;
+		this.setDirectMode(false);
 		this.disconnectObservers();
 		this.overlay.unmount();
 		window.removeEventListener('pointermove', this.onPointerMove, true);
@@ -64,11 +74,15 @@ export class ElementPicker {
 		window.removeEventListener('keydown', this.onKeyDown, true);
 		window.removeEventListener('scroll', this.onViewportChange, true);
 		window.removeEventListener('resize', this.onViewportChange, true);
+		for (const name of MEDIA_EVENTS) document.removeEventListener(name, this.onMediaChange, true);
 		window.visualViewport?.removeEventListener('resize', this.onViewportChange);
 		window.visualViewport?.removeEventListener('scroll', this.onViewportChange);
 		if (this.animationFrame !== undefined) cancelAnimationFrame(this.animationFrame);
 		this.animationFrame = undefined;
+		if (this.refreshFrame !== undefined) cancelAnimationFrame(this.refreshFrame);
+		this.refreshFrame = undefined;
 		this.targets.clear();
+		this.registry.clearCache();
 		if ((this.options.restoreFocus ?? window === window.top) && this.previousFocus?.isConnected) {
 			this.previousFocus.focus({ preventScroll: true });
 		}
@@ -76,27 +90,53 @@ export class ElementPicker {
 		if (cancelled) this.options.onCancel();
 	}
 
-	public activateTarget(targetId: string): void {
-		if (!this.active) return;
+	public activateTarget(targetId: string): boolean {
+		if (!this.active) return false;
 		const target = this.targets.get(targetId);
-		if (!target) return;
-		if (target.availability === 'blocked') {
-			const reason = target.reasonText ?? 'This iframe is unavailable.';
-			this.options.onUnavailableFrame?.(reason);
-			return;
+		if (!target) return false;
+		if (!isSelectableElement(target.element)) {
+			this.refreshTargets();
+			return false;
 		}
-		if (target.element instanceof HTMLCanvasElement || target.element instanceof HTMLVideoElement) {
-			this.stop(false);
-			this.options.onPick(target.element);
+		this.stop(false);
+		this.options.onPick(target.element);
+		return true;
+	}
+
+	public highlightTarget(targetId?: string): void {
+		this.focusedTargetId = targetId && this.targets.has(targetId) ? targetId : undefined;
+		this.overlay.setPreview(this.focusedTargetId);
+		if (this.focusedTargetId) this.setActiveTarget(this.focusedTargetId);
+		else {
+			this.setActiveTarget(undefined);
+			this.updatePointerTarget();
+		}
+	}
+
+	public refresh(): void {
+		this.registry.retryCanvases();
+		this.refreshTargets();
+	}
+
+	public setDirectMode(direct: boolean): void {
+		if (this.direct === direct) return;
+		this.direct = direct;
+		document.documentElement.style.cursor = direct ? 'crosshair' : this.previousCursor;
+		this.overlay.setDirectMode(direct);
+		if (!direct) {
+			this.lastPointer = undefined;
+			if (!this.focusedTargetId) this.setActiveTarget(undefined);
 		}
 	}
 
 	private readonly onPointerMove = (event: PointerEvent): void => {
+		if (!this.direct) return;
 		this.lastPointer = { x: event.clientX, y: event.clientY };
 		this.updatePointerTarget();
 	};
 
 	private readonly onClick = (event: MouseEvent): void => {
+		if (!this.direct) return;
 		const markerTargetId = findMarkerTargetId(event);
 		if (markerTargetId) {
 			event.preventDefault();
@@ -104,6 +144,12 @@ export class ElementPicker {
 			this.activateTarget(markerTargetId);
 			return;
 		}
+		if (
+			event
+				.composedPath()
+				.some((item) => item instanceof HTMLElement && item.dataset.textmodeAsciiExtensionUi === 'true')
+		)
+			return;
 		const target = this.findTargetAtPoint(event.clientX, event.clientY);
 		if (!target) return;
 		event.preventDefault();
@@ -112,10 +158,13 @@ export class ElementPicker {
 	};
 
 	private readonly onKeyDown = (event: KeyboardEvent): void => {
-		if (event.key === 'Escape') {
+		if (this.direct && event.key === 'Escape') {
 			event.preventDefault();
 			event.stopPropagation();
-			this.stop(true);
+			if (this.options.onDirectCancel) {
+				this.setDirectMode(false);
+				this.options.onDirectCancel();
+			} else this.stop(true);
 			return;
 		}
 	};
@@ -124,15 +173,47 @@ export class ElementPicker {
 		this.scheduleGeometryUpdate();
 	};
 
+	private readonly onMediaChange = (event: Event): void => {
+		if (!(event.target instanceof HTMLVideoElement)) return;
+		if (event.type === 'loadstart' || event.type === 'emptied') {
+			this.registry.invalidate(event.target);
+		}
+		if (event.type === 'loadeddata' || event.type === 'emptied') {
+			this.refreshTargets();
+			return;
+		}
+		this.scheduleRefreshTargets();
+	};
+
+	private scheduleRefreshTargets(): void {
+		if (!this.active || this.refreshFrame !== undefined) return;
+		this.refreshFrame = requestAnimationFrame(() => {
+			this.refreshFrame = undefined;
+			this.refreshTargets();
+		});
+	}
+
 	private refreshTargets(): void {
 		if (!this.active) return;
+		if (this.refreshFrame !== undefined) {
+			cancelAnimationFrame(this.refreshFrame);
+			this.refreshFrame = undefined;
+		}
 		const discovered = this.registry.discover();
 		this.targets.clear();
 		for (const target of discovered) this.targets.set(target.id, target);
+		if (this.focusedTargetId && !this.targets.has(this.focusedTargetId)) {
+			this.focusedTargetId = undefined;
+			this.overlay.setPreview(undefined);
+		}
+		if (this.activeTargetId && !this.targets.has(this.activeTargetId)) this.setActiveTarget(undefined);
 		this.overlay.updateTargets(discovered);
-		this.overlay.updateStatus(
-			discovered.filter((target) => target.availability === 'ready').length,
-			discovered.filter((target) => target.availability === 'blocked').length
+		this.options.onTargetsChanged?.(
+			discovered.map(({ id, label, dimensions }) => ({
+				id,
+				label,
+				...(dimensions ? { dimensions } : {}),
+			}))
 		);
 		this.syncResizeObserver(discovered);
 		this.syncFrameLoadListeners();
@@ -141,10 +222,31 @@ export class ElementPicker {
 
 	private mountObservers(): void {
 		if (typeof MutationObserver !== 'undefined') {
-			this.mutationObserver = new MutationObserver(() => this.refreshTargets());
+			this.mutationObserver = new MutationObserver((mutations) => {
+				for (const mutation of mutations) {
+					if (
+						mutation.type === 'attributes' &&
+						mutation.target instanceof HTMLCanvasElement &&
+						(mutation.attributeName === 'width' || mutation.attributeName === 'height')
+					) {
+						this.registry.invalidate(mutation.target);
+					}
+				}
+				this.scheduleRefreshTargets();
+			});
 			this.mutationObserver.observe(document.documentElement, {
 				attributes: true,
-				attributeFilter: ['class', 'hidden', 'src', 'srcdoc', 'sandbox', 'style'],
+				attributeFilter: [
+					'class',
+					'crossorigin',
+					'height',
+					'hidden',
+					'src',
+					'srcdoc',
+					'sandbox',
+					'style',
+					'width',
+				],
 				childList: true,
 				subtree: true,
 			});
@@ -181,18 +283,25 @@ export class ElementPicker {
 	}
 
 	private syncFrameLoadListeners(): void {
+		let changed = false;
 		const current = new Set(document.querySelectorAll('iframe'));
 		for (const [iframe, listener] of this.frameLoadListeners) {
 			if (current.has(iframe)) continue;
 			iframe.removeEventListener('load', listener);
 			this.frameLoadListeners.delete(iframe);
+			changed = true;
 		}
 		for (const iframe of current) {
 			if (this.frameLoadListeners.has(iframe)) continue;
-			const listener = () => this.refreshTargets();
+			const listener = () => {
+				this.refreshTargets();
+				this.options.onFrameStructureChanged?.();
+			};
 			iframe.addEventListener('load', listener);
 			this.frameLoadListeners.set(iframe, listener);
+			changed = true;
 		}
+		if (changed) this.options.onFrameStructureChanged?.();
 	}
 
 	private scheduleGeometryUpdate(): void {
@@ -212,16 +321,14 @@ export class ElementPicker {
 	}
 
 	private updatePointerTarget(): void {
-		if (!this.lastPointer) return;
+		if (this.focusedTargetId || !this.lastPointer) return;
 		const target = this.findTargetAtPoint(this.lastPointer.x, this.lastPointer.y);
 		this.setActiveTarget(target?.id);
 	}
 
 	private findTargetAtPoint(clientX: number, clientY: number): PickerTarget | undefined {
 		for (const element of document.elementsFromPoint(clientX, clientY)) {
-			const target = [...this.targets.values()].find(
-				(item) => item.availability === 'ready' && item.element === element
-			);
+			const target = [...this.targets.values()].find((item) => item.element === element);
 			if (target) return target;
 		}
 		return undefined;
@@ -234,15 +341,23 @@ export class ElementPicker {
 	}
 }
 
+const MEDIA_EVENTS = [
+	'loadstart',
+	'loadedmetadata',
+	'loadeddata',
+	'canplay',
+	'playing',
+	'waiting',
+	'seeking',
+	'seeked',
+	'emptied',
+	'error',
+	'resize',
+] as const;
+
 function findMarkerTargetId(event: Event): string | undefined {
 	for (const item of event.composedPath()) {
 		if (item instanceof HTMLElement && item.dataset.pickerTargetId) return item.dataset.pickerTargetId;
 	}
 	return undefined;
-}
-
-function getDeepActiveElement(): HTMLElement | undefined {
-	let active: Element | null = document.activeElement;
-	while (active?.shadowRoot?.activeElement) active = active.shadowRoot.activeElement;
-	return active instanceof HTMLElement ? active : undefined;
 }

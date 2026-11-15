@@ -19,27 +19,17 @@ Nutze [Textmode Overlay] überall dort, wo die Seite ein kompatibles Canvas oder
   ▸ erkunde p5.js, Three.js, generative Kunst und Creative-Coding-Skizzen
   ▸ teste Canvas- oder Video-Elemente in deinen eigenen Websites
 
-Einige geschützte, cross-origin- oder in einer Sandbox isolierte Medien sind möglicherweise nicht verfügbar. [Textmode Overlay] markiert unzugängliche Frames und meldet Sampling-Fehler, ohne die Seite zu unterbrechen.
 
 
 ─── OVERLAY ERSTELLEN
 
 Öffne eine Seite mit einem sichtbaren Canvas oder Video.
 
-Symbolleiste:
-  1  Klicke auf das [Textmode Overlay]-Symbol in der Symbolleiste
-  2  Wähle "select media"
-  3  Sieh dir die verfügbaren Ziele in der Vorschau an
-  4  Klicke auf ein Ziel
+  1  Öffne das Bedienfeld über das [Textmode Overlay]-Symbol in der Symbolleiste oder über das Kontextmenü: Klicke mit der rechten Maustaste auf die Seite oder ein Video und wähle "Open Textmode Overlay".
+  2  Zeige mit dem Mauszeiger auf ein verfügbares Medium oder fokussiere es, um eine Vorschau zu sehen.
+  3  Klicke auf einen Listeneintrag oder wähle ihn mit der Tastatur aus, um das Medium anzuwenden.
 
-Kontextmenü:
-  1  Klicke mit der rechten Maustaste irgendwo auf die Seite oder direkt auf ein Video
-  2  Wähle "Open Textmode Overlay"
-  3  Wähle im Overlay-Bedienfeld "select media"
-  4  Klicke auf ein hervorgehobenes Canvas oder Video
-
-Drücke jederzeit Esc, um die Medienauswahl abzubrechen.
-
+Optional: Mit „Select media on page“ kannst du ein Medium direkt auf der Seite auswählen.
 
 ─── MIT LICHT, KANTEN ODER BEIDEM ZEICHNEN
 
@@ -115,8 +105,3 @@ Verwendete Berechtigungen:
 
   ▸ contextMenus
     ▹ fügt die Rechtsklick-Aktion „Open Textmode Overlay“ hinzu
-
-
-─── KOMPATIBILITÄT
-
-Same-Origin-, verschachtelte, srcdoc- und dynamisch hinzugefügte iframes werden unterstützt. Medien in cross-origin- oder undurchsichtigen Sandbox-iframes lassen sich nicht auswählen. Canvas-Elemente mit gesperrtem Pixelzugriff (tainted canvas), DRM-Videos und andere geschützte Quellen können das Pixel-Sampling gemäß den üblichen Browsersicherheitsregeln ebenfalls blockieren.

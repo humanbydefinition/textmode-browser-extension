@@ -25,17 +25,47 @@ describe('OverlayPanelView', () => {
 		portalRoot.remove();
 	});
 
-	it('renders the empty state and starts picking', () => {
-		const onStartPicking = vi.fn();
-		const view = createView({ onStartPicking });
+	it('renders the empty state without action bar controls in popup mode', () => {
+		const view = createView();
 		view.update([]);
 		host.append(view.element);
 
 		expect(host.querySelector('.tm-empty-state')).not.toBeNull();
 		expect(host.querySelector('.tm-overlay-card')).toBeNull();
-		expect(host.querySelector<HTMLButtonElement>('.tm-remove-button')?.disabled).toBe(true);
-		host.querySelector<HTMLButtonElement>('.tm-select-button')?.click();
-		expect(onStartPicking).toHaveBeenCalledTimes(1);
+		expect(host.querySelector('.tm-select-row')).toBeNull();
+		expect(host.querySelector('.tm-select-button')).toBeNull();
+		expect(host.querySelector('.tm-remove-button')).toBeNull();
+	});
+
+	it('shows the picker by default in the in-page panel', () => {
+		const view = createView({ mode: 'in-page' });
+		view.update([]);
+		host.append(view.element);
+		expect(host.querySelector('.tm-empty-state')).toBeNull();
+		expect(view.getPickerMount().hidden).toBe(false);
+		expect(host.querySelector<HTMLElement>('.tm-overlay-list')!.hidden).toBe(true);
+		view.dispose();
+	});
+
+	it('shows the picker in the content area and restores the existing settings', () => {
+		const view = createView({ mode: 'in-page' });
+		view.update([createOverlay()]);
+		host.append(view.element);
+		const settings = host.querySelector<HTMLElement>('.tm-overlay-list')!;
+		const pickerMount = view.getPickerMount();
+		const card = settings.querySelector('.tm-overlay-card');
+
+		view.setPicking(true);
+		expect(settings.hidden).toBe(true);
+		expect(pickerMount.hidden).toBe(false);
+		expect(pickerMount.parentElement).toBe(settings.parentElement);
+		view.update([createOverlay()]);
+		expect(settings.hidden).toBe(true);
+		view.setPicking(false);
+		expect(pickerMount.hidden).toBe(true);
+		expect(settings.hidden).toBe(false);
+		expect(settings.querySelector('.tm-overlay-card')).toBe(card);
+		view.dispose();
 	});
 
 	it('keeps the popup header unchanged and compacts only the in-page header', () => {
@@ -45,7 +75,10 @@ describe('OverlayPanelView', () => {
 
 		expect(popupView.moveHandleElement).toBeNull();
 		expect(popupView.element.dataset.mode).toBe('popup');
-		expect(popupView.element.querySelector('.tm-support-link')?.textContent).toContain('support');
+		expect(popupView.element.querySelector('.tm-discord-link')?.textContent).toContain('discord');
+		expect(popupView.element.querySelector('.tm-discord-link')?.getAttribute('href')).toBe(
+			'https://discord.gg/sjrw8QXNks'
+		);
 
 		const inPageView = createView({ mode: 'in-page', onClose: vi.fn() });
 		inPageView.update([]);
@@ -66,10 +99,11 @@ describe('OverlayPanelView', () => {
 		expect(inPageView.moveHandleElement?.classList.contains('tm-button')).toBe(false);
 		expect(headerActions.every((action) => action.classList.contains('tm-panel__header-action'))).toBe(true);
 		expect(headerActions.every((action) => action.classList.contains('tm-button--subtle'))).toBe(true);
-		expect(inPageView.element.querySelector('.tm-support-link')?.textContent).not.toContain('support');
-		expect(inPageView.element.querySelector('.tm-support-link')?.getAttribute('aria-label')).toBe(
-			'Support textmode'
+		expect(inPageView.element.querySelector('.tm-discord-link')?.textContent).toBe('');
+		expect(inPageView.element.querySelector('.tm-discord-link')?.getAttribute('aria-label')).toBe(
+			'Join the textmode.art Discord server'
 		);
+		expect(inPageView.element.querySelector('.tm-discord-link')?.getAttribute('rel')).toBe('noreferrer noopener');
 	});
 
 	it('renders the store rating link when a rating URL is available', () => {
@@ -122,12 +156,15 @@ describe('OverlayPanelView', () => {
 
 		expect(onExportOverlay).toHaveBeenCalledWith('overlay-1', 'png');
 
-		const removeButton = host.querySelector<HTMLButtonElement>('.tm-select-row .tm-remove-button');
+		const removeButton = host.querySelector<HTMLButtonElement>('.tm-overlay-toggle-actions .tm-settings-remove');
+		expect(host.querySelector('.tm-select-row')).toBeNull();
 		expect(host.querySelector('.tm-panel__footer .tm-remove-button')).toBeNull();
-		expect(removeButton?.disabled).toBe(false);
-		expect(removeButton?.textContent).toBe('');
+		expect(removeButton).not.toBeNull();
+		expect(removeButton?.textContent).toBe('remove');
 		expect(removeButton?.querySelector('svg')).not.toBeNull();
+		expect(removeButton?.classList.contains('tm-button--subtle')).toBe(true);
 		expect(removeButton?.getAttribute('aria-label')).toBe('remove overlay');
+		expect(host.querySelector('.tm-overlay-toggle-actions')?.lastElementChild).toBe(removeButton);
 		removeButton?.click();
 		expect(onRemoveOverlay).toHaveBeenCalledTimes(1);
 		expect(onRemoveOverlay).toHaveBeenCalledWith('overlay-1');
@@ -145,7 +182,7 @@ describe('OverlayPanelView', () => {
 		expect(view.element.dataset.scrollMode).toBe('tabs');
 		expect(host.querySelectorAll('[data-slot="scroll-area"]')).toHaveLength(4);
 		expect(card?.closest('[data-slot="scroll-area"]')).not.toBeNull();
-		expect(host.querySelector('.tm-select-row')?.closest('[data-slot="scroll-area"]')).toBeNull();
+		expect(host.querySelector('.tm-select-row')).toBeNull();
 		expect(
 			card
 				?.querySelector('.tm-settings-form > .tm-control-group')
@@ -173,13 +210,14 @@ describe('OverlayPanelView', () => {
 		expect(host.querySelector<HTMLInputElement>('input[aria-label="overlay"]')?.checked).toBe(false);
 	});
 
-	it('returns focus to Select media after removing the focused overlay', () => {
-		const view = createView();
+	it('keeps focus inside the panel after removing the focused overlay', () => {
+		const view = createView({ mode: 'in-page' });
 		view.update([createOverlay()]);
 		host.append(view.element);
-		host.querySelector<HTMLButtonElement>('.tm-remove-button')!.focus();
+		host.querySelector<HTMLButtonElement>('.tm-settings-remove')!.focus();
 		view.update([]);
-		expect(document.activeElement).toBe(host.querySelector('.tm-select-button'));
+		expect(view.isViewportFocused()).toBe(true);
+		expect(document.activeElement).toBe(host.querySelector('.tm-panel-scroll-area__viewport'));
 	});
 
 	it('cycles glyph ramp presets from the advanced controls', () => {
@@ -386,7 +424,6 @@ describe('OverlayPanelView', () => {
 function createView(overrides: Partial<ConstructorParameters<typeof OverlayPanelView>[0]> = {}): OverlayPanelView {
 	return new OverlayPanelView({
 		portalContainer: document.querySelector<HTMLDivElement>('body > div:last-child')!,
-		onStartPicking: vi.fn(),
 		onUpdateOverlay: vi.fn(),
 		onExportOverlay: vi.fn(),
 		onRemoveOverlay: vi.fn(),

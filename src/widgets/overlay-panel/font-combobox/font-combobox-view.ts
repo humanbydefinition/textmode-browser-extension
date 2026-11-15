@@ -1,7 +1,7 @@
 import type { BundledFontEntry } from '../../../domain/fonts/font-registry';
 import type { CustomFontId, FontId } from '../../../domain/overlay/overlay-settings';
 import { classNames, h, removeChildren } from '../dom';
-import { icon } from '../icons';
+import { icon } from '../../../shared/ui/icons';
 import { PopoverView } from '../components/popover-view';
 import { ScrollAreaView } from '../components/scroll-area-view';
 import { createButton } from '../settings/form-controls';

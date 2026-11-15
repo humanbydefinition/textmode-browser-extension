@@ -19,27 +19,17 @@ Utilisez [Textmode Overlay] partout où la page expose un canvas ou une vidéo H
   ▸ explorez p5.js, Three.js, l'art génératif et les croquis de creative coding
   ▸ testez des éléments canvas ou vidéo sur vos propres sites web
 
-Certains médias protégés, cross-origin ou en sandbox peuvent être indisponibles. [Textmode Overlay] signale les images inaccessibles et rapporte les erreurs d'échantillonnage sans interrompre la page.
 
 
 ─── CRÉER UNE SUPERPOSITION
 
 Ouvrez une page contenant un canvas ou une vidéo visible.
 
-Barre d'outils :
-  1  Cliquez sur l'icône [Textmode Overlay] de la barre d'outils
-  2  Choisissez « select media »
-  3  Prévisualisez les cibles disponibles
-  4  Cliquez sur une cible
+  1  Ouvrez le panneau avec l’icône [Textmode Overlay] de la barre d’outils, ou depuis le menu contextuel : faites un clic droit sur la page ou une vidéo, puis choisissez « Open Textmode Overlay ».
+  2  Survolez un média disponible ou placez-y le focus pour le prévisualiser.
+  3  Cliquez sur un élément de la liste ou sélectionnez-le au clavier pour appliquer le média.
 
-Menu contextuel :
-  1  Faites un clic droit n'importe où sur la page, ou directement sur une vidéo
-  2  Choisissez « Open Textmode Overlay »
-  3  Dans le panneau de superposition, choisissez « select media »
-  4  Cliquez sur un canvas ou une vidéo mis en évidence
-
-Appuyez sur Échap à tout moment pour annuler la sélection du média.
-
+En option, utilisez « Select media on page » pour choisir un média directement sur la page.
 
 ─── DESSINER AVEC LA LUMIÈRE, LES CONTOURS, OU LES DEUX
 
@@ -115,8 +105,3 @@ Autorisations utilisées :
 
   ▸ contextMenus
     ▹ ajouter l'action de clic droit « Open Textmode Overlay »
-
-
-─── COMPATIBILITÉ
-
-Les iframes same-origin, imbriquées, srcdoc et ajoutées dynamiquement sont prises en charge. Les médias dans des iframes cross-origin ou à sandbox opaque ne peuvent pas être ciblés. Les canvas corrompus (tainted canvas), les vidéos DRM et d'autres sources protégées peuvent aussi bloquer l'échantillonnage des pixels selon les règles de sécurité habituelles du navigateur.

@@ -18,7 +18,6 @@ let customFonts: CustomFontSummary[] = [];
 const view = new OverlayPanelView({
 	portalContainer: portalRoot,
 	customFonts,
-	onStartPicking: () => void execute({ type: 'START_PICKING' }),
 	onUpdateOverlay: (id, settings) => void execute({ type: 'UPDATE_OVERLAY', id, settings }),
 	onExportOverlay: (id, format) => void execute({ type: 'EXPORT_OVERLAY', id, format }),
 	onRemoveOverlay: (id) => void execute({ type: 'REMOVE_OVERLAY', id }),

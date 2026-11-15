@@ -19,27 +19,15 @@ Usa [Textmode Overlay] allí donde la página exponga un canvas o un vídeo HTML
   ▸ explora p5.js, Three.js, arte generativo y bocetos de creative coding
   ▸ prueba elementos canvas o vídeo en tus propios sitios web
 
-Algunos medios protegidos, de origen cruzado o en sandbox pueden no estar disponibles. [Textmode Overlay] marca los fotogramas inaccesibles e informa de errores de muestreo sin interrumpir la página.
-
-
 ─── CREA UNA SUPERPOSICIÓN
 
 Abre una página que contenga un canvas o un vídeo visible.
 
-Barra de herramientas:
-  1  Haz clic en el icono de [Textmode Overlay] de la barra de herramientas
-  2  Elige "select media"
-  3  Previsualiza los objetivos disponibles
-  4  Haz clic en un objetivo
+  1  Abre el panel con el icono de [Textmode Overlay] en la barra de herramientas o con "Open Textmode Overlay" en el menú contextual.
+  2  Previsualiza un vídeo o canvas disponible al pasar el cursor por encima o enfocarlo.
+  3  Haz clic en el elemento de la lista o selecciónalo con el teclado para aplicar la superposición.
 
-Menú contextual:
-  1  Haz clic con el botón derecho en cualquier parte de la página, o directamente en un vídeo
-  2  Elige "Open Textmode Overlay"
-  3  En el panel de superposición, elige "select media"
-  4  Haz clic en un canvas o vídeo resaltado
-
-Pulsa Esc cuando quieras cancelar la selección de medios.
-
+Para elegir un elemento directamente en la página, activa "Select media on page" y haz clic en él.
 
 ─── DIBUJA CON LUZ, BORDES O AMBOS
 
@@ -115,8 +103,3 @@ Permisos utilizados:
 
   ▸ contextMenus
     ▹ añade la acción de clic derecho “Open Textmode Overlay”
-
-
-─── COMPATIBILIDAD
-
-Se admiten iframes del mismo origen, anidados, srcdoc y añadidos dinámicamente. No se puede apuntar a medios dentro de iframes de origen cruzado o con sandbox opaco. Los canvas con datos contaminados (tainted canvas), el vídeo con DRM y otras fuentes protegidas también pueden bloquear el muestreo de píxeles según las reglas de seguridad normales del navegador.

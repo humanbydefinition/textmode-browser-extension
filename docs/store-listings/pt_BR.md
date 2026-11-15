@@ -19,27 +19,15 @@ Use o [Textmode Overlay] onde a página expuser um canvas ou vídeo HTML5 compat
   ▸ explore p5.js, Three.js, arte generativa e esboços de creative coding
   ▸ teste elementos canvas ou vídeo nos seus próprios sites
 
-Algumas mídias protegidas, de origem cruzada ou em sandbox podem ficar indisponíveis. O [Textmode Overlay] marca quadros inacessíveis e relata erros de amostragem sem interromper a página.
-
-
 ─── CRIE UMA SOBREPOSIÇÃO
 
 Abra uma página com um canvas ou vídeo visível.
 
-Barra de ferramentas:
-  1  Clique no ícone do [Textmode Overlay] na barra de ferramentas
-  2  Escolha "select media"
-  3  Pré-visualize os alvos disponíveis
-  4  Clique em um alvo
+  1  Abra o painel pelo ícone do [Textmode Overlay] na barra de ferramentas ou por "Open Textmode Overlay" no menu de contexto.
+  2  Pré-visualize um vídeo ou canvas disponível passando o cursor sobre o item ou movendo o foco até ele.
+  3  Clique no item da lista ou selecione-o pelo teclado para aplicar a sobreposição.
 
-Menu de contexto:
-  1  Clique com o botão direito em qualquer lugar da página, ou diretamente em um vídeo
-  2  Escolha "Open Textmode Overlay"
-  3  No painel de sobreposição, escolha "select media"
-  4  Clique em um canvas ou vídeo destacado
-
-Pressione Esc quando quiser cancelar a seleção de mídia.
-
+Para escolher um item diretamente na página, ative "Select media on page" e clique nele.
 
 ─── DESENHE COM LUZ, BORDAS OU AMBOS
 
@@ -115,8 +103,3 @@ Permissões utilizadas:
 
   ▸ contextMenus
     ▹ adiciona a ação de clique direito “Open Textmode Overlay”
-
-
-─── COMPATIBILIDADE
-
-Iframes de mesma origem, aninhados, srcdoc e adicionados dinamicamente são suportados. Mídia dentro de iframes de origem cruzada ou com sandbox opaco não pode ser selecionada. Canvas com dados contaminados (tainted canvas), vídeo com DRM e outras fontes protegidas também podem bloquear a amostragem de pixels de acordo com as regras normais de segurança do navegador.

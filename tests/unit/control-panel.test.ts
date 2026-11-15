@@ -19,7 +19,6 @@ describe('ControlPanel', () => {
 	it('mounts once in Shadow DOM and does not portal UI into the page', () => {
 		const panel = new ControlPanel({
 			headerFontUrl: HEADER_FONT_URL,
-			onStartPicking: vi.fn(),
 			onUpdateOverlay: vi.fn(),
 			onExportOverlay: vi.fn(),
 			onRemoveOverlay: vi.fn(),
@@ -42,7 +41,7 @@ describe('ControlPanel', () => {
 		expect(document.querySelector('[data-testid="overlay-panel"]')).toBeNull();
 		expect(host?.shadowRoot?.querySelector('.tm-panel__move-handle')).not.toBeNull();
 		expect(host?.shadowRoot?.querySelector('.tm-panel')?.getAttribute('data-mode')).toBe('in-page');
-		expect(host?.shadowRoot?.querySelector('.tm-support-link')?.textContent).not.toContain('support');
+		expect(host?.shadowRoot?.querySelector('.tm-discord-link')?.textContent).toBe('');
 
 		panel.unmount();
 		expect(document.querySelector('#textmode-ascii-overlay-control-panel-root')).toBeNull();
@@ -51,7 +50,6 @@ describe('ControlPanel', () => {
 	it('casts the outer shadow from the rounded panel instead of the rectangular host', () => {
 		const panel = new ControlPanel({
 			headerFontUrl: HEADER_FONT_URL,
-			onStartPicking: vi.fn(),
 			onUpdateOverlay: vi.fn(),
 			onExportOverlay: vi.fn(),
 			onRemoveOverlay: vi.fn(),
@@ -101,7 +99,6 @@ describe('ControlPanel', () => {
 
 		const panel = new ControlPanel({
 			headerFontUrl: HEADER_FONT_URL,
-			onStartPicking: vi.fn(),
 			onUpdateOverlay: vi.fn(),
 			onExportOverlay: vi.fn(),
 			onRemoveOverlay: vi.fn(),
@@ -125,7 +122,6 @@ describe('ControlPanel', () => {
 	it('keeps color popovers inside the panel Shadow DOM', () => {
 		const panel = new ControlPanel({
 			headerFontUrl: HEADER_FONT_URL,
-			onStartPicking: vi.fn(),
 			onUpdateOverlay: vi.fn(),
 			onExportOverlay: vi.fn(),
 			onRemoveOverlay: vi.fn(),
@@ -152,6 +148,41 @@ describe('ControlPanel', () => {
 
 		expect(host?.shadowRoot?.querySelector('[data-slot="popover-content"]')).not.toBeNull();
 		expect(document.body.querySelector('[data-slot="popover-content"]')).toBeNull();
+
+		panel.unmount();
+	});
+
+	it('shows and clears the panel notice across state renders', () => {
+		const panel = new ControlPanel({
+			headerFontUrl: HEADER_FONT_URL,
+			onUpdateOverlay: vi.fn(),
+			onExportOverlay: vi.fn(),
+			onRemoveOverlay: vi.fn(),
+			onClose: vi.fn(),
+		});
+		panel.mount();
+
+		const host = document.querySelector<HTMLElement>('#textmode-ascii-overlay-control-panel-root');
+		const notice = host?.shadowRoot?.querySelector<HTMLParagraphElement>(
+			'.tm-panel-scroll-area__content > .tm-error'
+		);
+		expect(notice?.hidden).toBe(true);
+
+		panel.setNotice('Cross-origin video blocked.');
+		expect(notice?.hidden).toBe(false);
+		expect(notice?.textContent).toBe('Cross-origin video blocked.');
+
+		panel.setNotice(undefined);
+		panel.updateState([
+			{
+				id: 'overlay-1',
+				elementLabel: 'canvas#demo-canvas 320x180',
+				settings: DEFAULT_OVERLAY_SETTINGS,
+				status: 'active',
+			},
+		]);
+		expect(notice?.hidden).toBe(true);
+		expect(notice?.textContent).toBe('');
 
 		panel.unmount();
 	});

@@ -21,7 +21,7 @@ export function attachFrameRouterListener(): void {
 		void handleFrameRoutingMessage(message, sender)
 			.then(sendResponse)
 			.catch((error) => {
-				const response: RuntimeAck = { ok: false, error: toUserMessage(error) };
+				const response: RuntimeAck = { ok: false, error: toUserMessage(error), errorCategory: 'transport' };
 				sendResponse(response);
 			});
 		return true;

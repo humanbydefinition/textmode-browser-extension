@@ -4,6 +4,7 @@ import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { chromium, expect, test, type Locator } from '@playwright/test';
+import { BUNDLED_FONTS } from '../../src/domain/fonts/font-metadata';
 
 declare global {
 	interface Window {
@@ -27,8 +28,12 @@ test('fixture page renders selectable media targets', async ({ page }) => {
 });
 
 test('bundled fonts load without extension URL reports on a restricted page', async () => {
+	test.setTimeout(60_000);
 	const extensionPath = resolve(import.meta.dirname, '../../.output/chrome-mv3-e2e');
 	test.skip(!existsSync(resolve(extensionPath, 'manifest.json')), 'Run npm run build:e2e:chrome before e2e.');
+	for (const font of BUNDLED_FONTS) {
+		expect(existsSync(resolve(extensionPath, font.assetPath)), font.id).toBe(false);
+	}
 	const server = await startFixtureServer('media-page.html', true);
 	const userDataDir = await mkdtemp(join(tmpdir(), 'textmode-font-e2e-'));
 	const context = await chromium.launchPersistentContext(userDataDir, {
@@ -64,11 +69,27 @@ test('bundled fonts load without extension URL reports on a restricted page', as
 			});
 			await chrome.tabs.sendMessage(tab.id, { type: 'TOGGLE_OVERLAY' }, { frameId: 0 });
 		});
-		await page.getByRole('button', { name: 'select media', exact: true }).click();
+		await page.getByRole('button', { name: 'Select media on page', exact: true }).click();
+		await expect(page.locator('.tm-picker-marker').first()).toBeVisible();
 		await page.locator('#demo-canvas').click({ position: { x: 24, y: 24 } });
 		await expect(page.locator('canvas[data-textmode-ascii-extension-ui="true"]')).toHaveCount(1);
-		await page.getByRole('button', { name: 'next font', exact: true }).click();
-		await page.getByRole('button', { name: 'previous font', exact: true }).click();
+		for (const font of [
+			'UNSCII 8',
+			'UNSCII 8 Alt',
+			'UNSCII 8 MCR',
+			'UNSCII 8 Thin',
+			'UNSCII 8 Fantasy',
+			'CPC464',
+			'DUNGEON.mode',
+			'Rook',
+			'UrsaFont',
+			'ATASCII',
+			'BESCII',
+		]) {
+			await page.getByRole('button', { name: 'next font', exact: true }).click();
+			await expect(page.getByRole('combobox')).toHaveText(font);
+			await expect(page.locator('.tm-error:visible')).toHaveCount(0);
+		}
 		await expect
 			.poll(() =>
 				page.evaluate(() =>
@@ -233,41 +254,27 @@ test('Chrome extension can select a canvas and create an overlay', async () => {
 		expect(reopenedPanelRect?.x).toBeCloseTo(movedPanelRect.x, 0);
 		expect(reopenedPanelRect?.y).toBeCloseTo(movedPanelRect.y, 0);
 
-		await page.getByRole('button', { name: /select media/i }).click();
-		const pickerStatus = page.locator('.tm-picker-status');
-		await expect(page.getByText('2 selectable elements')).toBeVisible();
-		await expect(page.getByText('1 non-selectable element')).toBeVisible();
-		await expect(page.locator('.tm-picker-status code', { hasText: '<canvas>' })).toBeVisible();
-		await expect(page.locator('.tm-picker-status code', { hasText: '<video>' })).toBeVisible();
-		await expect(page.locator('.tm-picker-status code', { hasText: '2' })).toBeVisible();
-		await expect(page.locator('.tm-picker-status code', { hasText: '1' })).toBeVisible();
-		await expect(page.locator('.tm-picker-status code', { hasText: 'Esc' })).toBeVisible();
+		await page.getByRole('button', { name: 'Select media on page', exact: true }).click();
+		const pickerList = page.locator('[data-textmode-picker-list]');
+		await expect(pickerList.getByRole('heading', { name: 'Select media' })).toBeVisible();
+		await expect(page.locator('.tm-picker-status')).toHaveCount(0);
 		await page.setViewportSize({ width: 320, height: 720 });
-		const statusRect = await pickerStatus.boundingBox();
-		expect(statusRect).not.toBeNull();
-		expect(statusRect?.x).toBeGreaterThanOrEqual(12);
-		expect((statusRect?.x ?? 0) + (statusRect?.width ?? 0)).toBeLessThanOrEqual(308);
+		await expect(pickerList).toBeVisible();
+		const pickerBounds = await pickerList.boundingBox();
+		expect(pickerBounds).not.toBeNull();
+		expect(pickerBounds!.x).toBeGreaterThanOrEqual(0);
+		expect(pickerBounds!.x + pickerBounds!.width).toBeLessThanOrEqual(320);
 		await page.setViewportSize({ width: 800, height: 720 });
-		const readyMarker = page.locator('.tm-picker-marker[data-availability="ready"]').first();
+		const readyMarker = page.locator('.tm-picker-marker').first();
 		await expect(readyMarker).toBeVisible();
-		await expect(readyMarker).toHaveCSS('border-radius', '0px');
-		const stackingOrder = await page.evaluate(() => {
-			const host = document.querySelector('.textmode-ascii-overlay-picker');
-			const status = host?.shadowRoot?.querySelector<HTMLElement>('.tm-picker-status');
-			const marker = host?.shadowRoot?.querySelector<HTMLElement>('.tm-picker-marker');
-			return {
-				status: Number(status ? getComputedStyle(status).zIndex : 0),
-				marker: Number(marker ? getComputedStyle(marker).zIndex : 0),
-			};
-		});
-		expect(stackingOrder.status).toBeGreaterThan(stackingOrder.marker);
-		expect(await readyMarker.evaluate((element) => getComputedStyle(element).backgroundImage)).toContain(
-			'repeating-linear-gradient'
-		);
 		await page.locator('canvas#demo-canvas').click({ position: { x: 24, y: 24 } });
 
 		await expect(page.locator('canvas[data-textmode-ascii-extension-ui="true"]')).toHaveCount(1);
-		await expect(page.getByRole('button', { name: 'remove overlay', exact: true })).toHaveText('');
+		const removeOverlayButton = page.getByRole('button', { name: 'remove overlay', exact: true });
+		const resetOverlayButton = page.getByRole('button', { name: 'reset all settings to defaults' });
+		const resetBox = await resetOverlayButton.boundingBox();
+		const removeBox = await removeOverlayButton.boundingBox();
+		expect(removeBox!.x).toBeGreaterThanOrEqual(resetBox!.x + resetBox!.width);
 		const exportOverlayHost = page.locator('[data-plugin="textmode-export-overlay-host"]');
 		await expect(exportOverlayHost).toHaveCount(1);
 		await expect(exportOverlayHost).toHaveCSS('display', 'none');
@@ -405,11 +412,27 @@ test('Chrome extension can select a canvas and create an overlay', async () => {
 		const reloadedPanelRect = await panelHost.boundingBox();
 		expect(reloadedPanelRect?.x).toBeCloseTo(movedPanelRect.x, 0);
 		expect(reloadedPanelRect?.y).toBeCloseTo(movedPanelRect.y, 0);
-		await page.getByRole('button', { name: /select media/i }).click();
+		await page.getByRole('button', { name: 'Select media on page', exact: true }).click();
 		await page.locator('canvas#demo-canvas').click({ position: { x: 24, y: 24 } });
 		await page.getByRole('tab', { name: 'advanced' }).click();
 		await page.locator('[role="combobox"]').click();
 		await expect(page.getByText('atascii.ttf')).toBeVisible();
+		const customFont = page.locator('.tm-font-combobox__option--custom');
+		const customFontName = await customFont.locator('.tm-font-combobox__option-name').textContent();
+		await customFont.click();
+		await expect(page.getByRole('combobox')).toHaveText(customFontName!);
+		await expect(page.locator('.tm-error:visible')).toHaveCount(0);
+		await page.getByRole('combobox').click();
+		await page.locator('.tm-font-combobox__option-remove').click();
+		await expect
+			.poll(() =>
+				serviceWorker.evaluate(async () => {
+					const stored = await chrome.storage.local.get('custom-fonts:catalog:v1');
+					const catalog = stored['custom-fonts:catalog:v1'] as { fonts?: unknown[] } | undefined;
+					return catalog?.fonts?.length ?? 0;
+				})
+			)
+			.toBe(0);
 	} finally {
 		await context.close();
 		await rm(userDataDir, { recursive: true, force: true });
@@ -442,7 +465,7 @@ test('panel settings remain usable in short viewports and with enlarged text', a
 			});
 			await chrome.tabs.sendMessage(tab.id, { type: 'TOGGLE_OVERLAY' }, { frameId: 0 });
 		});
-		await page.getByRole('button', { name: 'select media', exact: true }).click();
+		await page.getByRole('button', { name: 'Select media on page', exact: true }).click();
 		await page.locator('#demo-canvas').click({ position: { x: 24, y: 24 } });
 		let viewport = page.locator('.tm-panel-scroll-area__viewport');
 		await expect(page.locator('.tm-panel')).toHaveAttribute('data-scroll-mode', 'tabs');
@@ -466,7 +489,7 @@ test('panel settings remain usable in short viewports and with enlarged text', a
 			await expect.poll(() => viewport.evaluate((node) => node.clientHeight)).toBeGreaterThanOrEqual(48);
 			await expect(page.locator('.tm-panel')).toHaveAttribute(
 				'data-scroll-mode',
-				height === 720 ? 'tabs' : 'panel'
+				height >= 500 ? 'tabs' : 'panel'
 			);
 			const glyphRamp = page.getByRole('textbox', { name: 'glyph ramp', exact: true });
 			await glyphRamp.focus();
@@ -571,7 +594,9 @@ test('panel settings remain usable in short viewports and with enlarged text', a
 			contentType: 'application/json',
 		});
 		await page.getByRole('button', { name: 'remove overlay', exact: true }).click();
-		await expect(page.getByRole('button', { name: 'select media', exact: true })).toBeFocused();
+		await expect(
+			page.locator('[data-textmode-picker-list]').getByRole('heading', { name: 'Select media' })
+		).toBeFocused();
 	} finally {
 		await context.close();
 		await rm(userDataDir, { recursive: true, force: true });
@@ -643,7 +668,7 @@ test('Chrome extension preserves overlay geometry across supported coordinate-sp
 		});
 		await expect(page.locator('#textmode-ascii-overlay-control-panel-root')).toBeAttached();
 
-		await page.getByRole('button', { name: /(?:select|replace) media/i }).click();
+		await page.getByRole('button', { name: 'Select media on page', exact: true }).click();
 		await page.locator('#zoom-canvas').click({ position: { x: 24, y: 24 } });
 		const overlay = page.locator('canvas[data-textmode-ascii-extension-ui="true"]');
 		await expect(overlay).toHaveCount(1);
@@ -740,6 +765,166 @@ test('Chrome extension preserves overlay geometry across supported coordinate-sp
 	}
 });
 
+test('keyboard users can select media in the page and an iframe', async () => {
+	const extensionPath = resolve(import.meta.dirname, '../../.output/chrome-mv3-e2e');
+	const server = await startFixtureServer();
+	const userDataDir = await mkdtemp(join(tmpdir(), 'textmode-keyboard-e2e-'));
+	const context = await chromium.launchPersistentContext(userDataDir, {
+		headless: false,
+		args: [`--disable-extensions-except=${extensionPath}`, `--load-extension=${extensionPath}`],
+	});
+	try {
+		const page = context.pages()[0] ?? (await context.newPage());
+		await page.setViewportSize({ width: 900, height: 900 });
+		await page.goto(server.url);
+		const worker = context.serviceWorkers()[0] ?? (await context.waitForEvent('serviceworker'));
+		await worker.evaluate(async () => {
+			const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+			if (!tab?.id) throw new Error('Missing active tab');
+			await chrome.scripting.executeScript({
+				target: { tabId: tab.id, allFrames: true },
+				files: ['/content-runtime.js'],
+			});
+			await chrome.tabs.sendMessage(tab.id, { type: 'TOGGLE_OVERLAY' }, { frameId: 0 });
+		});
+		await expect(page.getByRole('button', { name: /^(?:select|replace) media$/i })).toHaveCount(0);
+		const mainPanel = page.locator('#textmode-ascii-overlay-control-panel-root');
+		const list = page.locator('[data-textmode-picker-list]');
+		const directPick = list.getByRole('button', { name: 'Select media on page', exact: true });
+		const refreshMedia = list.getByRole('button', { name: 'Refresh media list', exact: true });
+		const pageTarget = list.getByRole('button', { name: /canvas#demo-canvas/ });
+		await expect(pageTarget).toBeVisible();
+		await expect(page.locator('.tm-empty-state')).toHaveCount(0);
+		const pageMarker = page.locator('.textmode-ascii-overlay-picker').first().locator('.tm-picker-marker').first();
+		await pageTarget.hover();
+		await expect(pageMarker).toHaveAttribute('data-preview', 'true');
+		await page.mouse.move(5, 5);
+		await expect(pageMarker).toHaveAttribute('data-preview', 'false');
+		await directPick.focus();
+		await page.keyboard.press('Enter');
+		await expect(directPick).toHaveAttribute('aria-pressed', 'true');
+		await expect(list.getByRole('button', { name: 'cancel', exact: true })).toBeVisible();
+		await expect(pageTarget).toBeVisible();
+		let mainBounds = await mainPanel.boundingBox();
+		let listBounds = await list.boundingBox();
+		expect(listBounds!.x).toBeGreaterThanOrEqual(mainBounds!.x);
+		expect(listBounds!.x + listBounds!.width).toBeLessThanOrEqual(mainBounds!.x + mainBounds!.width);
+		expect(listBounds!.y).toBeGreaterThan(mainBounds!.y);
+		expect(listBounds!.y + listBounds!.height).toBeLessThanOrEqual(mainBounds!.y + mainBounds!.height);
+		await pageTarget.hover();
+		await expect(pageMarker).toHaveAttribute('data-preview', 'true');
+		await pageTarget.focus();
+		await page.mouse.move(5, 5);
+		await expect(pageMarker).toHaveAttribute('data-preview', 'true');
+		await list.getByRole('heading', { name: 'Select media' }).focus();
+		await expect(pageMarker).toHaveAttribute('data-preview', 'false');
+		const handle = page.getByRole('button', { name: /move panel/i });
+		const handleBounds = await handle.boundingBox();
+		await page.mouse.move(handleBounds!.x + handleBounds!.width / 2, handleBounds!.y + handleBounds!.height / 2);
+		await page.mouse.down();
+		await page.mouse.move(40, handleBounds!.y + handleBounds!.height / 2, { steps: 10 });
+		await page.mouse.up();
+		mainBounds = await mainPanel.boundingBox();
+		listBounds = await list.boundingBox();
+		expect(listBounds!.x).toBeGreaterThanOrEqual(mainBounds!.x);
+		expect(listBounds!.x + listBounds!.width).toBeLessThanOrEqual(mainBounds!.x + mainBounds!.width);
+		const accessibility = await context.newCDPSession(page);
+		const tree = await accessibility.send('Accessibility.getFullAXTree');
+		expect(
+			tree.nodes.some(
+				(node) => node.role?.value === 'button' && String(node.name?.value).includes('canvas#demo-canvas')
+			)
+		).toBe(true);
+		await accessibility.detach();
+		await page.keyboard.press('Escape');
+		await expect(directPick).toHaveAttribute('aria-pressed', 'false');
+		await list.getByRole('heading', { name: 'Select media' }).focus();
+		await page.keyboard.press('Tab');
+		await expect(directPick).toBeFocused();
+		await page.keyboard.press('Tab');
+		await expect(refreshMedia).toBeFocused();
+		await page.keyboard.press('Tab');
+		await expect(pageTarget).toBeFocused();
+		await page.keyboard.press('Enter');
+		await expect(page.locator('canvas[data-textmode-ascii-extension-ui="true"]')).toHaveCount(1);
+		const removeOverlay = page.getByRole('button', { name: 'remove overlay', exact: true });
+		await removeOverlay.focus();
+		await page.keyboard.press('Enter');
+		await expect(list.getByRole('heading', { name: 'Select media' })).toBeFocused();
+		const frameTarget = list.getByRole('button', { name: /canvas#iframe-canvas/ });
+		await expect(frameTarget).toBeVisible();
+		for (let i = 0; i < 10 && !(await frameTarget.evaluate((element) => element.matches(':focus'))); i++)
+			await page.keyboard.press('Tab');
+		await expect(frameTarget).toBeFocused();
+		await page.keyboard.press('Space');
+		await expect(
+			page.frameLocator('#same-origin-frame').locator('canvas[data-textmode-ascii-extension-ui="true"]')
+		).toHaveCount(1);
+		await removeOverlay.focus();
+		await page.keyboard.press('Enter');
+		await page.evaluate(() => {
+			const frame = document.createElement('iframe');
+			frame.id = 'keyboard-dynamic';
+			frame.title = 'New media';
+			frame.src = '/iframe-keyboard-dynamic';
+			document.body.append(frame);
+		});
+		const dynamicTarget = list.getByRole('button', { name: /canvas#keyboard-dynamic-canvas/ });
+		await expect(dynamicTarget).toBeVisible();
+		for (let i = 0; i < 12 && !(await dynamicTarget.evaluate((element) => element.matches(':focus'))); i++)
+			await page.keyboard.press('Tab');
+		await expect(dynamicTarget).toBeFocused();
+		await page.keyboard.press('Enter');
+		await expect(
+			page.frameLocator('#keyboard-dynamic').locator('canvas[data-textmode-ascii-extension-ui="true"]')
+		).toHaveCount(1);
+		await removeOverlay.focus();
+		await page.evaluate(() => {
+			for (let i = 0; i < 20; i++) {
+				const canvas = document.createElement('canvas');
+				canvas.setAttribute(
+					'aria-label',
+					`A very long media title ${i} that should scroll horizontally without wrapping in the picker`
+				);
+				canvas.style.cssText = 'width: 320px; height: 180px; display: block';
+				document.body.append(canvas);
+			}
+		});
+		await page.keyboard.press('Enter');
+		const longTarget = list.getByRole('button', { name: /A very long media title 0/ });
+		await expect(longTarget).toBeAttached();
+		const listViewport = list.locator('.tm-picker-list__items');
+		await expect
+			.poll(() => listViewport.evaluate((element) => element.scrollHeight > element.clientHeight))
+			.toBe(true);
+		await directPick.focus();
+		await page.keyboard.press('Enter');
+		await expect(directPick).toHaveAttribute('aria-pressed', 'true');
+		await page.keyboard.press('Escape');
+		await expect(directPick).toHaveAttribute('aria-pressed', 'false');
+		await expect(directPick).toBeFocused();
+		await page.setViewportSize({ width: 320, height: 480 });
+		await page.emulateMedia({ reducedMotion: 'reduce', forcedColors: 'active' });
+		await page.keyboard.press('Enter');
+		await expect(directPick).toHaveAttribute('aria-pressed', 'true');
+		const region = list.locator('.tm-picker-list');
+		await expect(region).toBeVisible();
+		expect(await region.evaluate((element) => element.getAnimations().length)).toBe(0);
+		const bounds = await region.boundingBox();
+		expect(bounds).not.toBeNull();
+		expect(bounds!.x).toBeGreaterThanOrEqual(0);
+		expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(320);
+		expect(bounds!.y + bounds!.height).toBeLessThanOrEqual(480);
+		await page.keyboard.press('Escape');
+		await expect(directPick).toHaveAttribute('aria-pressed', 'false');
+		await expect(directPick).toBeFocused();
+	} finally {
+		await context.close();
+		await server.close();
+		await rm(userDataDir, { recursive: true, force: true });
+	}
+});
+
 test('Chrome extension can select media in same-origin, nested, srcdoc, and newly added iframes', async () => {
 	const extensionPath = resolve(import.meta.dirname, '../../.output/chrome-mv3-e2e');
 	test.skip(!existsSync(resolve(extensionPath, 'manifest.json')), 'Run npm run build:e2e:chrome before e2e.');
@@ -824,15 +1009,11 @@ test('Chrome extension can select media in same-origin, nested, srcdoc, and newl
 			).toHaveCount(1);
 		});
 
-		await test.step('mark a cross-origin iframe as unavailable', async () => {
-			await page.getByRole('button', { name: /(?:select|replace) media/i }).click();
+		await test.step('leave cross-origin iframes unmarked', async () => {
+			await startDirectMousePick(page);
 			const blocker = page.locator('.textmode-ascii-overlay-iframe-blocker');
-			await expect(blocker).toBeVisible();
-			await expect(blocker).toHaveAttribute('aria-label', /share the page origin/i);
-			await blocker.click();
-			await expect(blocker).toBeVisible();
-			await page.keyboard.press('Escape');
 			await expect(blocker).toHaveCount(0);
+			await page.keyboard.press('Escape');
 		});
 	} finally {
 		await context.close();
@@ -841,12 +1022,21 @@ test('Chrome extension can select media in same-origin, nested, srcdoc, and newl
 	}
 });
 
+async function startDirectMousePick(page: import('@playwright/test').Page): Promise<void> {
+	const removeButton = page.getByRole('button', { name: 'remove overlay', exact: true });
+	if (await removeButton.isVisible()) {
+		await removeButton.click();
+	}
+	await page.getByRole('button', { name: 'Select media on page', exact: true }).click();
+}
+
 async function selectIframeCanvas(
 	page: import('@playwright/test').Page,
 	frameSelector: string,
 	canvasSelector: string
 ) {
-	await page.getByRole('button', { name: /(?:select|replace) media/i }).click();
+	await startDirectMousePick(page);
+	await expect(page.frameLocator(frameSelector).locator('.tm-picker-marker')).toHaveCount(1);
 	await page
 		.frameLocator(frameSelector)
 		.locator(canvasSelector)
@@ -854,7 +1044,10 @@ async function selectIframeCanvas(
 }
 
 async function selectNestedIframeCanvas(page: import('@playwright/test').Page) {
-	await page.getByRole('button', { name: /(?:select|replace) media/i }).click();
+	await startDirectMousePick(page);
+	await expect(
+		page.frameLocator('#nested-root-frame').frameLocator('#nested-frame').locator('.tm-picker-marker')
+	).toHaveCount(1);
 	await page
 		.frameLocator('#nested-root-frame')
 		.frameLocator('#nested-frame')
@@ -939,6 +1132,9 @@ async function startFixtureServer(pageFile = 'media-page.html', restrictConnecti
 				break;
 			case '/iframe-dynamic':
 				response.end(createIframeFixture('dynamic-canvas'));
+				break;
+			case '/iframe-keyboard-dynamic':
+				response.end(createIframeFixture('keyboard-dynamic-canvas'));
 				break;
 			default:
 				response.end(html.replaceAll('__SERVER_PORT__', String(serverPort)));

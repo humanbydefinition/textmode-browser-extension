@@ -6,7 +6,7 @@ import {
 	type OverlayPostFxParamDefinition,
 } from '../../domain/overlay/overlay-settings';
 import { type Cleanup, h, on } from './dom';
-import { icon } from './icons';
+import { icon } from '../../shared/ui/icons';
 import { createButton, createToggleInput } from './settings/form-controls';
 import { RangeFieldView } from './settings/range-field-view';
 

@@ -24,6 +24,7 @@ export interface PanelPlacementControllerOptions {
 	initialPlacement?: PanelPlacement | null;
 	onCommit?: (placement: PanelPlacement) => Promise<void> | void;
 	onReset?: () => Promise<void> | void;
+	onPositionChange?: () => void;
 }
 
 export class PanelPlacementController {
@@ -32,6 +33,7 @@ export class PanelPlacementController {
 	private readonly handle: HTMLElement;
 	private readonly onCommit?: PanelPlacementControllerOptions['onCommit'];
 	private readonly onReset?: PanelPlacementControllerOptions['onReset'];
+	private readonly onPositionChange?: () => void;
 	private placement: PanelPlacement;
 	private renderedPosition: RenderedPosition = { left: VIEWPORT_GUTTER, top: VIEWPORT_GUTTER };
 	private resizeObserver?: ResizeObserver;
@@ -55,6 +57,7 @@ export class PanelPlacementController {
 		this.handle = options.handle;
 		this.onCommit = options.onCommit;
 		this.onReset = options.onReset;
+		this.onPositionChange = options.onPositionChange;
 		this.placement = { ...(options.initialPlacement ?? DEFAULT_PANEL_PLACEMENT) };
 	}
 
@@ -221,6 +224,7 @@ export class PanelPlacementController {
 		this.renderedPosition = position;
 		this.host.style.left = `${position.left}px`;
 		this.host.style.top = `${position.top}px`;
+		this.onPositionChange?.();
 	}
 
 	private getRenderedPosition(placement: PanelPlacement): RenderedPosition {

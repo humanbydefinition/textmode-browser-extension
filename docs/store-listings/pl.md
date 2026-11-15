@@ -19,27 +19,17 @@ Używaj [Textmode Overlay] wszędzie tam, gdzie strona udostępnia zgodny canvas
   ▸ odkrywaj p5.js, Three.js, sztukę generatywną i szkice creative coding
   ▸ testuj elementy canvas lub wideo na własnych stronach
 
-Niektóre chronione, cross-origin lub objęte sandboxem media mogą być niedostępne. [Textmode Overlay] oznacza niedostępne klatki i zgłasza błędy próbkowania, nie przerywając działania strony.
 
 
 ─── UTWÓRZ NAKŁADKĘ
 
 Otwórz stronę z widocznym canvasem lub filmem.
 
-Pasek narzędzi:
-  1  Kliknij ikonę [Textmode Overlay] na pasku narzędzi
-  2  Wybierz „select media”
-  3  Podejrzyj dostępne cele
-  4  Kliknij cel
+  1  Otwórz panel za pomocą ikony [Textmode Overlay] na pasku narzędzi albo z menu kontekstowego: kliknij prawym przyciskiem stronę lub film i wybierz „Open Textmode Overlay”.
+  2  Najedź kursorem na dostępne medium lub przenieś na nie fokus, aby zobaczyć podgląd.
+  3  Kliknij element listy lub wybierz go za pomocą klawiatury, aby zastosować medium.
 
-Menu kontekstowe:
-  1  Kliknij prawym przyciskiem w dowolnym miejscu strony lub bezpośrednio na filmie
-  2  Wybierz „Open Textmode Overlay”
-  3  W panelu nakładki wybierz „select media”
-  4  Kliknij podświetlony canvas lub film
-
-Naciśnij Esc, gdy chcesz anulować wybór medium.
-
+Opcjonalnie użyj „Select media on page”, aby wybrać medium bezpośrednio na stronie.
 
 ─── RYSUJ ŚWIATŁEM, KONTUREM LUB JEDNYM I DRUGIM
 
@@ -115,8 +105,3 @@ Używane uprawnienia:
 
   ▸ contextMenus
     ▹ dodanie akcji „Open Textmode Overlay” po kliknięciu prawym przyciskiem
-
-
-─── ZGODNOŚĆ
-
-Obsługiwane są elementy iframe tego samego źródła, zagnieżdżone, srcdoc i dodawane dynamicznie. Media wewnątrz iframe cross-origin lub nieprzejrzystego sandboxa nie mogą być wybrane. Zanieczyszczone canvasy (tainted canvas), wideo DRM i inne chronione źródła mogą również blokować próbkowanie pikseli zgodnie ze standardowymi zasadami bezpieczeństwa przeglądarki.

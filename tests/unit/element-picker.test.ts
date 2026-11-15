@@ -342,6 +342,51 @@ describe('element-picker', () => {
 		expect(isSelectableElement(redirectedTaintedVideo)).toBe(false);
 	});
 
+	it('retries failed canvases after bitmap resets and explicit refresh', async () => {
+		const canvas = document.createElement('canvas');
+		mockRect(canvas, { width: 320, height: 180 });
+		document.body.append(canvas);
+		let readable = false;
+		let probeCalls = 0;
+		vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockImplementation((() => ({
+			clearRect: vi.fn(),
+			drawImage: vi.fn(() => {
+				probeCalls++;
+				if (!readable) throw new DOMException('Cannot read canvas.', 'SecurityError');
+			}),
+			getImageData: vi.fn(() => ({ data: new Uint8ClampedArray(4) })),
+		})) as unknown as typeof HTMLCanvasElement.prototype.getContext);
+
+		const picker = createPicker();
+		picker.start();
+		expect(getMarkers()).toHaveLength(0);
+
+		for (const dimension of ['width', 'height'] as const) {
+			readable = true;
+			// Assigning the existing value also resets the bitmap and its origin-clean flag.
+			canvas.setAttribute(dimension, String(canvas[dimension]));
+			await vi.waitFor(() => expect(getMarkers()).toHaveLength(1));
+
+			readable = false;
+			picker.refresh();
+			expect(getMarkers()).toHaveLength(0);
+		}
+
+		const failedProbeCount = probeCalls;
+		canvas.classList.add('unchanged-bitmap');
+		await vi.waitFor(() => expect(canvas.classList.contains('unchanged-bitmap')).toBe(true));
+		await new Promise((resolve) => requestAnimationFrame(resolve));
+		expect(probeCalls).toBe(failedProbeCount);
+
+		readable = true;
+		picker.refresh();
+		expect(getMarkers()).toHaveLength(1);
+
+		// Discard the shared scratch canvas before restoring the mocked context.
+		readable = false;
+		expect(isSelectableElement(canvas)).toBe(false);
+	});
+
 	it('caches video readability per source across refreshes and coalesces burst playback events', async () => {
 		const video = document.createElement('video');
 		makeVideoReady(video);

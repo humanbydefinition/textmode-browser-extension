@@ -114,6 +114,7 @@ export class ElementPicker {
 	}
 
 	public refresh(): void {
+		this.registry.retryCanvases();
 		this.refreshTargets();
 	}
 
@@ -221,10 +222,31 @@ export class ElementPicker {
 
 	private mountObservers(): void {
 		if (typeof MutationObserver !== 'undefined') {
-			this.mutationObserver = new MutationObserver(() => this.scheduleRefreshTargets());
+			this.mutationObserver = new MutationObserver((mutations) => {
+				for (const mutation of mutations) {
+					if (
+						mutation.type === 'attributes' &&
+						mutation.target instanceof HTMLCanvasElement &&
+						(mutation.attributeName === 'width' || mutation.attributeName === 'height')
+					) {
+						this.registry.invalidate(mutation.target);
+					}
+				}
+				this.scheduleRefreshTargets();
+			});
 			this.mutationObserver.observe(document.documentElement, {
 				attributes: true,
-				attributeFilter: ['class', 'crossorigin', 'hidden', 'src', 'srcdoc', 'sandbox', 'style'],
+				attributeFilter: [
+					'class',
+					'crossorigin',
+					'height',
+					'hidden',
+					'src',
+					'srcdoc',
+					'sandbox',
+					'style',
+					'width',
+				],
 				childList: true,
 				subtree: true,
 			});

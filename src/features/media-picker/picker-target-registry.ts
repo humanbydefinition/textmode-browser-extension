@@ -35,7 +35,13 @@ export class PickerTargetRegistry {
 	public invalidate(element: Element): void {
 		if (element instanceof HTMLVideoElement) {
 			this.videoReadability.delete(element);
+		} else if (element instanceof HTMLCanvasElement) {
+			this.taintedCanvases.delete(element);
 		}
+	}
+
+	public retryCanvases(): void {
+		this.taintedCanvases = new WeakSet<HTMLCanvasElement>();
 	}
 
 	public clearCache(): void {

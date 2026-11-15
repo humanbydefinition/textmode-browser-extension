@@ -19,26 +19,15 @@ Use [Textmode Overlay] wherever the page exposes a compatible canvas or HTML5 vi
   ▸ explore p5.js, Three.js, generative art, and creative coding sketches
   ▸ test canvas or video elements in your own websites
 
-Some protected, cross-origin, or sandboxed media may be unavailable. [Textmode Overlay] marks inaccessible frames and reports sampling errors without interrupting the page.
-
-
 ─── CREATE AN OVERLAY
 
 Open a page containing a visible canvas or video.
 
-Toolbar:
-  1  Click the [Textmode Overlay] toolbar icon
-  2  Choose "select media"
-  3  Preview available targets
-  4  Click a target
+  1  Click the [Textmode Overlay] toolbar icon, or right-click the page and choose "Open Textmode Overlay"
+  2  Browse the media list and hover over an item to preview it
+  3  Click an item or use your keyboard to create the overlay
 
-Context menu:
-  1  Right-click anywhere on the page, or directly on a video
-  2  Choose "Open Textmode Overlay"
-  3  In the overlay panel, choose "select media"
-  4  Click a highlighted canvas or video
-
-Press Esc whenever you want to cancel media selection.
+You can also choose "Select media on page" to pick directly from the page.
 
 
 ─── DRAW WITH LIGHT, EDGES, OR BOTH
@@ -115,8 +104,3 @@ Permissions used:
 
   ▸ contextMenus
     ▹ add the “Open Textmode Overlay” right-click action
-
-
-─── COMPATIBILITY
-
-Same-origin, nested, srcdoc, and dynamically added iframes are supported. Media inside cross-origin or opaque sandboxed iframes cannot be targeted. Tainted canvases, DRM video, and other protected sources may also block pixel sampling under normal browser security rules.

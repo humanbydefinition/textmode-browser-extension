@@ -19,27 +19,17 @@ Gebruik [Textmode Overlay] overal waar de pagina een compatibele canvas of HTML5
   ▸ verken p5.js, Three.js, generatieve kunst en creative-coding-schetsen
   ▸ test canvas- of video-elementen op je eigen websites
 
-Sommige beveiligde, cross-origin of in sandbox gezette media zijn mogelijk niet beschikbaar. [Textmode Overlay] markeert ontoegankelijke frames en meldt samplingfouten zonder de pagina te onderbreken.
 
 
 ─── MAAK EEN OVERLAY
 
 Open een pagina met een zichtbare canvas of video.
 
-Werkbalk:
-  1  Klik op het [Textmode Overlay]-pictogram in de werkbalk
-  2  Kies "select media"
-  3  Bekijk een voorbeeld van de beschikbare doelen
-  4  Klik op een doel
+  1  Open het paneel via het [Textmode Overlay]-pictogram in de werkbalk, of via het contextmenu: klik met de rechtermuisknop op de pagina of een video en kies "Open Textmode Overlay".
+  2  Beweeg de aanwijzer over beschikbare media of geef ze focus om een voorbeeld te bekijken.
+  3  Klik op een item in de lijst of selecteer het met het toetsenbord om de media toe te passen.
 
-Contextmenu:
-  1  Klik met de rechtermuisknop ergens op de pagina, of direct op een video
-  2  Kies "Open Textmode Overlay"
-  3  Kies in het overlaypaneel "select media"
-  4  Klik op een gemarkeerde canvas of video
-
-Druk op Esc wanneer je de mediaselectie wilt annuleren.
-
+Optioneel: gebruik “Select media on page” om media rechtstreeks op de pagina te kiezen.
 
 ─── TEEKEN MET LICHT, RANDEN OF BEIDE
 
@@ -115,8 +105,3 @@ Gebruikte machtigingen:
 
   ▸ contextMenus
     ▹ voegt de rechtermuisknopactie "Open Textmode Overlay" toe
-
-
-─── COMPATIBILITEIT
-
-Same-origin, geneste, srcdoc- en dynamisch toegevoegde iframes worden ondersteund. Media in cross-origin of ondoorzichtige sandbox-iframes kunnen niet worden gekozen. Besmette canvas (tainted canvas), DRM-video en andere beveiligde bronnen kunnen het bemonsteren van pixels ook blokkeren volgens de normale beveiligingsregels van de browser.

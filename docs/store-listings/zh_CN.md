@@ -19,27 +19,13 @@
   ▸ 探索 p5.js、Three.js、生成艺术和创意编程草图
   ▸ 在自己的网站上测试 canvas 或视频元素
 
-部分受保护、跨域或沙盒中的媒体可能不可用。[Textmode Overlay] 会标记无法访问的帧，并在不打断页面的情况下报告采样错误。
-
-
 ─── 创建叠加层
 
-打开包含可见 canvas 或视频的页面。
+1  点击 [Textmode Overlay] 工具栏图标，或在页面上单击右键并选择 "Open Textmode Overlay"，打开面板。
+2  将鼠标悬停在列表中的视频或 canvas 上，或将其聚焦，以预览媒体。
+3  点击想使用的列表项，或用键盘选择，即可应用。
 
-工具栏：
-  1  点击 [Textmode Overlay] 工具栏图标
-  2  选择 "select media"
-  3  预览可用目标
-  4  点击一个目标
-
-右键菜单：
-  1  在页面任意位置或直接在视频上单击右键
-  2  选择 "Open Textmode Overlay"
-  3  在叠加层面板中选择 "select media"
-  4  点击高亮的 canvas 或视频
-
-随时按 Esc 取消媒体选择。
-
+也可以选择 "Select media on page"，然后点击页面上的视频或 canvas 进行选择。
 
 ─── 用光、轮廓或两者绘制
 
@@ -115,8 +101,3 @@
 
   ▸ contextMenus
     ▹ 添加“Open Textmode Overlay”右键操作
-
-
-─── 兼容性
-
-支持同源、嵌套、srcdoc 以及动态添加的 iframe。跨域或不透明沙盒 iframe 中的媒体无法作为目标。受污染的 canvas（tainted canvas）、DRM 视频和其他受保护来源也可能在浏览器常规安全规则下阻止像素采样。

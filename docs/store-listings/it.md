@@ -19,27 +19,17 @@ Usa [Textmode Overlay] ovunque la pagina esponga un canvas o un video HTML5 comp
   ▸ esplora p5.js, Three.js, arte generativa e sketch di creative coding
   ▸ testa elementi canvas o video sui tuoi siti web
 
-Alcuni media protetti, cross-origin o in sandbox potrebbero non essere disponibili. [Textmode Overlay] contrassegna i fotogrammi inaccessibili e segnala gli errori di campionamento senza interrompere la pagina.
 
 
 ─── CREA UN OVERLAY
 
 Apri una pagina con un canvas o un video visibile.
 
-Barra degli strumenti:
-  1  Fai clic sull'icona [Textmode Overlay] nella barra degli strumenti
-  2  Scegli "select media"
-  3  Visualizza in anteprima i target disponibili
-  4  Fai clic su un target
+  1  Apri il pannello con l’icona [Textmode Overlay] nella barra degli strumenti oppure dal menu contestuale: fai clic con il pulsante destro sulla pagina o su un video e scegli "Open Textmode Overlay".
+  2  Passa il puntatore su un media disponibile o sposta lì il focus per visualizzarne l’anteprima.
+  3  Fai clic su un elemento dell’elenco oppure selezionalo con la tastiera per applicare il media.
 
-Menu contestuale:
-  1  Fai clic con il pulsante destro in qualsiasi punto della pagina, o direttamente su un video
-  2  Scegli "Open Textmode Overlay"
-  3  Nel pannello dell'overlay, scegli "select media"
-  4  Fai clic su un canvas o un video evidenziato
-
-Premi Esc quando vuoi annullare la selezione del media.
-
+Facoltativo: usa “Select media on page” per scegliere un media direttamente nella pagina.
 
 ─── DISEGNA CON LUCE, BORDI O ENTRAMBI
 
@@ -115,8 +105,3 @@ Autorizzazioni utilizzate:
 
   ▸ contextMenus
     ▹ aggiunge l'azione con clic destro "Open Textmode Overlay"
-
-
-─── COMPATIBILITÀ
-
-Sono supportati iframe same-origin, annidati, srcdoc e aggiunti dinamicamente. I media all'interno di iframe cross-origin o con sandbox opaca non possono essere selezionati. Anche i canvas contaminati (tainted canvas), i video DRM e altre sorgenti protette possono bloccare il campionamento dei pixel secondo le normali regole di sicurezza del browser.

@@ -7,7 +7,7 @@ import {
 	type HsvaColor,
 } from '../color-picker-model';
 import { classNames, h, setStyleProperty } from '../dom';
-import { icon } from '../icons';
+import { icon } from '../../../shared/ui/icons';
 import { PopoverView } from '../components/popover-view';
 
 export interface ColorPickerViewOptions {

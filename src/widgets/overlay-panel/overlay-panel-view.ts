@@ -2,7 +2,7 @@ import type { CustomFontSummary } from '../../domain/fonts/custom-font-entry';
 import type { OverlayDescriptor, OverlayExportFormat, OverlaySettings } from '../../domain/overlay/overlay-settings';
 import type { CustomFontId } from '../../domain/overlay/overlay-settings';
 import { h, removeChildren } from './dom';
-import { icon } from './icons';
+import { icon } from '../../shared/ui/icons';
 import { OverlayCardView } from './panel/overlay-card-view';
 import { createButton } from './settings/form-controls';
 import { ScrollAreaView } from './components/scroll-area-view';
@@ -14,7 +14,6 @@ export interface OverlayPanelViewOptions {
 	mode?: 'popup' | 'in-page';
 	customFonts?: readonly CustomFontSummary[];
 	allowCustomFontUpload?: boolean;
-	onStartPicking: () => void;
 	onUpdateOverlay: (id: string, settings: Partial<OverlaySettings>) => Promise<void> | void;
 	onExportOverlay: (id: string, format: OverlayExportFormat) => void;
 	onRemoveOverlay: (id: string) => void;
@@ -28,10 +27,8 @@ export interface OverlayPanelViewOptions {
 export class OverlayPanelView {
 	public readonly element: HTMLElement;
 	public readonly moveHandleElement: HTMLButtonElement | null;
-	private readonly selectButton: HTMLButtonElement;
-	private readonly selectButtonLabel: Text;
 	private readonly overlayList: HTMLElement;
-	private readonly removeButton: HTMLButtonElement;
+	private readonly pickerMount: HTMLElement;
 	private readonly notice: HTMLParagraphElement;
 	private readonly scrollArea: ScrollAreaView;
 	private readonly scrollController: PanelScrollController;
@@ -61,22 +58,23 @@ export class OverlayPanelView {
 			this.moveHandleElement.setAttribute('title', moveInstructions);
 			this.moveHandleElement.append(icon('grip-vertical'));
 		}
-		const supportLink = h(
+		const discordLink = h(
 			'a',
 			{
 				className:
 					mode === 'in-page'
-						? 'tm-button tm-button--ghost tm-button--subtle tm-button--icon tm-panel__header-action tm-support-link'
-						: 'tm-button tm-button--ghost tm-button--subtle tm-panel__header-action tm-support-link',
+						? 'tm-button tm-button--ghost tm-button--subtle tm-button--icon tm-panel__header-action tm-discord-link'
+						: 'tm-button tm-button--ghost tm-button--subtle tm-button--icon tm-panel__header-action tm-discord-link',
 				attributes: {
-					href: 'https://ko-fi.com/humanbydefinition',
+					href: 'https://discord.gg/sjrw8QXNks',
 					target: '_blank',
-					rel: 'noreferrer',
-					...(mode === 'in-page' ? { title: 'Support textmode', 'aria-label': 'Support textmode' } : {}),
+					rel: 'noreferrer noopener',
+					title: 'Join the textmode.art Discord server',
+					'aria-label': 'Join the textmode.art Discord server',
 				},
 			},
-			icon('heart-handshake'),
-			mode === 'popup' ? 'support' : null
+			icon('discord'),
+			mode === 'popup' ? 'discord' : null
 		);
 		const githubLink = h(
 			'a',
@@ -93,7 +91,7 @@ export class OverlayPanelView {
 			},
 			icon('github')
 		);
-		const actions = h('div', { className: 'tm-panel__actions' }, supportLink, githubLink, this.moveHandleElement);
+		const actions = h('div', { className: 'tm-panel__actions' }, discordLink, githubLink, this.moveHandleElement);
 		if (options.onClose) {
 			const closeButton = createButton(
 				'tm-button tm-button--ghost tm-button--subtle tm-button--icon tm-panel__header-action',
@@ -105,13 +103,9 @@ export class OverlayPanelView {
 		}
 		const header = h('header', { className: 'tm-panel__header' }, title, actions);
 
-		this.selectButtonLabel = document.createTextNode('select media');
-		this.selectButton = createButton('tm-button tm-button--default tm-button--default-size tm-select-button');
-		this.selectButton.append(icon('mouse-pointer'), this.selectButtonLabel);
-		this.selectButton.addEventListener('click', () => {
-			if (!this.picking) options.onStartPicking();
-		});
 		this.overlayList = h('section', { className: 'tm-overlay-list' });
+		this.pickerMount = h('div', { className: 'tm-picker-mount' });
+		this.pickerMount.hidden = true;
 		this.notice = h('p', { className: 'tm-error', attributes: { role: 'alert' } });
 		this.notice.hidden = true;
 		this.scrollArea = new ScrollAreaView({
@@ -122,19 +116,8 @@ export class OverlayPanelView {
 		this.scrollArea.viewport.setAttribute('role', 'region');
 		this.scrollArea.viewport.setAttribute('aria-label', 'overlay settings');
 		this.scrollArea.viewport.tabIndex = -1;
-		this.scrollArea.content.append(this.notice, this.overlayList);
+		this.scrollArea.content.append(this.notice, this.overlayList, this.pickerMount);
 
-		this.removeButton = createButton(
-			'tm-button tm-button--danger tm-button--default-size tm-remove-button',
-			'remove overlay'
-		);
-		this.removeButton.append(icon('trash'));
-		this.removeButton.addEventListener('click', () => {
-			if (this.overlayId) {
-				options.onRemoveOverlay(this.overlayId);
-			}
-		});
-		const selectRow = h('div', { className: 'tm-select-row' }, this.selectButton, this.removeButton);
 		const ratingUrl = options.rateExtensionUrl === undefined ? defaultRateExtensionUrl : options.rateExtensionUrl;
 		const rateLink = ratingUrl
 			? h('a', {
@@ -169,7 +152,6 @@ export class OverlayPanelView {
 				dataset: { mode, scrollMode: 'tabs' },
 			},
 			header,
-			selectRow,
 			this.scrollArea.element,
 			footer
 		);
@@ -181,17 +163,20 @@ export class OverlayPanelView {
 		customFonts: readonly CustomFontSummary[] = this.options.customFonts ?? []
 	): void {
 		const overlay = overlays[0];
+		const activeElement = getRootActiveElement(this.element);
+		const returningFocusFromOverlay = Boolean(
+			!overlay && activeElement && this.overlayList.contains(activeElement)
+		);
 		this.overlayId = overlay?.id ?? null;
-		this.updateSelectButtonLabel();
-		const removingFocusedOverlay = !overlay && this.removeButton.matches(':focus');
-		this.removeButton.disabled = !overlay;
-		if (removingFocusedOverlay) this.selectButton.focus();
+		this.updateContentVisibility();
 
 		if (!overlay) {
 			this.overlayCard?.dispose();
 			this.overlayCard = null;
 			removeChildren(this.overlayList);
-			this.overlayList.append(h('p', { className: 'tm-empty-state', textContent: 'no media selected.' }));
+			if (this.options.mode !== 'in-page')
+				this.overlayList.append(h('p', { className: 'tm-empty-state', textContent: 'no media selected.' }));
+			if (returningFocusFromOverlay) this.focusPanel();
 			return;
 		}
 
@@ -204,6 +189,7 @@ export class OverlayPanelView {
 				allowCustomFontUpload: this.options.allowCustomFontUpload,
 				onUpdateOverlay: this.options.onUpdateOverlay,
 				onExportOverlay: this.options.onExportOverlay,
+				onRemoveOverlay: this.options.onRemoveOverlay,
 				onUploadFont: this.options.onUploadFont,
 				onRemoveCustomFont: this.options.onRemoveCustomFont,
 				onError: this.options.onError,
@@ -215,11 +201,22 @@ export class OverlayPanelView {
 		this.overlayCard.update(overlay, customFonts);
 	}
 
+	public focusPanel(): void {
+		this.scrollArea.viewport.focus({ preventScroll: true });
+	}
+
+	public isViewportFocused(): boolean {
+		return getRootActiveElement(this.element) === this.scrollArea.viewport;
+	}
+
+	public getPickerMount(): HTMLElement {
+		return this.pickerMount;
+	}
+
 	public setPicking(picking: boolean): void {
 		this.picking = picking;
-		this.selectButton.setAttribute('aria-pressed', String(picking));
-		this.selectButton.setAttribute('aria-disabled', String(picking));
-		this.updateSelectButtonLabel();
+		this.element.dataset.picking = String(picking);
+		this.updateContentVisibility();
 	}
 
 	public setNotice(message: string | undefined): void {
@@ -233,11 +230,15 @@ export class OverlayPanelView {
 		this.scrollArea.dispose();
 	}
 
-	private updateSelectButtonLabel(): void {
-		this.selectButtonLabel.textContent = this.picking
-			? 'selecting…'
-			: this.overlayId
-				? 'replace media'
-				: 'select media';
+	private updateContentVisibility(): void {
+		const showPicker = this.picking || (this.options.mode === 'in-page' && !this.overlayId);
+		this.overlayList.hidden = showPicker;
+		this.pickerMount.hidden = !showPicker;
 	}
+}
+
+function getRootActiveElement(element: HTMLElement): Element | null {
+	const root = element.getRootNode();
+	if (root instanceof Document || root instanceof ShadowRoot) return root.activeElement;
+	return element.ownerDocument.activeElement;
 }

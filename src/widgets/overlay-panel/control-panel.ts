@@ -8,7 +8,6 @@ import panelStyles from './popup.css?inline';
 export interface ControlPanelOptions {
 	headerFontUrl?: string | null;
 	allowCustomFontUpload?: boolean;
-	onStartPicking: () => void;
 	onUpdateOverlay: (id: string, settings: Partial<OverlaySettings>) => Promise<void> | void;
 	onExportOverlay: (id: string, format: OverlayExportFormat) => void;
 	onRemoveOverlay: (id: string) => void;
@@ -100,7 +99,6 @@ export class ControlPanel {
 			portalContainer: this.portalRoot,
 			mode: 'in-page',
 			allowCustomFontUpload: this.options.allowCustomFontUpload,
-			onStartPicking: this.options.onStartPicking,
 			onUpdateOverlay: this.options.onUpdateOverlay,
 			onExportOverlay: this.options.onExportOverlay,
 			onRemoveOverlay: this.options.onRemoveOverlay,
@@ -145,13 +143,27 @@ export class ControlPanel {
 		this.render();
 	}
 
+	public getPickerMount(): HTMLElement {
+		return this.view.getPickerMount();
+	}
+
+	public focusPanel(): void {
+		this.view.focusPanel();
+	}
+
+	public isViewportFocused(): boolean {
+		return this.view.isViewportFocused();
+	}
+
 	public updatePickingState(picking: boolean): void {
 		this.view.setPicking(picking);
 	}
 
 	public setNotice(message: string | undefined): void {
+		if (this.notice === message) return;
 		this.notice = message;
 		this.view.setNotice(message);
+		this.placementController.scheduleRender();
 	}
 
 	private render(): void {

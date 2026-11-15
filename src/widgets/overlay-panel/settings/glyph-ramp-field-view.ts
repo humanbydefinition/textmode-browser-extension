@@ -1,7 +1,7 @@
 import type { BundledFontId } from '../../../domain/overlay/overlay-settings';
 import { getAdjacentGlyphRampPreset, getGlyphRampPresetName } from '../../../domain/overlay/glyph-ramp-registry';
 import { h } from '../dom';
-import { icon } from '../icons';
+import { icon } from '../../../shared/ui/icons';
 import { createButton } from './form-controls';
 
 export interface GlyphRampFieldViewOptions {

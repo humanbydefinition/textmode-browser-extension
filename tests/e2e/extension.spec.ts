@@ -4,6 +4,7 @@ import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { chromium, expect, test, type Locator } from '@playwright/test';
+import { BUNDLED_FONTS } from '../../src/domain/fonts/font-metadata';
 
 declare global {
 	interface Window {
@@ -27,8 +28,12 @@ test('fixture page renders selectable media targets', async ({ page }) => {
 });
 
 test('bundled fonts load without extension URL reports on a restricted page', async () => {
+	test.setTimeout(60_000);
 	const extensionPath = resolve(import.meta.dirname, '../../.output/chrome-mv3-e2e');
 	test.skip(!existsSync(resolve(extensionPath, 'manifest.json')), 'Run npm run build:e2e:chrome before e2e.');
+	for (const font of BUNDLED_FONTS) {
+		expect(existsSync(resolve(extensionPath, font.assetPath)), font.id).toBe(false);
+	}
 	const server = await startFixtureServer('media-page.html', true);
 	const userDataDir = await mkdtemp(join(tmpdir(), 'textmode-font-e2e-'));
 	const context = await chromium.launchPersistentContext(userDataDir, {
@@ -68,8 +73,23 @@ test('bundled fonts load without extension URL reports on a restricted page', as
 		await expect(page.locator('.tm-picker-marker').first()).toBeVisible();
 		await page.locator('#demo-canvas').click({ position: { x: 24, y: 24 } });
 		await expect(page.locator('canvas[data-textmode-ascii-extension-ui="true"]')).toHaveCount(1);
-		await page.getByRole('button', { name: 'next font', exact: true }).click();
-		await page.getByRole('button', { name: 'previous font', exact: true }).click();
+		for (const font of [
+			'UNSCII 8',
+			'UNSCII 8 Alt',
+			'UNSCII 8 MCR',
+			'UNSCII 8 Thin',
+			'UNSCII 8 Fantasy',
+			'CPC464',
+			'DUNGEON.mode',
+			'Rook',
+			'UrsaFont',
+			'ATASCII',
+			'BESCII',
+		]) {
+			await page.getByRole('button', { name: 'next font', exact: true }).click();
+			await expect(page.getByRole('combobox')).toHaveText(font);
+			await expect(page.locator('.tm-error:visible')).toHaveCount(0);
+		}
 		await expect
 			.poll(() =>
 				page.evaluate(() =>
@@ -397,6 +417,22 @@ test('Chrome extension can select a canvas and create an overlay', async () => {
 		await page.getByRole('tab', { name: 'advanced' }).click();
 		await page.locator('[role="combobox"]').click();
 		await expect(page.getByText('atascii.ttf')).toBeVisible();
+		const customFont = page.locator('.tm-font-combobox__option--custom');
+		const customFontName = await customFont.locator('.tm-font-combobox__option-name').textContent();
+		await customFont.click();
+		await expect(page.getByRole('combobox')).toHaveText(customFontName!);
+		await expect(page.locator('.tm-error:visible')).toHaveCount(0);
+		await page.getByRole('combobox').click();
+		await page.locator('.tm-font-combobox__option-remove').click();
+		await expect
+			.poll(() =>
+				serviceWorker.evaluate(async () => {
+					const stored = await chrome.storage.local.get('custom-fonts:catalog:v1');
+					const catalog = stored['custom-fonts:catalog:v1'] as { fonts?: unknown[] } | undefined;
+					return catalog?.fonts?.length ?? 0;
+				})
+			)
+			.toBe(0);
 	} finally {
 		await context.close();
 		await rm(userDataDir, { recursive: true, force: true });
